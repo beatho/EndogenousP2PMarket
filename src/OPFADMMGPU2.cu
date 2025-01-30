@@ -571,7 +571,7 @@ void OPFADMMGPU2::init(const Simparam& sim, const StudyCase& cas)
 		MatrixCPU tempMMbis(sizeA, sizeA);
 
 		temp33.multiplyTrans(&A, &A);
-		temp33.invertEigen(&temp33);
+		temp33.invertGaussJordan(&temp33);
 		temp3M.MultiplyMatMat(&temp33, &A);
 		tempMM.multiplyTrans(&A, &temp3M, 0);
 

@@ -3,6 +3,7 @@
 #include "MatrixCPU.h"
 #include "MatrixGPU.cuh"
 #include "Simparam.h"
+#include "Utilities.h"
 //#include "kernelFunction.cuh"
 
 
@@ -43,7 +44,7 @@ protected:
 	float _ratioEps = 1;
 	MatrixCPU timePerBlock; // Fb0, Fb1abc, Fb2, Fb3abc, Fb4, Fb5, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	MatrixCPU occurencePerBlock; //nb de fois utilisé pendant la simu
+	MatrixCPU occurencePerBlock; //nb de fois utilisï¿½ pendant la simu
 
 };
 

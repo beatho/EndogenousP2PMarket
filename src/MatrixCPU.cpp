@@ -281,16 +281,6 @@ void MatrixCPU::setTrans(MatrixCPU* m)
         }
     }
 }
-
-void MatrixCPU::set(Eigen::MatrixXd* eigenMatrix)
-{
-    for (int i = 0; i < _row; i++) {
-        for (int j = 0; j < _column; j++) {
-             set(i, j, (*eigenMatrix)(i, j));
-        }
-    }
-}
-
 void MatrixCPU::setBloc(int iBegin, int iEnd, int jBegin, int jEnd, MatrixCPU* m)
 {
     if ((iBegin < 0) || (jBegin < 0) || iEnd > _row || jEnd > _column) {
@@ -388,7 +378,7 @@ void MatrixCPU::setRand1(float eps)
 
 }
 
-void MatrixCPU::setFromFile(std::string filename, int entete) // aucune sécurité, l'utilisateur doit vérifier d'utiliser le bon fichier avec le bon nombre d'entrée...
+void MatrixCPU::setFromFile(std::string filename, int entete) // aucune sï¿½curitï¿½, l'utilisateur doit vï¿½rifier d'utiliser le bon fichier avec le bon nombre d'entrï¿½e...
 {
     std::ifstream myfile(filename, std::ios::in);
     //std::cout << filename << std::endl;
@@ -769,7 +759,7 @@ void MatrixCPU::multiply(float c)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Multiplication Terme à Terme
+// Multiplication Terme ï¿½ Terme
 ///////////////////////////////////////////////////////////////////////////////
 
 void MatrixCPU::multiplyT(MatrixCPU* m)
@@ -964,20 +954,7 @@ void MatrixCPU::invertGaussJordan(MatrixCPU* mToInvert)
     
     set(&augmented);
 }
-void MatrixCPU::invertEigen(MatrixCPU* mToInvert)
-{
-    if (!dim(mToInvert)) {
-        throw std::invalid_argument("not the same dimension (invertEigen)");
-    }
-    if (_row != _column) {
-        throw std::invalid_argument("must be a square matrix (invertEigen)");
-    }
 
-    Eigen::MatrixXd eigenMat(_row, _column);
-    mToInvert->toEigenMatrix(&eigenMat);
-    eigenMat = eigenMat.inverse();
-    set(&eigenMat);
-}
 
 void MatrixCPU::LDLFactorization(MatrixCPU* L, MatrixCPU* D)
 {
@@ -998,7 +975,7 @@ void MatrixCPU::LDLFactorization(MatrixCPU* L, MatrixCPU* D)
         // L1 : k - 1, 1 : k - 1 y = A1 : k - 1, k pour trouver y1 : k - 1
         // L k, 1 : k - 1 = (D - 11 :k - 1, 1 : k - 1 y1 : k - 1)T pour trouver L k, 1 : k - 1
         // lkk = 1
-        //dkk = akk – Lk, 1 : k - 1 y1 : k - 1
+        //dkk = akk ï¿½ Lk, 1 : k - 1 y1 : k - 1
         //dkk - 1 = 1 / dkk
     }
 
@@ -1157,18 +1134,7 @@ void MatrixCPU::solveSys(MatrixCPU* A, MatrixCPU* P, MatrixCPU* b)
 
 }
 
-void MatrixCPU::solveSysEigen(MatrixCPU* M, MatrixCPU* b)
-{
-    Eigen::MatrixXd eigenM(M->getNLin(), M->getNCol());
-    M->toEigenMatrix(&eigenM);
-    Eigen::MatrixXd eigenb(b->getNLin(), 1);
-    b->toEigenMatrix(&eigenb);
-   
 
-    Eigen::MatrixXd x = (eigenM.partialPivLu()).solve(eigenb);
-    
-    set(&x);
-}
 
 
 
@@ -1871,76 +1837,8 @@ void MatrixCPU::RelativeEror(MatrixCPU* MatRef, MatrixCPU* Mat)
 ///////////////////////////////////////////////////////////////////////////////
 
 
-c_float* MatrixCPU::toCFloat()
-{
-    c_float* m = new c_float[_row * _column];
-
-    for (int i = 0; i < _row * _column; i++) {
-        m[i] = _matrixCPU[i];
-    }
-
-    return m;
-}
 
 
-
-c_int MatrixCPU::toCSC(c_float* data, c_int* idx, c_int* ptr)
-{
-    int N = getNNull();
-    int indiceData = 0;
- 
-    int indiceCol = 0;
-    // cas particulier où la/les première colonnes sont nulles ????
-    
-    for (int j = 0; j < _column;j++) {
-        ptr[j] = indiceCol;
-        for (int i = 0; i < _row; i++) {
-            if (fabs(get(i, j)) > 0.000000001) {
-                data[indiceData] = get(i, j);
-                idx[indiceData] =  i;
-                indiceData++;
-                indiceCol++;
-            }
-        }
-    }
-    ptr[_column] = N;
-    return (c_int) N;
-}
-
-c_int MatrixCPU::toCSCHalf(c_float* data, c_int* idx, c_int* ptr)
-{
-    if (_column != _row) {
-        throw std::invalid_argument("the matrix must be square (toCSCHalf)");
-    }
-    int N = getNNullHalf();
-
-    int indiceData = 0;
-    int indiceCol = 0;
-    
-
-    for (int j = 0; j < _column;j++) {
-        ptr[j] = indiceCol;
-        for (int i = 0; i <= j;i++) {
-            if (fabs(get(i, j)) > 0.000000001) {
-                data[indiceData] = get(i, j);
-                idx[indiceData] =  i;
-                indiceData++;
-                indiceCol++;
-            }
-        }
-    }
-    ptr[_column] = N;
-    return  N;
-}
-
-void MatrixCPU::toEigenMatrix(Eigen::MatrixXd* eigenMatrix)
-{
-    for (int i = 0; i < _row; i++) {
-        for (int j = 0; j < _column; j++) {
-            (*eigenMatrix)(i, j) = get(i, j);
-        }
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Display MatrixCPU contents
@@ -2140,4 +2038,122 @@ MatrixCPU::~MatrixCPU()
     
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Eigen
+///////////////////////////////////////////////////////////////////////////////
 
+#ifdef EIGEN
+    void MatrixCPU::set(Eigen::MatrixXd* eigenMatrix)
+    {
+        for (int i = 0; i < _row; i++) {
+            for (int j = 0; j < _column; j++) {
+                set(i, j, (*eigenMatrix)(i, j));
+            }
+        }
+    }
+    void MatrixCPU::invertEigen(MatrixCPU* mToInvert)
+{
+    if (!dim(mToInvert)) {
+        throw std::invalid_argument("not the same dimension (invertEigen)");
+    }
+    if (_row != _column) {
+        throw std::invalid_argument("must be a square matrix (invertEigen)");
+    }
+
+    Eigen::MatrixXd eigenMat(_row, _column);
+    mToInvert->toEigenMatrix(&eigenMat);
+    eigenMat = eigenMat.inverse();
+    set(&eigenMat);
+}
+void MatrixCPU::solveSysEigen(MatrixCPU* M, MatrixCPU* b)
+{
+    Eigen::MatrixXd eigenM(M->getNLin(), M->getNCol());
+    M->toEigenMatrix(&eigenM);
+    Eigen::MatrixXd eigenb(b->getNLin(), 1);
+    b->toEigenMatrix(&eigenb);
+   
+
+    Eigen::MatrixXd x = (eigenM.partialPivLu()).solve(eigenb);
+    
+    set(&x);
+}
+void MatrixCPU::toEigenMatrix(Eigen::MatrixXd* eigenMatrix){
+    for (int i = 0; i < _row; i++) {
+        for (int j = 0; j < _column; j++) {
+            (*eigenMatrix)(i, j) = get(i, j);
+        }
+    }
+}
+
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// OSQP
+///////////////////////////////////////////////////////////////////////////////
+
+#ifdef OSQP
+    c_float* MatrixCPU::toCFloat()
+{
+    c_float* m = new c_float[_row * _column];
+
+    for (int i = 0; i < _row * _column; i++) {
+        m[i] = _matrixCPU[i];
+    }
+
+    return m;
+}
+
+
+
+c_int MatrixCPU::toCSC(c_float* data, c_int* idx, c_int* ptr)
+{
+    int N = getNNull();
+    int indiceData = 0;
+ 
+    int indiceCol = 0;
+    // cas particulier oï¿½ la/les premiï¿½re colonnes sont nulles ????
+    
+    for (int j = 0; j < _column;j++) {
+        ptr[j] = indiceCol;
+        for (int i = 0; i < _row; i++) {
+            if (fabs(get(i, j)) > 0.000000001) {
+                data[indiceData] = get(i, j);
+                idx[indiceData] =  i;
+                indiceData++;
+                indiceCol++;
+            }
+        }
+    }
+    ptr[_column] = N;
+    return (c_int) N;
+}
+
+c_int MatrixCPU::toCSCHalf(c_float* data, c_int* idx, c_int* ptr)
+{
+    if (_column != _row) {
+        throw std::invalid_argument("the matrix must be square (toCSCHalf)");
+    }
+    int N = getNNullHalf();
+
+    int indiceData = 0;
+    int indiceCol = 0;
+    
+
+    for (int j = 0; j < _column;j++) {
+        ptr[j] = indiceCol;
+        for (int i = 0; i <= j;i++) {
+            if (fabs(get(i, j)) > 0.000000001) {
+                data[indiceData] = get(i, j);
+                idx[indiceData] =  i;
+                indiceData++;
+                indiceCol++;
+            }
+        }
+    }
+    ptr[_column] = N;
+    return  N;
+}
+
+
+#endif

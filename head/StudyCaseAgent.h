@@ -6,7 +6,6 @@
 #include <time.h>       /* time */
 #include "Agent.h"
 #include "MatrixCPU.h"
-#include "MatrixGPU.cuh"
 #include "MatrixCPUD.h"
 #include <math.h>
 #include <iostream>

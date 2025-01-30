@@ -10,17 +10,23 @@
 #include "MatrixGPUD.cuh"
 #include "StudyCase.h"
 #include "Simparam.h"
+#include "System.cuh"
 #include "System.h"
 
 //Market
 #include "ADMMMarket.h"
 #include "ADMMMarketOpenMP.h"
-#include "OSQP.h" 
+#ifdef OSQP
+    #include "OSQP.h" 
+    #include "OSQPCentralized2.h"
+    #include <osqp.h>
+#endif
+
 #include "PAC.h" 
 #include "PACOpenMP.h" 
 #include "PACGPU.cuh"
 #include "ADMMMarketGPU.cuh"
-#include "OSQPCentralized2.h"
+
 
 //PF
 #include "CPUPF.h"
@@ -52,7 +58,10 @@
 #include <iostream>
 #include <time.h>
 #include <cuda_runtime.h>
-#include <osqp.h>
+#include <algorithm>
+#include <iterator>
+#include <random>
+#include <vector>
 #include <cudaProfiler.h>
 
 
@@ -146,7 +155,7 @@ int getNFileline(std::string nameFile);
 std::string generateDate(int year, int month, int day, int hour);
 
 /*
-On ne peut inclure qu'un seul osqp à la fois, (car même nom)
+On ne peut inclure qu'un seul osqp ï¿½ la fois, (car mï¿½me nom)
 C:\Program Files \OSQP\osqp\include\osqp
 
 

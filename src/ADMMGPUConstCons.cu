@@ -1,3 +1,4 @@
+#ifdef OSQP
 #include "../head/ADMMGPUConstCons.cuh"
 
 ADMMGPUConstCons::ADMMGPUConstCons() : MethodP2P()
@@ -9,7 +10,7 @@ ADMMGPUConstCons::ADMMGPUConstCons() : MethodP2P()
 }
 /// <summary>
 ///  TOOOOOOOOOOOO  DOOOOOOOOOOOOOOOOOOOOOOOOOOO    bp3 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-/// et ne pas faire l'opf lorsqu'il n'y a pas de contraintes de réseaux !!!!!!!!!!!!!!!!!!!
+/// et ne pas faire l'opf lorsqu'il n'y a pas de contraintes de rï¿½seaux !!!!!!!!!!!!!!!!!!!
 /// </summary>
 /// <param name="rho"></param>
 
@@ -92,8 +93,8 @@ void ADMMGPUConstCons::init(const Simparam& sim, const StudyCase& cas)
 	LAMBDA = sim.getLambda();
 	trade = sim.getTrade();
 	
-	//std::cout << "mise sous forme linéaire" << std::endl;
-	// Rem : si matrice déjà existante, elles sont déjà sur GPU donc bug pour les get
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
+	// Rem : si matrice dï¿½jï¿½ existante, elles sont dï¿½jï¿½ sur GPU donc bug pour les get
 
 	CoresMatLin = MatrixGPU(_nAgent, _nAgent, -1);
 	CoresLinAgent = MatrixGPU(_nTrade, 1);
@@ -244,9 +245,9 @@ void ADMMGPUConstCons::init(const Simparam& sim, const StudyCase& cas)
 	
 	etaP = MatrixGPU(_nAgent, 1, 0, 1); 
 
-	//std::cout << "autres donnée sur GPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur GPU" << std::endl;
 	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	tempL1 = MatrixGPU(_nLine, 1, 0, 1);
 	tempL2 = MatrixGPU(_nLine, 1, 0, 1);
 	//MatrixGPU temp1N(1, _nAgent, 0, 1);
@@ -572,8 +573,8 @@ void ADMMGPUConstCons::updateLocalProbGPU(float epsL, int nIterL) {
 
 void ADMMGPUConstCons::updateGlobalProbGPU()
 {
-	//Rem : tout calcul qui est de taille N ou M peut être fait par les agents
-		// Si le calcul est de taile L, soit c'est calculé par un/des superviseurs, soit tous les agents le calcul (un peu absurde)
+	//Rem : tout calcul qui est de taille N ou M peut ï¿½tre fait par les agents
+		// Si le calcul est de taile L, soit c'est calculï¿½ par un/des superviseurs, soit tous les agents le calcul (un peu absurde)
 
 #ifdef INSTRUMENTATION
 // FB 3a
@@ -661,182 +662,7 @@ void ADMMGPUConstCons::display() {
 	std::cout << _name << std::endl;
 }
 
-/*
-
-template <unsigned int blockSize>
-__global__ void updateTradePGPUSharedResidualCons(float* Tlocal, float* Tlocal_pre, float* Tmoy, float* P, float* MU, float* nVoisin, float at1, float at2, float* Bt1, float* Ct,
-	float* matLb, float* matUb, float* Ap1, float* Ap3, float* Ap123, float* Bp3, float* Cp, float* Pmin, float* Pmax, float* CoresAgentLin, float eps, int nStepL) {
-
-	//Definition de toutes les variables locales
-	int i = blockIdx.x; // c'est aussi l'identifiant de l'agent !
-	unsigned int thIdx = threadIdx.x;
-	const int step = blockSize;
-	// ne change pas
-
-
-	float Bt1local[NMAXPEERPERTRHREAD];
-	float Ctlocal[NMAXPEERPERTRHREAD];
-	float matUblocal[NMAXPEERPERTRHREAD];
-	float matLblocal[NMAXPEERPERTRHREAD];
-
-	float Tlocallocal[NMAXPEERPERTRHREAD]; // change
-	float Tlocalprelocal[NMAXPEERPERTRHREAD]; // change
-	float sum;
-	float bp, MULOCAL, moy, p;
-	float m, r, ub, lb, t;
-	// le changement doit être partagé par tous les threads du bloc
-
-	__shared__ float MuShared;
-	__shared__ float TMoyShared;
-	__shared__ float PShared;
-
-
-	// constant et commun à tous les thread d'un bloc
-	__shared__ float Ap1Shared;
-	__shared__ float Ap3Shared;
-	__shared__ float Bp3Shared;
-	__shared__ float CpShared;
-	__shared__ float Ap123Shared;
-	__shared__ float PmaxShared;
-	__shared__ float PminShared;
-	__shared__ float nVoisinShared;
-	__shared__ float at1Shared;
-	__shared__ float at2Shared;
-	__shared__ float at12Shared;
-	__shared__ bool mustContinue;
-
-
-	if (thIdx == 0) {
-		Ap1Shared = Ap1[i];
-		CpShared = Cp[i];
-		Ap3Shared = Ap3[i];
-		Bp3Shared = Bp3[i];
-		Ap123Shared = Ap123[i];
-		PmaxShared = Pmax[i];
-		PminShared = Pmin[i];
-		nVoisinShared = nVoisin[i];
-		at1Shared = at1;
-		at2Shared = at2;
-		at12Shared = at1 + at2;
-		MuShared = MU[i];
-		TMoyShared = Tmoy[i];
-		PShared = P[i];
-		mustContinue = false;
-	}
-	int k = 0;
-	__syncthreads();
-	const int CoresAgentLinLocal = CoresAgentLin[i];
-	const int beginLocal = CoresAgentLinLocal + thIdx;
-	const int endLocal = CoresAgentLinLocal + nVoisinShared;
-	float res;
-	for (int j = beginLocal; j < endLocal; j += step) {
-		Bt1local[k] = Bt1[j];
-		Ctlocal[k] = Ct[j];
-		matUblocal[k] = matUb[j];
-		matLblocal[k] = matLb[j];
-		//Tlocalprelocal[k] = Tlocal_pre[j];
-		Tlocallocal[k] = Tlocal_pre[j];
-		k = k + 1;
-	}
-
-	__shared__ float shArr[blockSize];
-
-	//Calcul des itérations
-
-	for (int iter = 0; iter < nStepL; iter++) {
-
-		MULOCAL = MuShared; // tous lisent le même : broadcast !
-		moy = TMoyShared;
-		p = PShared;
-		sum = 0;
-		k = 0;
-		for (int j = beginLocal; j < endLocal; j += step) {
-			Tlocalprelocal[k] = Tlocallocal[k];
-			m = Tlocallocal[k] - moy + p - MULOCAL;
-			r = (Bt1local[k] * at1Shared + m * at2Shared - Ctlocal[k]) / (at12Shared);
-			ub = matUblocal[k];
-			lb = matLblocal[k];
-			t = (ub - r) * (r > ub) + (lb - r) * (r < lb) + r;
-			Tlocallocal[k] = t;
-			sum += t;
-			res = (t - Tlocalprelocal[k]);
-			res = (double)res * res;
-			if (res > eps) {
-				mustContinue = true; // pas de race condition, car l'ordre n'importe pas,
-				//mais est ce que cela ne va pas physiquement bloquer ?
-			}
-			k = k + 1;
-		}
-
-		shArr[thIdx] = sum;
-		__syncthreads();
-		if (blockSize >= 512) { if (thIdx < 256) { shArr[thIdx] += shArr[thIdx + 256]; } __syncthreads(); }
-		if (blockSize >= 256) { if (thIdx < 128) { shArr[thIdx] += shArr[thIdx + 128]; } __syncthreads(); }
-		if (blockSize >= 128) { if (thIdx < 64) { shArr[thIdx] += shArr[thIdx + 64]; } __syncthreads(); }
-		if (thIdx < 32) {
-			warpReduce<blockSize>(shArr, thIdx);
-		}
-		__syncthreads();
-
-		if (thIdx == 0) {
-			moy = shArr[0] / nVoisinShared;
-			TMoyShared = moy;
-			bp = moy + MuShared;
-			p = (Ap1Shared * bp + Ap3Shared * Bp3Shared - CpShared) / Ap123Shared;
-			p = (PmaxShared - p) * (p > PmaxShared) + (PminShared - p) * (p < PminShared) + p;
-			PShared = p;
-			res = p - moy;
-			res = (double)res * res;
-			if (res > eps) {
-				mustContinue = true;
-			}
-			MuShared = MULOCAL + moy - p;
-		}
-		__syncthreads();
-		if (!mustContinue) {
-			break;
-		}
-		else {
-			__syncthreads();
-			if (thIdx == 0) {
-				mustContinue = false;
-			}
-		}
-	}
-	//Ecriture des itérations
-	__syncthreads();
-	k = 0;
-	for (int j = beginLocal; j < endLocal; j += step) {
-		Tlocal[j] = Tlocallocal[k];
-		Tlocal_pre[j] = Tlocalprelocal[k];
-		k = k + 1;
-	}
-	if (thIdx == 0) {
-		Tmoy[blockIdx.x] = TMoyShared;// TMoyShared;
-		P[blockIdx.x] = PShared;// PShared;
-		MU[blockIdx.x] = MuShared;// MuShared;
-	}
-
-}
-
-
-
-
-
-
-
-
-*/
-
-
-
-
-
-
-
-
-
-
+#endif
 
 
 

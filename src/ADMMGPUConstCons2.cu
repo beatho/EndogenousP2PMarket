@@ -88,8 +88,8 @@ void ADMMGPUConstCons2::init(const Simparam& sim, const StudyCase& cas)
 	LAMBDA = sim.getLambda();
 	trade = sim.getTrade();
 	
-	//std::cout << "mise sous forme linéaire" << std::endl;
-	// Rem : si matrice déjà existante, elles sont déjà sur GPU donc bug pour les get
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
+	// Rem : si matrice dï¿½jï¿½ existante, elles sont dï¿½jï¿½ sur GPU donc bug pour les get
 
 	CoresMatLin = MatrixGPU(_nAgent, _nAgent, -1);
 	CoresLinAgent = MatrixGPU(_nTrade, 1);
@@ -156,7 +156,7 @@ void ADMMGPUConstCons2::init(const Simparam& sim, const StudyCase& cas)
 		H.setEyes(_rho1);
 		q = MatrixGPU(_nAgent, 1, 0); // 0.5x^THx + q^T*x
 
-		c = MatrixGPU(L2 + 1, 1, 0); // contrainte Ax+b>0 ou = 0 pour egalité
+		c = MatrixGPU(L2 + 1, 1, 0); // contrainte Ax+b>0 ou = 0 pour egalitï¿½
 		Ai = MatrixGPU(L2 + 1, _nAgent, 0);
 		MatrixGPU ones(1, _nAgent, 1);
 		MatrixGPU temp(cas.getPowerSensi());
@@ -200,9 +200,9 @@ void ADMMGPUConstCons2::init(const Simparam& sim, const StudyCase& cas)
 	
 	etaP = MatrixGPU(_nAgent, 1, 0, 1); 
 
-	//std::cout << "autres donnée sur GPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur GPU" << std::endl;
 	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	tempL1 = MatrixGPU(_nLine, 1, 0, 1);
 	tempL2 = MatrixGPU(_nLine, 1, 0, 1);
 	//MatrixGPU temp1N(1, _nAgent, 0, 1);
@@ -633,8 +633,8 @@ void ADMMGPUConstCons2::updateLocalProbGPU(float epsL, int nIterL) {
 
 void ADMMGPUConstCons2::updateGlobalProbGPU()
 {
-	//Rem : tout calcul qui est de taille N ou M peut être fait par les agents
-		// Si le calcul est de taile L, soit c'est calculé par un/des superviseurs, soit tous les agents le calcul (un peu absurde)
+	//Rem : tout calcul qui est de taille N ou M peut ï¿½tre fait par les agents
+		// Si le calcul est de taile L, soit c'est calculï¿½ par un/des superviseurs, soit tous les agents le calcul (un peu absurde)
 
 #ifdef INSTRUMENTATION
 // FB 3a

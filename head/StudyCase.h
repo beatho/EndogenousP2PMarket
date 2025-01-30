@@ -6,7 +6,7 @@
 #include <time.h>       /* time */
 
 #include "MatrixCPU.h"
-#include "MatrixGPU.cuh"
+
 #include "MatrixCPUD.h"
 #include <math.h>
 #include <iostream>
@@ -15,7 +15,7 @@
 #include "StudyCaseDCGrid.h"
 #include "StudyCaseACGrid.h"
 
-// rajouter securité pour que les Sbases soit les mêmes, et que les réseaux DC utilise un marché DC (et inversement)
+// rajouter securitï¿½ pour que les Sbases soit les mï¿½mes, et que les rï¿½seaux DC utilise un marchï¿½ DC (et inversement)
 // refaire les simulations sans le alreadyDefined pour refaire les matrices
 // generation europe il faut remettre le caclul de power Sensi dans le linkage 
 // genBetaDistanceZone

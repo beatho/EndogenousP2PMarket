@@ -1,51 +1,27 @@
 #pragma once
 
-#include "StudyCase.h"
 #include "Simparam.h"
+#include "StudyCase.h"
 
 
-
-
-/* interface*/
-#include "MethodP2P.cuh"
-#include "Method.h"
-#include "MethodOPF.h"
-
-/* Market */
-#include "PAC.h"
 
 
 /* Market endogene DC*/
-#include "ADMMConst.h"
-#include "ADMMConst1.h"
-#include "OSQPConst.h"
-#include "PACConst.h"
 
-#include "ADMMGPUConst1.cuh"
-#include "ADMMGPUConst1T.cuh"
-#include "ADMMGPUConst2.cuh"
-#include "ADMMGPUConst3.cuh"
-#include "ADMMGPUConst4.cuh"
-#include "ADMMGPUConst5.cuh"
+#include "MethodOPF.h"
 
-#include "ADMMGPUConstCons.cuh"
-#include "ADMMGPUConstCons2.cuh"
-#include "ADMMGPUConstCons3.cuh"
 
 
 /* OPF */
 #include "OPFADMM.h"
-#include "OPFADMMGPU.cuh"
 #include "OPFADMM2.h"
-#include "OPFADMMGPU2.cuh"
-#include "OPFPDIPM.h"
-
 
 
 /* Other*/
 #include "ADMMACConst1.h"
-#include "DCOPFOSQP.h"
-
+#ifdef OSQP
+	#include "DCOPFOSQP.h"
+#endif
 
 
 #include <iostream>
@@ -85,7 +61,7 @@ public:
 	void solveIntervalle(std::string path, std::string name, MatrixCPU* interval);
 	void solveIntervalle(std::string path, int begin, int end, int chosenAgentGen);
 	void UpdateP0();
-	void resetMethod(); // permet de forcer l'initialisation, même si ce n'est pas la première itération
+	void resetMethod(); // permet de forcer l'initialisation, mï¿½me si ce n'est pas la premiï¿½re itï¿½ration
 	void resetParam();
 	void removeLink(int i, int j);
 	void addLink(int i, int j);
@@ -94,7 +70,7 @@ public:
 	void setBestRho(float rhoMax = 0, bool rhoVar = 0, float rhoTest = 0);
 
 
-	// mettre tous les set permettant de modifier les paramètres...
+	// mettre tous les set permettant de modifier les paramï¿½tres...
 	void setStudyCase(const StudyCase& cas);
 	void setSimparam(const Simparam& param);
 	void setMethod(std::string nameMethode);

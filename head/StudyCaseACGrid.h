@@ -6,16 +6,16 @@
 #include <time.h>       /* time */
 
 #include "MatrixCPU.h"
-#include "MatrixGPU.cuh"
 #include "MatrixCPUD.h"
 #include <math.h>
 #include <iostream>
 #include <vector>
 #include "StudyCaseDCGrid.h"
+#include "Utilities.h"
 
 
-// ne gère plus les zones dans setACfile
-// displayLineCores doit être modifier pour montrer toutes les contraintes
+// ne gï¿½re plus les zones dans setACfile
+// displayLineCores doit ï¿½tre modifier pour montrer toutes les contraintes
 
 #define DELETEB(x) if (x!=nullptr) {delete x; x = nullptr;}
 #define DELETEA(x) if (x!=nullptr) {delete[] x; x = nullptr;}

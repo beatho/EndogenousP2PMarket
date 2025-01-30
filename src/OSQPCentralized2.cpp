@@ -1,3 +1,5 @@
+
+#ifdef OSQP
 #include "../head/OSQPCentralized2.h"
 
 
@@ -8,10 +10,10 @@ OSQPCentralized2::OSQPCentralized2() : Method()
 #endif // DEBUG_CONSTRUCTOR
 	_alpha = 1;
 	_name = NAME;
-	//def comme P2P même si cela n'en est pas
+	//def comme P2P mï¿½me si cela n'en est pas
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1abcd, Fb2, Fb3, Fb5, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 
@@ -185,7 +187,7 @@ void OSQPCentralized2::init(const Simparam& sim, const StudyCase& cas)
 	else {
 		_nTradeP = _nTrade;
 	}
-	nConstraint = _nTrade / 2 + _nTrade + _nAgent; // asymétrie, limite des trades limites des puissances
+	nConstraint = _nTrade / 2 + _nTrade + _nAgent; // asymï¿½trie, limite des trades limites des puissances
 	GAMMALin = MatrixCPU(_nTradeP, 1);
 
 	trade = sim.getTrade();
@@ -215,7 +217,7 @@ void OSQPCentralized2::init(const Simparam& sim, const StudyCase& cas)
 		settings->verbose = 0;
 		settings->max_iter = iterG;
 		//settings->linsys_solver = QDLDL_SOLVER;
-		// Cette méthode ne marche pas settings->linsys_solver = MKL_PARDISO_SOLVER; // MKL_PARDISO_SOLVER, QDLDL_SOLVER, CUDA_PCG_SOLVER
+		// Cette mï¿½thode ne marche pas settings->linsys_solver = MKL_PARDISO_SOLVER; // MKL_PARDISO_SOLVER, QDLDL_SOLVER, CUDA_PCG_SOLVER
 	}
 
 	
@@ -334,7 +336,7 @@ void OSQPCentralized2::init(const Simparam& sim, const StudyCase& cas)
 		indData++;
 		
 		
-		if (k > lin) { // antisymétrie
+		if (k > lin) { // antisymï¿½trie
 			//std::cout << indice << std::endl;
 			l[indice] = (c_float) 0;
 			u[indice] = (c_float) 0;
@@ -485,7 +487,7 @@ void OSQPCentralized2::updateP0(const StudyCase& cas)
 	MatrixCPU b(cas.getb());
 
 	int indice = 0;
-	for (int agent = 0; agent < nCons; agent++) { // mise à jour des consommateurs
+	for (int agent = 0; agent < nCons; agent++) { // mise ï¿½ jour des consommateurs
 		int m = nVoisin.get(agent, 0);
 		for (int peer = 0; peer < m; peer++) {
 			Q[indice] = b.get(agent, 0) + GAMMALin.get(indice, 0);
@@ -496,7 +498,7 @@ void OSQPCentralized2::updateP0(const StudyCase& cas)
 		u[_nTradeP + agent] = Pmax.get(agent, 0);
 	}
 	indice += _nAgentTrue;
-	for (int agent = _nAgentTrue; agent < _nAgent; agent++) { // mise à jour des puissances réactives
+	for (int agent = _nAgentTrue; agent < _nAgent; agent++) { // mise ï¿½ jour des puissances rï¿½actives
 		int m = _nAgentTrue - 1;
 		for (int peer = 0; peer < m; peer++) {
 			Q[indice] = b.get(agent, 0);
@@ -527,3 +529,6 @@ void OSQPCentralized2::display() {
 
 	std::cout << _name << std::endl;
 }
+
+
+#endif

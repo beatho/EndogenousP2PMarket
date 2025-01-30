@@ -1,11 +1,13 @@
 #pragma once
+#ifdef OSQP
 #include "MethodP2P.cuh"
 #include "MatrixGPU.cuh"
 #include "MatrixCPU.h"
 #include "kernelFunction.cuh"
 
 //#include "C:\Program Files\OSQP\osqp\include\osqp.h"
-#include <osqp.h>
+
+	#include <osqp.h>
 
 #include <iostream>
 #include <string>
@@ -13,8 +15,8 @@
 #include <chrono>
 
 /// <summary>
-/// But : utiliser une autre méthode pour gérer les contraintes : avoir un SO qui résoud un DC-OPF pour respecter les contraintes
-/// Change : Init car pas même problème local, et Fb3a et b (bref la partie réseau)
+/// But : utiliser une autre mï¿½thode pour gï¿½rer les contraintes : avoir un SO qui rï¿½soud un DC-OPF pour respecter les contraintes
+/// Change : Init car pas mï¿½me problï¿½me local, et Fb3a et b (bref la partie rï¿½seau)
 /// Ici la resolution se fait avec un OSQP (CPU)
 /// </summary>
 class ADMMGPUConstCons : public MethodP2P
@@ -57,7 +59,7 @@ private:
 	float _at2 = 0;
 
 	MatrixGPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempN1; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixGPU tempN1; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	MatrixGPU tempL1;
 	MatrixGPU tempL2; // il faut deux vecteurs de taille L
 	
@@ -123,7 +125,7 @@ private:
 	c_float* Q = nullptr;
 	c_float* xResult = nullptr;
 
-	// Pour le réseau
+	// Pour le rï¿½seau
 	int _nLine;
 	int _nBus;
 	float _rho1;
@@ -139,4 +141,5 @@ template <unsigned int blockSize>
 __global__ void maxMonoBlock5(float* g_idata, float* g_odata, unsigned int n, unsigned int id);*/
 
 
+#endif
 

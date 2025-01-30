@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef OSQP
 
 #include "MatrixCPU.h"
 #include "Simparam.h"
@@ -14,8 +15,8 @@
 #include <chrono>
 
 /// <summary>
-/// But : Ici juste faire un DC-OPf, pas de problème de trade on travaille qu'avec les trade 
-/// Change : resolution centralisée avec un OSQP
+/// But : Ici juste faire un DC-OPf, pas de problï¿½me de trade on travaille qu'avec les trade 
+/// Change : resolution centralisï¿½e avec un OSQP
 /// </summary>
 /// 
 class DCOPFOSQP : public Method 
@@ -73,7 +74,7 @@ private:
 
 	int nConst =0;
 
-	// Pour le réseau
+	// Pour le rï¿½seau
 	int _nLine=0;
 	int _nBus=0;
 
@@ -82,6 +83,7 @@ private:
 
 };
 
+#endif
 
 
 

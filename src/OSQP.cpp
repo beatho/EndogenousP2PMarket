@@ -1,3 +1,4 @@
+#ifdef OSQP
 #include "../head/OSQP.h"
 #define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
 
@@ -242,7 +243,7 @@ void OSQP::updateTrade(c_float* xResult, int agent) {
 
 void OSQP::init(const Simparam& sim, const StudyCase& cas)
 {
-	// détruire avant de créer pour éviter les fuites mémoires
+	// dï¿½truire avant de crï¿½er pour ï¿½viter les fuites mï¿½moires
 	if (settings) {
 		for (int agent = 0; agent < _nAgent; agent++) {
 			if (work[agent]) {
@@ -497,7 +498,7 @@ void OSQP::updateP0(const StudyCase& cas)
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	std::cout << "pas à jour si puissance réactive" << std::endl;
+	std::cout << "pas ï¿½ jour si puissance rï¿½active" << std::endl;
 	// change  : ub, Pmin, Pmax, b pour les consomateurs
 	c_int exitflag = 0;
 	MatrixCPU Pmin(cas.getPmin());
@@ -518,7 +519,7 @@ void OSQP::updateP0(const StudyCase& cas)
 		MatrixCPU omega = cas.getVoisin(agent);
 
 		for (int m = 0; m < n; m++) {
-			// Q automatiquement mis à jour dans solve
+			// Q automatiquement mis ï¿½ jour dans solve
 			// int voisin = omega.get(m, 0);
 			// c_float q = (c_float)(b.get(agent, 0) + GAMMA.get(agent, voisin) + LAMBDA.get(agent, voisin) - rho * (trade.get(agent, voisin) - trade.get(voisin, agent)) / 2);
 			// Q[m] = q;
@@ -608,3 +609,4 @@ void OSQP::display() {
 
 	std::cout << _name << std::endl;
 }
+#endif

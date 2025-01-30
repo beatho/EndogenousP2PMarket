@@ -128,7 +128,7 @@ void PACConst::updateCoef()
 					H[i].set(j, k, _rho * _gamma);
 				}
 			}
-			Hinv[i].invertEigen(&H[i]);
+			Hinv[i].invertGaussJordan(&H[i]);
 		}
 	}
 	
@@ -408,7 +408,7 @@ void PACConst::init(const Simparam& sim, const StudyCase& cas)
 			X[i].set(m + 1, 0, trade.get(i, j)); // tnm
 			X[i].set(M + m + 1, 0, trade.get(j, i)); //amn
 			matLb[i].set(m + 1, 0, Lb.get(i, 0));
-			matLb[i].set(M + m + 1, 0, -Ub.get(i, 0)); // est ce que cela gêne la convergence ou est ce que cela l'aide ?
+			matLb[i].set(M + m + 1, 0, -Ub.get(i, 0)); // est ce que cela gï¿½ne la convergence ou est ce que cela l'aide ?
 			matUb[i].set(m + 1, 0, Ub.get(i, 0)); 
 			matUb[i].set(M + m + 1, 0, -Lb.get(i, 0));
 			
@@ -444,7 +444,7 @@ void PACConst::init(const Simparam& sim, const StudyCase& cas)
 			}
 		}		
 		Xpre[i].set(&X[i]);
-		Hinv[i].invertEigen(&H[i]);
+		Hinv[i].invertGaussJordan(&H[i]);
 	}
 
 	X[_nAgent] = MatrixCPU(_nAgent, 1);
@@ -472,8 +472,8 @@ void PACConst::init(const Simparam& sim, const StudyCase& cas)
 	}
 	
 	
-	Hinv[_nAgent].invertEigen(&H[_nAgent]);
-	//std::cout << "mise sous forme linéaire" << std::endl;
+	Hinv[_nAgent].invertGaussJordan(&H[_nAgent]);
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
 	
 	for (int lin = 0; lin < _nTrade; lin++) {
 		int i = CoresLinAgent.get(lin, 0);
@@ -485,7 +485,7 @@ void PACConst::init(const Simparam& sim, const StudyCase& cas)
 	for (int i = 0; i < _nAgent; i++) {
 		int M = nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le numéro du voisin, p est le numéro de l'agent)
+			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le numï¿½ro du voisin, p est le numï¿½ro de l'agent)
 			int p = CoresLinVoisin.get(lin, 0); // valeur de p
 
 			int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
@@ -613,7 +613,7 @@ void PACConst::updateNu()
 		if (i < _nAgent) {
 			for (int m = 0; m < M; m++) {
 				// find t^[p]mi ???
-				int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le numéro du voisin, p est le numéro de l'agent)
+				int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le numï¿½ro du voisin, p est le numï¿½ro de l'agent)
 				int p = CoresLinVoisin.get(lin, 0); // valeur de p
 
 				int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
@@ -666,7 +666,7 @@ void PACConst::updateQ()
 
 		int M = nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le numéro du voisin, p est le numéro de l'agent)
+			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le numï¿½ro du voisin, p est le numï¿½ro de l'agent)
 			int p = CoresLinVoisin.get(lin, 0); // valeur de p
 
 			int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
@@ -707,8 +707,8 @@ void PACConst::updateDelta()
 	tempL.set(&delta);
 
 	for (int l = 0; l < _nLine; l++) {
-		delta.set(l, 0, max((Phi.get(l, 0) - lLimit.get(l, 0)), 0));
-		delta.set(_nLine + l, 0, max((-Phi.get(l, 0) - lLimit.get(l, 0)), 0));
+		delta.set(l, 0, MAX((Phi.get(l, 0) - lLimit.get(l, 0)), 0));
+		delta.set(_nLine + l, 0, MAX((-Phi.get(l, 0) - lLimit.get(l, 0)), 0));
 	}
 
 	if (augmente) {
@@ -750,14 +750,14 @@ float PACConst::updateRes(int indice)
 			resV = resTempV;
 		}
 		//std::cout << resTempS << " " << resTempR << " " << resTempV << " ";
-		// est égale à la puissance échangé, petit problème quelque part...
+		// est ï¿½gale ï¿½ la puissance ï¿½changï¿½, petit problï¿½me quelque part...
 		double pSum = 0;
 		int M = nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
 			pSum += Xhat[i].get(1 + m, 0);
 			tempM1[i].set(m + 1, 0, Xhat[i].get(1 + m, 0) + Xhat[i].get(1 + m + M, 0));
 
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le numéro du voisin, p est le numéro de l'agent)
+			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le numï¿½ro du voisin, p est le numï¿½ro de l'agent)
 			int p = CoresLinVoisin.get(lin, 0); // valeur de p
 			int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
 			int linLoc = lin2 - CoresAgentLin.get(p, 0); //indice local de tpi

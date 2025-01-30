@@ -5,22 +5,22 @@ CPUPF::CPUPF(){}
 CPUPF::~CPUPF(){
     
  }
-//Fb0: init, Fb1ab 1 2 : Flu, Fb2abc : 3 4 5 Tension, FB3 6 : puissance, Fb4 7 erreur, 8 Fb0 mise à jour
+//Fb0: init, Fb1ab 1 2 : Flu, Fb2abc : 3 4 5 Tension, FB3 6 : puissance, Fb4 7 erreur, 8 Fb0 mise ï¿½ jour
 
 void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ)
 {
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
-    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise à jour
+    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise ï¿½ jour
     
-    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
+    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisï¿½ pendant la simu
 #endif // INSTRUMENTATION
     std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
     N2 = 2 * Nagent;
-    Nline = cas.getNLine(true); // ne doit pas être réduit ici !!!
+    Nline = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
     Nconstraint = B2 + Nline;
     BL2 = Nbus + 2 * Nline;
     iterM = 20;
@@ -108,15 +108,15 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ)
     std::cout << " W : " << std::endl;
     W.display();*/
    
-    // W0[2 * N] : puissance active et réactive au noeud (I*[P Q])
-    // W[2 * N] : puissance obtenue par calcul à partir de E
+    // W0[2 * N] : puissance active et rï¿½active au noeud (I*[P Q])
+    // W[2 * N] : puissance obtenue par calcul ï¿½ partir de E
     // dW[2 * N] : derive de puissance
     // E[2 * N] : angle puis tension [O et 1] pour l'init ?
     // dE[2 * N] : derive de angle puis tension
     // Jac[2 * N][2 * N] : jacobienne
     // Jac_inv[2 * N][2 * N]: inverse de la jacobienne
 
-    // B[N][N], G[N][N] : caractéristique des lignes entre les noeuds i et j
+    // B[N][N], G[N][N] : caractï¿½ristique des lignes entre les noeuds i et j
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
     timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
@@ -131,16 +131,16 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool useD
 {
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
-    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise à jour
+    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise ï¿½ jour
 
-    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
+    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisï¿½ pendant la simu
 #endif // INSTRUMENTATION
     std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
     N2 = 2 * Nagent;
-    Nline = cas.getNLine(true); // ne doit pas être réduit ici !!!
+    Nline = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
     Nconstraint = B2 + Nline;
     BL2 = Nbus + 2 * Nline;
     iterM = 10;
@@ -290,15 +290,15 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool useD
     std::cout << " W : " << std::endl;
     W.display();*/
 
-    // W0[2 * N] : puissance active et réactive au noeud (I*[P Q])
-    // W[2 * N] : puissance obtenue par calcul à partir de E
+    // W0[2 * N] : puissance active et rï¿½active au noeud (I*[P Q])
+    // W[2 * N] : puissance obtenue par calcul ï¿½ partir de E
     // dW[2 * N] : derive de puissance
     // E[2 * N] : angle puis tension [O et 1] pour l'init ?
     // dE[2 * N] : derive de angle puis tension
     // Jac[2 * N][2 * N] : jacobienne
     // Jac_inv[2 * N][2 * N]: inverse de la jacobienne
 
-    // B[N][N], G[N][N] : caractéristique des lignes entre les noeuds i et j
+    // B[N][N], G[N][N] : caractï¿½ristique des lignes entre les noeuds i et j
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
     timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
@@ -493,7 +493,7 @@ void CPUPF::calcW(bool end)
             WD.set(i, 0, ED.get(Nbus + i, 0) * (Gcos[i] + Bsin[i]));
             WD.set(i + Nbus, 0, ED.get(Nbus + i, 0) * (Gsin[i] - Bcos[i]));
         }*/
-        if (!end) { // pendant simu, la puissance à ce noeud est libre
+        if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
             WD.set(0, 0, W0D.get(0, 0));
             WD.set(Nbus, 0, W0D.get(Nbus, 0));
 
@@ -525,7 +525,7 @@ void CPUPF::calcW(bool end)
             }
         }
         
-        if (!end) { // pendant simu, la puissance à ce noeud est libre
+        if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
             W.set(0, 0, W0.get(0, 0));
             W.set(Nbus, 0, W0.get(Nbus, 0));
         }
@@ -692,7 +692,11 @@ int CPUPF::calcVoltage()
 #ifdef INSTRUMENTATION
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-        /*try
+
+#ifdef Eigen
+        dED.solveSysEigen(&JacD, &dWD);
+#else
+    try
         {
             JacD.LUPFactorization(&AD, &PD);
         }
@@ -700,12 +704,11 @@ int CPUPF::calcVoltage()
         {
             return 1;
         }
-        
+        dED.solveSys(&AD, &PD, &dWD);
+#endif
         
 
-        dED.solveSys(&AD, &PD, &dWD);*/
-
-        dED.solveSysEigen(&JacD, &dWD);
+        
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
         timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
@@ -721,21 +724,21 @@ int CPUPF::calcVoltage()
 #ifdef INSTRUMENTATION
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-        /*try
-        {
-            Jac.LUPFactorization(&A, &P);
-        }
-        catch (const std::exception&)
-        {
-            return 1;
-        }
         
-        
-        dE.solveSys(&A, &P, &dW);
-        */
-
-
-        dE.solveSysEigen(&Jac, &dW);
+        #ifdef EIGEN
+            dE.solveSysEigen(&Jac, &dW);
+        #else
+            try
+            {
+                Jac.LUPFactorization(&A, &P);
+            }
+            catch (const std::exception&)
+            {
+                return 1;
+            }
+            dE.solveSys(&A, &P, &dW);
+        #endif
+      
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
         timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
@@ -1235,7 +1238,7 @@ void CPUPF::saveTimeBlock(std::string fileName)
         }
     }
     else {
-        std::cout << "pas de temps à afficher, ou alors il n'y a pas eut d'initialisation" << std::endl;
+        std::cout << "pas de temps ï¿½ afficher, ou alors il n'y a pas eut d'initialisation" << std::endl;
     }
 
     occurencePerBlock.saveCSV(fileName, mode);

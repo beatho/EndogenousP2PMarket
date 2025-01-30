@@ -17,7 +17,7 @@ MarketEndoDirectGPU::MarketEndoDirectGPU() : Method()
 	_name = NAME;
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1ab , Fb2, Fb3, Fb4, Fb5,FB6, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 
@@ -30,7 +30,7 @@ MarketEndoDirectGPU::MarketEndoDirectGPU(float rho) : Method()
 	_rho = rho;
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb11, FB12, Fb2, Fb3, Fb4, Fb5, FB6, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 MarketEndoDirectGPU::~MarketEndoDirectGPU()
@@ -140,7 +140,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 		cudaDeviceSynchronize();
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-		updatePMarket(); // puissance et trade (indépendament du bus, même si on aurait pu résoudre bus par bus)
+		updatePMarket(); // puissance et trade (indï¿½pendament du bus, mï¿½me si on aurait pu rï¿½soudre bus par bus)
 		//std::cout << " P " << std::endl;
 		//P.display(true);
 		
@@ -152,7 +152,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 
-		//updateXWOCurrent(); // flux dans le réseau, tension
+		//updateXWOCurrent(); // flux dans le rï¿½seau, tension
 		updateXWOCurrentCPU();
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
@@ -408,7 +408,7 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 	
 	_nBus = cas.getNBus();
 	_nBusWLoss = _nBus + 1;
-	_nLine = cas.getNLine(true); // ne doit pas être réduit ici !!!
+	_nLine = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
 
 	_debutloss =  3 * _nLine + 5 * _nBus + 2 * (_nAgentTrue - 1); // L = nChild.sum()
 	_sizeEndoMarketTotal = _debutloss;
@@ -444,7 +444,7 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 
 	_CoresBusAgent = MatrixGPU(cas.getCoresBusAgentLin(), 1); // Cores[n] = b
 
-	Ancestor = MatrixGPU(_nBus, 1, 0); // A_i = bus antécédent de i
+	Ancestor = MatrixGPU(_nBus, 1, 0); // A_i = bus antï¿½cï¿½dent de i
 	PosChild = MatrixGPU(_nBus, 1, 0); // indice du bus i dans Child[Ai]
 	Ancestor.set(0, 0, -1); // the slack bus has no ancestor
 	
@@ -617,7 +617,7 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 		MatrixCPU tempMMbis(sizeA, sizeA);
 
 		temp33.multiplyTrans(&A, &A);
-		temp33.invertEigen(&temp33);
+		temp33.invertGaussJordan(&temp33);
 		temp3M.MultiplyMatMat(&temp33, &A);
 		tempMM.multiplyTrans(&A, &temp3M, 0);
 
@@ -835,7 +835,7 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 
 	
 	
-	//std::cout << "mise sous forme linéaire" << std::endl;
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
 	
 
 
@@ -917,17 +917,17 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 	CoresMatLin.transferGPU();
 	CoresLinTrans.transferGPU();
 
-	//std::cout << "autres donnée sur CPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur CPU" << std::endl;
 	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
 	tempNN.preallocateReduction();
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	//MatrixCPU temp1N(1, _nAgent, 0, 1);
 
 	/**/
 
 	
 
-	P = Pn; // moyenne des trades, ici c'est juste pour qu'il ait la même taille sans avoir besoin de se poser de question
+	P = Pn; // moyenne des trades, ici c'est juste pour qu'il ait la mï¿½me taille sans avoir besoin de se poser de question
 	P.divideT(&nVoisin);
 	Tlocal = MatrixGPU(_nTrade, 1, 0, 1);
 	Tlocal.preallocateReduction();
@@ -1101,7 +1101,7 @@ void MarketEndoDirectGPU::updateX()
 				x4 = x4max;
 			}
 
-			gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit être positif
+			gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit ï¿½tre positif
 			//std::cout << "x 1 : " << x1 << " " << x2 << " " << x3 * k2 << " " << x4 << " " << (x1 * x1 + x2 * x2) / x3  - k2 * x4 << std::endl;
 
 			if (gamma >= 0) {
@@ -1110,7 +1110,7 @@ void MarketEndoDirectGPU::updateX()
 				goodSol = true;
 			}
 			else {
-				if (c1122 == 0) { // cas dégénéré
+				if (c1122 == 0) { // cas dï¿½gï¿½nï¿½rï¿½
 					std::cout << " bus " << i << " : c1= " << c1 << " c2=" << c2 << " c4=" << c4 << " gamma= " << gamma << std::endl;
 					x4 = 0;
 					goodSol = true;
@@ -1561,7 +1561,7 @@ void MarketEndoDirectGPU::updateXWOCurrentCPU()
 			x3 = x3max;
 			lambdaUp = -(2 * x3 + c3);
 		}
-		gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit être positif
+		gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit ï¿½tre positif
 		//std::cout << "x 1 : " << x1 << " " << x2 << " " << x3 * k2 << " " << x4 << " " << (x1 * x1 + x2 * x2) / x3  - k2 * x4 << std::endl;
 
 		if (gamma >= 0) {
@@ -1575,7 +1575,7 @@ void MarketEndoDirectGPU::updateXWOCurrentCPU()
 			}
 		}
 		
-		if (!goodSol) { // cas dégénéré
+		if (!goodSol) { // cas dï¿½gï¿½nï¿½rï¿½
 			if (c1122 == 0) {
 				//std::cout << " bus " << i << " : c1= " << c1 << " c2=" << c2 << " c4=" << c4 << " gamma= " << gamma << std::endl;
 
@@ -1880,7 +1880,7 @@ void MarketEndoDirectGPU::updateChat()
 	// pour puissance
 	updateBp2();
 	
-	// pour échanges
+	// pour ï¿½changes
 	updateLAMBDABt1GPU << <_numBlocksM, _blockSize >> > (Bt1._matrixGPU, LAMBDALin._matrixGPU, TradeLin._matrixGPU, _rho, CoresLinTrans._matrixGPU, _nTrade);
 
 	//Bt1.display();

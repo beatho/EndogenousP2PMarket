@@ -5,7 +5,6 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include "MatrixCPU.h"
-#include "MatrixGPU.cuh"
 #include "MatrixCPUD.h"
 #include <math.h>
 #include <iostream>
@@ -70,7 +69,7 @@ protected :
     std::vector<int> _indiceLineConstraint;// numero de ligne contrainte
     std::vector<int> _indiceLineNonConstraint;// numero de ligne non contrainte
     
-    MatrixCPU _zoneBus; // taille B*1 indique pour chaque bus la zone où il est 
+    MatrixCPU _zoneBus; // taille B*1 indique pour chaque bus la zone oï¿½ il est 
     std::vector<std::string> _nameZone;
 
     void setGridFromFile(const std::string& path, MatrixCPU* fileBusAgent);

@@ -1,35 +1,35 @@
 
 #include "../head/main.cuh"
 
-// pour l'agent des pertes de Q, lui permettre de consommer et de vendre peut poser problème 
+// pour l'agent des pertes de Q, lui permettre de consommer et de vendre peut poser problï¿½me 
 // car il peut faire les 2 alors que l'on aimerait qu'il soit inactif, en vrai il fait juste intermediaire mais bon...
 
 
-// tester sans réactif et résistance nulle
-// trouver où j'ai cassé ? 
+// tester sans rï¿½actif et rï¿½sistance nulle
+// trouver oï¿½ j'ai cassï¿½ ? 
 
 
 
 // DC - endogene
-//Résolution directe centralisé et décentralisé
+//Rï¿½solution directe centralisï¿½ et dï¿½centralisï¿½
 //Consensus avec DC - OPF
 //Comparaison avec powerTech
 
 // Resoudre probleme:
-// init avec marché déjà resolu ou déjà bien avancé
-// faire que y impose valeur marché mais pas inverse
+// init avec marchï¿½ dï¿½jï¿½ resolu ou dï¿½jï¿½ bien avancï¿½
+// faire que y impose valeur marchï¿½ mais pas inverse
 // 
 // 
 
 
-// Cas Italy : le bus 136 est relié par la suisse, il n'y a donc pas de ligne !!!! 
+// Cas Italy : le bus 136 est reliï¿½ par la suisse, il n'y a donc pas de ligne !!!! 
 
 
 // mingw32 - make.exe
 
 // Simulation
 
-int main(int argc, char* argv[]) {
+int main2(int argc, char* argv[]) {
 #ifdef DEBUG_TEST
 	std::cout << "test Agent err =" << testAgent() << std::endl;
 	std::cout << "-------------------------------------------------------- " << std::endl;
@@ -690,10 +690,10 @@ void comparaisonArticle()
 	float distCost = 10;
 	/*MatrixCPU MatDistCost = MatrixCPU(4, 4, distCost);
 	for (int i = 0; i < 4; i++) {
-		MatDistCost.set(i, 3, distCost / 2); // moins de coût pour les échanges avec la zone 4
-		MatDistCost.set(3, i, distCost / 2); // moins de coût pour les échanges avec la zone 4
+		MatDistCost.set(i, 3, distCost / 2); // moins de coï¿½t pour les ï¿½changes avec la zone 4
+		MatDistCost.set(3, i, distCost / 2); // moins de coï¿½t pour les ï¿½changes avec la zone 4
 	}*/
-	//MatDistCost.set(3, 3, distCost / 2); // moins de coût pour les échanges dans la zone 4 uniquement
+	//MatDistCost.set(3, 3, distCost / 2); // moins de coï¿½t pour les ï¿½changes dans la zone 4 uniquement
 
 	sys.setIter(iterG, iterL);
 	sys.setEpsG(epsG);
@@ -776,7 +776,7 @@ void comparaisonArticle()
 
 	std::cout << "Resultat de simulation fc " << fc << std::endl;
 	std::cout << "temps de simulation " << temps << std::endl;
-	std::cout << "Nombre d'itération " << iter << std::endl;
+	std::cout << "Nombre d'itï¿½ration " << iter << std::endl;
 	std::cout << " Residus R,S,X : " << resR << ", " << resS << ", " << resX << std::endl;
 	std::cout << "----------------" << std::endl;
 	std::cout << "Echange entre les agents " << std::endl;
@@ -1388,7 +1388,7 @@ void SimuTemporalWOConstraint(std::string name)
 	//methodes[0] = new PACOpenMP;
 	//methodes[0] = new PACGPU;
 	//methodes[0] = new OSQP;
-	methodes[0] = new OSQPCentralized2;
+	//methodes[0] = new OSQPCentralized2;
 
 
 
@@ -1788,7 +1788,7 @@ void SimuCompare()
 	std::vector<int> indices = { 0, 1, 2, 3, 4, 5, 6, 7 };
 	std::string methodesName[nMethode] = { "OSQPCentalized","PAC", "PACOpenMP", "PACGPU", "OSQP", "ADMMMarket","ADMMMarketOpenMP", "ADMMMarketGPU" };
 	Method* methodes[nMethode];
-	methodes[0] = new OSQPCentralized2;
+	//methodes[0] = new OSQPCentralized2;
 	methodes[1] = new PAC;
 	methodes[2] = new PACOpenMP;
 	methodes[3] = new PACGPU;
@@ -1971,7 +1971,7 @@ void SimuCompareAll()
 	std::vector<int> indices = { 0, 1, 2, 3, 4, 5, 6 };
 	std::string methodesName[nMethode] = { "OSQP", "PAC", "PACOpenMP", "PACGPU", "ADMMMarket","ADMMMarketOpenMP", "ADMMMarketGPU" };
 	Method* methodes[nMethode];
-	methodes[0] = new OSQP;
+	//methodes[0] = new OSQP;
 	methodes[1] = new PAC;
 	methodes[2] = new PACOpenMP;
 	methodes[3] = new PACGPU;
@@ -3926,7 +3926,7 @@ void SimuStatMarketEndo() {
 			
 			
 			cas.genLinkGridAgent();
-			cas.genDCGridFromAC(); // pour utiliser les méthodes DC
+			cas.genDCGridFromAC(); // pour utiliser les mï¿½thodes DC
 			cas.setReduce(true);
 			
 			Simparam param(cas.getNagent(), cas.getNLine(true), true);
@@ -4142,7 +4142,7 @@ void SimuStatMarketEndoAC() {
 
 
 			cas.genLinkGridAgent();
-			cas.genDCGridFromAC(); // pour utiliser les méthodes DC
+			cas.genDCGridFromAC(); // pour utiliser les mï¿½thodes DC
 			cas.setReduce(true);
 
 			Simparam param(cas.getNagent(), cas.getNLine(true), true);
@@ -4904,23 +4904,23 @@ void SimuStatMarketEndoGrid() {
 
 void testCPUPF()
 {
-	// donc fonctionne pour 3,9, 14, 30, 57 : même resultat
+	// donc fonctionne pour 3,9, 14, 30, 57 : mï¿½me resultat
 	// fonctionne pour 85 et c'est un reseau de distribution ! (mais pas de prod dedans ...)
 	// Fonctionne pour 69
 	// ne fonctionne pas pour 118
 	// 
 
-	// ne fonctione pas en float pour 141, le noeud 85 pose probleme, a des impédance 1000fois plus grande que les autres (probleme de précision numérique)
-	// en gros, même en partant des même tensions, on ne trouve pas la même puissance réactive à un noeud (85) 
-	// Poutant je calcule en double ! Peut être séparer les calculs associé à G et B (comme les G ont les mêmes ordre de grandeur entre eux)
-	// Il faut stocker G et B, et E en double pour que cela marche !!! (oulala le passage sur GPU va être pas très efficace).
+	// ne fonctione pas en float pour 141, le noeud 85 pose probleme, a des impï¿½dance 1000fois plus grande que les autres (probleme de prï¿½cision numï¿½rique)
+	// en gros, mï¿½me en partant des mï¿½me tensions, on ne trouve pas la mï¿½me puissance rï¿½active ï¿½ un noeud (85) 
+	// Poutant je calcule en double ! Peut ï¿½tre sï¿½parer les calculs associï¿½ ï¿½ G et B (comme les G ont les mï¿½mes ordre de grandeur entre eux)
+	// Il faut stocker G et B, et E en double pour que cela marche !!! (oulala le passage sur GPU va ï¿½tre pas trï¿½s efficace).
 	// 
 	// 
 	// diverge compeltement pour 300 ou 145  !!!!
 
 	// Le cas 39 converge vers la bonne solution si proche de la solution, une autre solution si on est plus loin (il faut passer Seidel en double !)
 	// et matlab est d'accord si on passe tous les noeuds en PQ !
-	// idem pour le cas ieee30, qui converge vers une autre solution (rem : il y a différents niveau de tension avec transfo dans ce cas !)
+	// idem pour le cas ieee30, qui converge vers une autre solution (rem : il y a diffï¿½rents niveau de tension avec transfo dans ce cas !)
 
 	bool methodeToCompute[] = { true, true, true, true, true, true, true, true, true, true, true };
 	int nMethode = 11; //bool setDouble = true;
@@ -5735,7 +5735,7 @@ void testMarket()
 	MatrixCPU P0(nCons, 1);
 	std::string nameP0 = path + "Europe/load/Month/2012-01.txt";
 	P0Global.setFromFile(nameP0, 1);
-	P0Global.getBloc(&P0, 0, nCons, 0, 1); // 1ere heure de l'année
+	P0Global.getBloc(&P0, 0, nCons, 0, 1); // 1ere heure de l'annï¿½e
 	int nStep = 1; // WIP
 	int nSimu = 1; // WIP
 
@@ -5822,11 +5822,11 @@ void testMarket()
 
 	fileName += chosenCase + ".csv";
 	MatrixCPU results(5, nMethode, -1);
-	OSQPCentralized2 osqpCen;
+	//OSQPCentralized2 osqpCen;
 	ADMMMarket admmMarket;
 	ADMMMarketOpenMP admmMarketOpenMP;
 	ADMMMarketGPU admmMarketGPU;
-	OSQP osqp;
+	//OSQP osqp;
 	PAC pac;
 	PACGPU pacGPU;
 	PACOpenMP pacOpenMP;
@@ -5870,6 +5870,7 @@ void testMarket()
 	int nAgent = cas.getNagent();
 	MatrixCPU Pn;
 	/*param.display(1);*/
+	#ifdef OSQP
 	std::cout << "**************************     OSQP Cen      ****************************************" << std::endl;
 
 	if (!AC && methodeToSimule[method]) {
@@ -5896,7 +5897,7 @@ void testMarket()
 
 
 	method++;
-
+#endif
 
 	std::cout << "**************************     ADMMMarket      ****************************************" << std::endl;
 
@@ -5980,7 +5981,7 @@ void testMarket()
 	}
 
 	std::cout << "********************************** OSQP  *****************************************" << std::endl;
-
+#ifdef OSQP
 	if (methodeToSimule[method]) {
 		t1 = std::chrono::high_resolution_clock::now();
 		osqp.solve(&res, param, cas);
@@ -6007,7 +6008,7 @@ void testMarket()
 		throw std::invalid_argument("nMethod is too small");
 	}
 
-
+#endif
 
 
 	std::cout << "******************************       PAC     ***************************************" << std::endl;
@@ -6247,7 +6248,7 @@ void testMarketEndo()
 	}
 	if (cas.isAC() && (methodeToSimule[3] || methodeToSimule[7])) {
 		std::cout << "ajout du DC" << std::endl;
-		cas.genDCGridFromAC(); // pour utiliser les méthodes DC
+		cas.genDCGridFromAC(); // pour utiliser les mï¿½thodes DC
 		cas.setReduce(true);
 		//cas.display(1);
 		//cas.display(2);

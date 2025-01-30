@@ -67,10 +67,10 @@ bool testMDivide5();
 bool testMDivideGJ1();
 bool testMDivideGJ2();
 
-bool testMDivideEigen();
-
-bool testMSolveSys();
-
+#ifdef EIGEN
+    bool testMDivideEigen();
+    bool testMSolveSys();
+#endif
 
 bool testMmoy1();
 bool testMmoy2();

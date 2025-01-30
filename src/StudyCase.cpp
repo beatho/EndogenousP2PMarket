@@ -309,7 +309,7 @@ void StudyCase::genBetaDistanceByZone(MatrixCPU* Mats)
 	if (_Distance.getNLin() != nAgent) {
 		setDistance();
 	}
-	// verification que c'est légal : 
+	// verification que c'est lï¿½gal : 
 	std::cout << "work in progress" << std::endl;
 	throw std::invalid_argument("WIP");
 	// differencier DC ou AC
@@ -576,7 +576,7 @@ void StudyCase::SetStudyCase(std::string path, std::string name, MatrixCPU* P0, 
 		MatrixCPU GenBus = SCAg.getGenBus();
 
 		int idBusMax = fileCoresBus.max2();
-		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste à -1, le bus n'existe pas
+		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste ï¿½ -1, le bus n'existe pas
 
 		//std::cout << "agent" << std::endl;
 		for (int i = 0; i < _nBus; i++) {
@@ -740,7 +740,7 @@ void StudyCase::Set2node()
 
 void StudyCase::Set4nodeBis(std::string path)
 {
-	// cas d'étude pour simuler le cas d'EVA pendant son stage
+	// cas d'ï¿½tude pour simuler le cas d'EVA pendant son stage
 	clock_t t = clock();
 	
 	
@@ -836,7 +836,7 @@ void StudyCase::SetEuropeP0(const std::string& path, MatrixCPU* P0, bool already
 		MatrixCPU GenBus = SCAg.getGenBus();
 
 		int idBusMax = fileCoresBus.max2();
-		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste à -1, le bus n'existe pas
+		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste ï¿½ -1, le bus n'existe pas
 		
 
 		for (int i = 0; i < _nBus; i++) {

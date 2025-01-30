@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#ifdef OSQP
 #include <osqp.h>
 #include <chrono>
 #ifdef OSQPGPU
@@ -85,7 +86,7 @@ private:
 
 
 
-
+#endif
 
 
 

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#ifdef OSQP
 #include <osqp.h>
 #include <chrono>
 #ifdef OSQPGPU
@@ -75,7 +76,7 @@ private:
 	OSQPData** data = nullptr;
 #endif // OSQPGPU
 
-	// Pour le réseau
+	// Pour le rï¿½seau
 	int _nLine;
 	int _nBus;
 	float _rho1;
@@ -95,7 +96,7 @@ private:
 };
 
 
-
+#endif
 
 
 

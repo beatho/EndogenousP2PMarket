@@ -1,18 +1,19 @@
 #pragma once
+
+#include "Utilities.cuh"
+#include "Utilities.h"
+#include <cuda_runtime.h>
+#include "MatrixGPU.cuh"
+#include "MethodP2P.cuh"
 #include "StudyCase.h"
 #include "MatrixCPU.h"
-#include "MatrixGPU.cuh"
+
 #include "Simparam.h"
 #include "Method.h"
 
 
 #include <iostream>
 #include <string>
-#include "Utilities.cuh"
-
-#include <cuda_runtime.h>
-
-
 
 class MethodP2P : public Method
 {
@@ -47,7 +48,11 @@ public:
 
 };
 
-// Regroupement des appels kernels pour ne pas devoir définir plusieurs fois le même avec des noms differents
+
+
+
+
+// Regroupement des appels kernels pour ne pas devoir dï¿½finir plusieurs fois le mï¿½me avec des noms differents
 __global__ void updateLAMBDAGPU(float* LAMBDALin, float* tradeLin, float rho, float* CoresLinTrans, int const N);
 __global__ void updateBt1GPU(float* Bt1, float* tradeLin, float rho, float* LAMBDA, float* CoresLinTrans, int const N);
 __global__ void updateLAMBDABt1GPU(float* Bt1, float* LAMBDALin, float* tradeLin, float rho, float* CoresLinTrans, int const N);

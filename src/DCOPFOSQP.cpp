@@ -1,4 +1,6 @@
+#ifdef OSQP
 #include "../head/DCOPFOSQP.h"
+
 
 
 DCOPFOSQP::DCOPFOSQP() : Method()
@@ -263,4 +265,4 @@ void DCOPFOSQP::display() {
 	std::cout << _name << std::endl;
 }
 
-
+#endif

@@ -10,9 +10,16 @@
 #include <iomanip>
 #include <stdexcept>
 #include <limits>
-#include <Eigen\Dense>
-#include <glob_opts.h>
-#include <osqp.h>
+
+#ifdef EIGEN
+    #include <Eigen\Dense>
+#endif
+
+#ifdef OSQP
+    #include <glob_opts.h>
+    #include <osqp.h>
+#endif
+
 #include "MatrixCPUD.h"
 
 
@@ -56,7 +63,7 @@ public:
     void set(float value);
     void set(MatrixCPU* m);
     void setTrans(MatrixCPU* m);
-    void set(Eigen::MatrixXd* eigenMatrix);
+
     void setBloc(int iBegin, int iEnd, int jBegin, int jEnd, MatrixCPU* m);
     void setEyes(float v);
     void setEyes(MatrixCPU* vect);
@@ -89,15 +96,13 @@ public:
     void divideT(MatrixCPU* m);
     
     void invertGaussJordan(MatrixCPU* mToInvert);
-    void invertEigen(MatrixCPU* mToInvert);
     void LDLFactorization(MatrixCPU* L, MatrixCPU* D);
     void LUPFactorization(MatrixCPU* A, MatrixCPU* P);
 
     void solveSysUpper(MatrixCPU* U, MatrixCPU* y); // Ux = y
     void solveSysLower(MatrixCPU* L, MatrixCPU* b , MatrixCPU* P); // Ly = Pb
     void solveSys(MatrixCPU* A, MatrixCPU* P, MatrixCPU* b); // LUx = Pb , A = (L-I) + U
-    void solveSysEigen(MatrixCPU* M, MatrixCPU* b); // Mx = b
-
+   
 
     void MultiplyMatVec(MatrixCPU* m, MatrixCPU* vect, int sens = 0);
     void MultiplyMatTransVec(MatrixCPU* mToTrans, MatrixCPU* vect, int sensRow = 0);
@@ -133,17 +138,27 @@ public:
 
     void RelativeEror(MatrixCPU* MatRef, MatrixCPU* Mat); 
 
-
-    c_float* toCFloat();
-    c_int toCSC(c_float* data, c_int* idx, c_int* ptr);
-    c_int toCSCHalf(c_float* data, c_int* idx, c_int* ptr);
-    void toEigenMatrix(Eigen::MatrixXd* eigenMatrix);
-
     void display() const;
     void displayBloc(int iBegin, int iEnd, int jBegin, int jEnd) const;
     void saveCSV(const std::string& filename, std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app, int trans=0, std::string separator = ";") const;
 
     static void saveTabMatCSV(MatrixCPU* tab, int sizeTab, const std::string& filename, std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app, int trans = 0, std::string separator = ";");
     ~MatrixCPU();
+
+// def Eigen
+#ifdef EIGEN
+    void set(Eigen::MatrixXd* eigenMatrix);
+    void toEigenMatrix(Eigen::MatrixXd* eigenMatrix);
+    void solveSysEigen(MatrixCPU* M, MatrixCPU* b); // Mx = b
+    void invertEigen(MatrixCPU* mToInvert);
+#endif
+// def Eigen
+#ifdef OSQP
+    c_float* toCFloat();
+    c_int toCSC(c_float* data, c_int* idx, c_int* ptr);
+    c_int toCSCHalf(c_float* data, c_int* idx, c_int* ptr);
+#endif
+
+
 };
 

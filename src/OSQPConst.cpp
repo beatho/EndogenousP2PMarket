@@ -1,3 +1,4 @@
+#ifdef OSQP
 #include "../head/OSQPConst.h"
 #define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
 
@@ -574,3 +575,6 @@ void OSQPConst::display() {
 
 	std::cout << _name << std::endl;
 }
+
+
+#endif

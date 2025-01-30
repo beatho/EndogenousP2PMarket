@@ -1105,7 +1105,7 @@ bool testMDivideGJ2()
 	}
 	return false;
 }
-
+#ifdef EIGEN
 bool testMDivideEigen()
 {
 	int n = 3;
@@ -1142,7 +1142,7 @@ bool testMDivideEigen()
 	m22.set(2, 1, 3.0 / 8);
 	m22.set(2, 2, 1.0 / 4);
 
-	m2.invertEigen(&m1);
+	m2.invertGaussJordan(&m1);
 
 
 
@@ -1198,7 +1198,7 @@ bool testMSolveSys()
 
 	return true;
 }
-
+#endif
 
 // void Moy(MatrixCPU* m, MatrixCPU* nb, int sens=0); 
 bool testMmoy1()
@@ -1557,6 +1557,7 @@ bool testMMax()
 	return (res == fabs(value2));
 
 }
+
 
 bool testMToCSC1()
 {

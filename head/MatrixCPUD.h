@@ -10,9 +10,14 @@
 #include <iomanip>
 #include <stdexcept>
 #include <limits>
-#include <Eigen\Dense>
-#include <glob_opts.h>
-#include <osqp.h>
+#ifdef EIGEN
+    #include <Eigen\Dense>
+#endif
+
+#ifdef OSQP
+    #include <glob_opts.h>
+    #include <osqp.h>
+#endif
 
 
 #define DELETEB(x) if (x!=nullptr) {delete x; x = nullptr;}
@@ -51,7 +56,6 @@ public:
     void set(MatrixCPUD* m);
     void set(double value);
     void setTrans(MatrixCPUD* m);
-    void set(Eigen::MatrixXd* eigenMatrix);
     void setBloc(int iBegin, int iEnd, int jBegin, int jEnd, MatrixCPUD* m);
     void setEyes(double v);
     void setEyes(MatrixCPUD* vect);
@@ -83,14 +87,12 @@ public:
     void divideT(MatrixCPUD* m);
     
     void invertGaussJordan(MatrixCPUD* mToInvert);
-    void invertEigen(MatrixCPUD* mToInvert);
     void LDLFactorization(MatrixCPUD* L, MatrixCPUD* D);
     void LUPFactorization(MatrixCPUD* A, MatrixCPUD* P);
 
     void solveSysUpper(MatrixCPUD* U, MatrixCPUD* y); // Ux = y
     void solveSysLower(MatrixCPUD* L, MatrixCPUD* b , MatrixCPUD* P); // Ly = Pb
     void solveSys(MatrixCPUD* A, MatrixCPUD* P, MatrixCPUD* b); // LUx = Pb , A = (L-I) + U
-    void solveSysEigen(MatrixCPUD* M, MatrixCPUD* b); // Mx = b
     void solveSysGaussSeidel(MatrixCPUD* M, MatrixCPUD* b); // Mx = b
 
 
@@ -125,14 +127,27 @@ public:
     void RelativeEror(MatrixCPUD* MatRef, MatrixCPUD* Mat); 
 
 
-    c_float* toCFloat();
-    c_int toCSC(c_float* data, c_int* idx, c_int* ptr);
-    c_int toCSCHalf(c_float* data, c_int* idx, c_int* ptr);
-    void toEigenMatrix(Eigen::MatrixXd* eigenMatrix);
-
     void display() const;
     void displayBloc(int iBegin, int iEnd, int jBegin, int jEnd) const;
     void saveCSV(const std::string& filename, std::ios_base::openmode mode= std::ios_base::in | std::ios_base::out, int trans=0) const;
     ~MatrixCPUD();
+
+
+    // def Eigen
+#ifdef EIGEN
+    void set(Eigen::MatrixXd* eigenMatrix);
+    void toEigenMatrix(Eigen::MatrixXd* eigenMatrix);
+    void solveSysEigen(MatrixCPU* M, MatrixCPU* b); // Mx = b
+    void invertEigen(MatrixCPU* mToInvert);
+#endif
+// def Eigen
+#ifdef OSQP
+    c_float* toCFloat();
+    c_int toCSC(c_float* data, c_int* idx, c_int* ptr);
+    c_int toCSCHalf(c_float* data, c_int* idx, c_int* ptr);
+#endif
+
+
+
 };
 

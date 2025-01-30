@@ -10,7 +10,7 @@ OPFADMM2::OPFADMM2() : MethodOPF()
 	_name = NAME;
 	timePerBlock = MatrixCPU(1, 12, 0); // Fb0, Fb11abcd, FB12, Fb2, Fb3, Fb4, Fb5,FB6, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 
@@ -23,7 +23,7 @@ OPFADMM2::OPFADMM2(float rho) : MethodOPF()
 	_rho = rho;
 	timePerBlock = MatrixCPU(1, 12, 0); // Fb0, Fb11, FB12, Fb2, Fb3, Fb4, Fb5, FB6, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 OPFADMM2::~OPFADMM2()
@@ -345,7 +345,7 @@ void OPFADMM2::init(const Simparam& sim, const StudyCase& cas)
 	}
 
 	_nBus = cas.getNBus();
-	_nLine = cas.getNLine(true); // ne doit pas être réduit ici !!!
+	_nLine = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
 
 	//std::cout << _nAgent << " " << _nBus << " " << _nLine << std::endl;
 	_CoresAgentBus = cas.getCoresAgentBusLin();
@@ -354,7 +354,7 @@ void OPFADMM2::init(const Simparam& sim, const StudyCase& cas)
 	nChild = MatrixCPU(_nBus, 1);
 	CoresLineBus = cas.getCoresLineBus(true);
 	_CoresBusAgent = cas.getCoresBusAgentLin(); // Cores[n] = b
-	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antécédent de i
+	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antï¿½cï¿½dent de i
 	PosChild = MatrixCPU(_nBus, 1, 0); // indice du bus i dans Child[Ai]
 	PosAgent = MatrixCPU(_nAgent, 1, -1); // indice de l'agent i dans _CoresAgentBus[CoresAgentBegin]
 	Ancestor.set(0, 0, -1); // the slack bus has no ancestor
@@ -411,7 +411,7 @@ void OPFADMM2::init(const Simparam& sim, const StudyCase& cas)
 	_CoresAgentBusBegin.increment(0, 0, 1); // idem
 	//_nAgentByBus.display();
 	
-	// il faut delete pour ne pas faire de fuite mémoire
+	// il faut delete pour ne pas faire de fuite mï¿½moire
 	
 	if (mustCreate) {
 		DELETEA(tempM);
@@ -462,7 +462,7 @@ void OPFADMM2::init(const Simparam& sim, const StudyCase& cas)
 		sizeOPFADMM2.set(i, 0, sizeOPF);
 
 		X[i] = MatrixCPU(sizeOPF, 1); // {Pi, Qi, vi, li, vAi, (pn, qn), (Pci, Qci, lci) for all child Ci}
-		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] noté dans l'article Yji est ce que i connait sur j
+		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] notï¿½ dans l'article Yji est ce que i connait sur j
 		Y[i] = MatrixCPU(sizeOPF, 1); //Y[i] = {Pi, Qi, vi, li, vAi, (pn, qn),  (Pci, Qci, lci) for all child Ci}
 		Mu[i] = MatrixCPU(sizeOPF, 1);
 		A[i] = MatrixCPU(2 + 1*(i>0), sizeOPF);
@@ -575,7 +575,7 @@ void OPFADMM2::init(const Simparam& sim, const StudyCase& cas)
 		MatrixCPU temp3M(2 + 1 * (i > 0), sizeOPFADMM2.get(i, 0));
 		MatrixCPU tempMM(sizeOPFADMM2.get(i, 0), sizeOPFADMM2.get(i, 0));
 		temp33.multiplyTrans(&A[i], &A[i]); // (3*o_b) * (o_b*3) -> 9 * o_b^2
-		temp33.invertEigen(&temp33); // 3^3 = 27 (fixe !!!)
+		temp33.invertGaussJordan(&temp33); // 3^3 = 27 (fixe !!!)
 		temp3M.MultiplyMatMat(&temp33, &A[i]); // (3*3) * (3*o_b) -> 27 *o_b
 		Hinv[i].multiplyTrans(&A[i], &temp3M, 0); // (o_b*3) * (3*o_b) -> 9 * o_b
 
@@ -682,7 +682,7 @@ void OPFADMM2::initConsensus(const Simparam& sim, const StudyCase& cas, float rh
 	_nAgent = cas.getNagent();
 
 	_nBus = cas.getNBus();
-	_nLine = cas.getNLine(true); // ne doit pas être réduit ici !!!
+	_nLine = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
 
 	std::cout << _nAgent << " " << _nBus << " " << _nLine << std::endl;
 	_CoresAgentBus = cas.getCoresAgentBusLin();
@@ -691,7 +691,7 @@ void OPFADMM2::initConsensus(const Simparam& sim, const StudyCase& cas, float rh
 	nChild = MatrixCPU(_nBus, 1);
 	CoresLineBus = cas.getCoresLineBus(true);
 	_CoresBusAgent = cas.getCoresBusAgentLin(); // Cores[n] = b
-	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antécédent de i
+	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antï¿½cï¿½dent de i
 	PosChild = MatrixCPU(_nBus, 1, 0); // indice du bus i dans Child[Ai]
 	PosAgent = MatrixCPU(_nAgent, 1, 0); // indice de l'agent i dans _CoresAgentBus[CoresAgentBegin]
 	Ancestor.set(0, 0, -1); // the slack bus has no ancestor
@@ -793,7 +793,7 @@ void OPFADMM2::initConsensus(const Simparam& sim, const StudyCase& cas, float rh
 		sizeOPFADMM2.set(i, 0, sizeOPF);
 
 		X[i] = MatrixCPU(sizeOPF, 1); // {Pi, Qi, vi, li, vAi, (pn, qn), (Pci, Qci, lci) for all child Ci}
-		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] noté dans l'article Yji est ce que i connait sur j
+		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] notï¿½ dans l'article Yji est ce que i connait sur j
 		Y[i] = MatrixCPU(sizeOPF, 1); //Y[i] = {Pi, Qi, vi, li, vAi, (pn, qn),  (Pci, Qci, lci) for all child Ci}
 		Mu[i] = MatrixCPU(sizeOPF, 1);
 		A[i] = MatrixCPU(2 + 1 * (i > 0), sizeOPF);
@@ -903,7 +903,7 @@ void OPFADMM2::initConsensus(const Simparam& sim, const StudyCase& cas, float rh
 		MatrixCPU temp3M(2 + 1 * (i > 0), sizeOPFADMM2.get(i, 0));
 		MatrixCPU tempMM(sizeOPFADMM2.get(i, 0), sizeOPFADMM2.get(i, 0));
 		temp33.multiplyTrans(&A[i], &A[i]); // (3*o_b) * (o_b*3) -> 9 * o_b^2
-		temp33.invertEigen(&temp33); // 3^3 = 27 (fixe !!!)
+		temp33.invertGaussJordan(&temp33); // 3^3 = 27 (fixe !!!)
 		temp3M.MultiplyMatMat(&temp33, &A[i]); // (3*3) * (3*o_b) -> 27 *o_b
 		Hinv[i].multiplyTrans(&A[i], &temp3M, 0); // (o_b*3) * (3*o_b) -> 9 * o_b
 
@@ -1057,7 +1057,7 @@ void OPFADMM2::updateX()
 			x3 = x3max;
 			lambdaUp = -(2 * x3 + c3);
 		}
-		gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit être positif
+		gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit ï¿½tre positif
 		//std::cout << "x 1 : " << x1 << " " << x2 << " " << x3 * k2 << " " << x4 << " " << (x1 * x1 + x2 * x2) / x3  - k2 * x4 << std::endl;
 
 		if (gamma >= 0) {
@@ -1071,7 +1071,7 @@ void OPFADMM2::updateX()
 			}
 		}
 
-		if (!goodSol) { // cas dégénéré
+		if (!goodSol) { // cas dï¿½gï¿½nï¿½rï¿½
 			if (c1122 == 0) {
 				std::cout << " bus " << i << " : c1= " << c1 << " c2=" << c2 << " c4=" << c4 << " gamma= " << gamma << std::endl;
 

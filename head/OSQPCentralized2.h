@@ -4,7 +4,11 @@
 #include <iostream>
 #include <string>
 
-#include <osqp.h>
+#ifdef OSQP
+	#include <osqp.h>
+
+
+
 #include <chrono>
 #ifdef OSQPGPU
 	#include <csc_utils.h>
@@ -13,7 +17,7 @@
 
 
 class OSQPCentralized2 : public Method
-{ // methode centralisé ou P ne fait pas partie des inconnus, car sinon on a plein de ligne nulle dans H
+{ // methode centralisï¿½ ou P ne fait pas partie des inconnus, car sinon on a plein de ligne nulle dans H
 	// Donc q = bn + gamma	
 	// Et H = a_n par bloc 
 
@@ -84,7 +88,7 @@ private:
 };
 
 
-
+#endif
 
 
 

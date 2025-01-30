@@ -540,7 +540,7 @@ void PACGPU::init(const Simparam& sim, const StudyCase& cas)
 	for (int i = 0; i < _nAgent; i++) {
 		int M = nVoisinCPU.get(i, 0);
 		for (int m = 0; m < M; m++) {
-			int lin = CoresAgentLin.get(i, 0) + m + 1; // indice global de tim = tip (m est le numéro du voisin, p est le numéro de l'agent)
+			int lin = CoresAgentLin.get(i, 0) + m + 1; // indice global de tim = tip (m est le numï¿½ro du voisin, p est le numï¿½ro de l'agent)
 			int p = CoresLinVoisin.get(lin, 0); // valeur de p
 			int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
 			int linLoc = lin2 - CoresAgentLin.get(p, 0) - 1; //indice local de tpi
@@ -614,7 +614,7 @@ void PACGPU::init(const Simparam& sim, const StudyCase& cas)
 			X.set(indice, 0, trade.get(i, voisin % _nAgentTrue)); // tnm
 			X.set(indice + M , 0, trade.get(voisin, i % _nAgentTrue)); //amn
 			matLb.set(indice, 0, Lb.get(i, 0));
-			matLb.set(indice + M, 0, -Ub.get(i, 0)); // est ce que cela gêne la convergence ou est ce que cela l'aide ?
+			matLb.set(indice + M, 0, -Ub.get(i, 0)); // est ce que cela gï¿½ne la convergence ou est ce que cela l'aide ?
 			matUb.set(indice, 0, Ub.get(i, 0));
 			matUb.set(indice + M, 0, -Lb.get(i, 0));
 			
@@ -648,7 +648,7 @@ void PACGPU::init(const Simparam& sim, const StudyCase& cas)
 		}	
 		//H.display(); 
 		
-		Htemp.invertEigen(&H);
+		Htemp.invertGaussJordan(&H);
 		
 		
 		

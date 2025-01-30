@@ -10,7 +10,7 @@ MarketEndoDirect::MarketEndoDirect() : Method()
 	_name = NAME;
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1ab , Fb2, Fb3, Fb5, Fb6 Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 
@@ -23,7 +23,7 @@ MarketEndoDirect::MarketEndoDirect(float rho) : Method()
 	_rho = rho;
 	timePerBlock = MatrixCPU(1, 8, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 8, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 8, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 MarketEndoDirect::~MarketEndoDirect()
@@ -149,14 +149,14 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 		
-		updatePMarket(); // puissance et trade (indépendament du bus, même si on aurait pu résoudre bus par bus)
+		updatePMarket(); // puissance et trade (indï¿½pendament du bus, mï¿½me si on aurait pu rï¿½soudre bus par bus)
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
 		timePerBlock.increment(0, 1, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION	
 		//
-		updateXWOCurrent(); // flux dans le réseau, tension
+		updateXWOCurrent(); // flux dans le rï¿½seau, tension
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
 		timePerBlock.increment(0, 2, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
@@ -474,7 +474,7 @@ void MarketEndoDirect::updateP0(const StudyCase& cas)
 
 void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 {
-	// detruire ce qui esiste déjà
+	// detruire ce qui esiste dï¿½jï¿½
 	DELETEA(tempM1);
 	DELETEA(tempM);
 	DELETEA(X);
@@ -505,7 +505,7 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 	
 	_nBus = cas.getNBus();
 	_nBusWLoss = _nBus + 1;
-	_nLine = cas.getNLine(true); // ne doit pas être réduit ici !!!
+	_nLine = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
 
 	//std::cout << _nAgent << " " << _nBus << " " << _nLine << std::endl;
 	_CoresAgentBus = cas.getCoresAgentBusLin();
@@ -514,7 +514,7 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 	nChild = MatrixCPU(_nBus, 1);
 	CoresLineBus = cas.getCoresLineBus(true);
 	_CoresBusAgent = cas.getCoresBusAgentLin(); // Cores[n] = b
-	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antécédent de i
+	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antï¿½cï¿½dent de i
 	PosChild = MatrixCPU(_nBus, 1, 0); // indice du bus i dans Child[Ai]
 	PosAgent = MatrixCPU(_nAgent, 1, 0); // indice de l'agent i dans _CoresAgentBus[CoresAgentBegin]
 	Ancestor.set(0, 0, -1); // the slack bus has no ancestor
@@ -612,7 +612,7 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 		sizeMarketEndoDirect.set(i, 0, sizeOPF);
 
 		X[i] = MatrixCPU(sizeOPF, 1); // {Pi, Qi, vi, li, vAi, (pn, qn), (Pci, Qci, lci) for all child Ci}
-		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] noté dans l'article Yji est ce que i connait sur j
+		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] notï¿½ dans l'article Yji est ce que i connait sur j
 		Y[i] = MatrixCPU(sizeOPF, 1); //Y[i] = {Pi, Qi, vi, li, vAi, (pn, qn),  (Pci, Qci, lci) for all child Ci}
 		Mu[i] = MatrixCPU(sizeOPF, 1);
 		A[i] = MatrixCPU(2 + 1*(i>0), sizeOPF);
@@ -646,14 +646,14 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 
 
 	X[_nBus] = MatrixCPU(sizeOPF, 1, 0); // {Ploss, Pn for all agent}
-	Ypre[_nBus] = MatrixCPU(sizeOPF, 1, 0);// Y[i][j] noté dans l'article Yji est ce que i connait sur j
+	Ypre[_nBus] = MatrixCPU(sizeOPF, 1, 0);// Y[i][j] notï¿½ dans l'article Yji est ce que i connait sur j
 	Y[_nBus] = MatrixCPU(sizeOPF, 1, 0); // {Ploss, Pn for all agent}
 	Mu[_nBus] = MatrixCPU(sizeOPF, 1, 0);
 	//A[_nBus] = MatrixCPU(2, sizeOPF, 0);
 	Hinv[_nBus] = MatrixCPU(sizeOPF, sizeOPF);
     Q[_nBus] = MatrixCPU(sizeOPF, 1);
 	tempM[_nBus] = MatrixCPU(sizeOPF, 1, 0);
-	//Chat[_nBus] = MatrixCPU(2, 1); // que ploss et qloss à gerer 
+	//Chat[_nBus] = MatrixCPU(2, 1); // que ploss et qloss ï¿½ gerer 
 	sizeMarketEndoDirect.set(_nBus, 0, sizeOPF);
 
 	
@@ -809,7 +809,7 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 		MatrixCPU temp3M(2 + 1 * (i > 0), sizeMarketEndoDirect.get(i, 0));
 		MatrixCPU tempMM(sizeMarketEndoDirect.get(i, 0), sizeMarketEndoDirect.get(i, 0));
 		temp33.multiplyTrans(&A[i], &A[i]); // (3*o_b) * (o_b*3) -> 9 * o_b^2
-		temp33.invertEigen(&temp33); // 3^3 = 27 (fixe !!!)
+		temp33.invertGaussJordan(&temp33); // 3^3 = 27 (fixe !!!)
 		temp3M.MultiplyMatMat(&temp33, &A[i]); // (3*3) * (3*o_b) -> 27 *o_b
 		Hinv[i].multiplyTrans(&A[i], &temp3M, 0); // (o_b*3) * (3*o_b) -> 9 * o_b
 
@@ -932,7 +932,7 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 	}*/
 
 
-	//std::cout << "mise sous forme linéaire" << std::endl;
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
 
 	CoresMatLin = MatrixCPU(_nAgent, _nAgentTrue, -1);
 	CoresAgentLin = MatrixCPU(_nAgent + 1, 1);
@@ -1001,16 +1001,16 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 	}
 
 
-	//std::cout << "autres donnée sur CPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur CPU" << std::endl;
 	tempNN = MatrixCPU(_nTrade, 1, 0);
-	tempN1 = MatrixCPU(_nAgent, 1, 0); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixCPU(_nAgent, 1, 0); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	//MatrixCPU temp1N(1, _nAgent, 0, 1);
 
 	/**/
 
 	
 
-	P = Pn; // moyenne des trades, ici c'est juste pour qu'il ait la même taille sans avoir besoin de se poser de question
+	P = Pn; // moyenne des trades, ici c'est juste pour qu'il ait la mï¿½me taille sans avoir besoin de se poser de question
 	P.divideT(&nVoisin);
 
 
@@ -1081,7 +1081,7 @@ void MarketEndoDirect::updateGlobalProb() {
 		Ypre[i].swap(&Y[i]);
 		Y[i].MultiplyMatVec(&Hinv[i], &Q[i]); // solve system by using the inverse
 	}
-	// cas où le marché n'influence pas les pertes !!!
+	// cas oï¿½ le marchï¿½ n'influence pas les pertes !!!
 	/*
 	Ypre[_nBus].swap(&Y[_nBus]);
 	Y[_nBus].set(0, 0, getPLoss());
@@ -1156,7 +1156,7 @@ void MarketEndoDirect::updateX()
 				x4 = x4max;
 			}
 
-			gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit être positif
+			gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit ï¿½tre positif
 			//std::cout << "x 1 : " << x1 << " " << x2 << " " << x3 * k2 << " " << x4 << " " << (x1 * x1 + x2 * x2) / x3  - k2 * x4 << std::endl;
 
 			if (gamma >= 0) {
@@ -1165,7 +1165,7 @@ void MarketEndoDirect::updateX()
 				goodSol = true;
 			}
 			else {
-				if (c1122 == 0) { // cas dégénéré
+				if (c1122 == 0) { // cas dï¿½gï¿½nï¿½rï¿½
 					std::cout << " bus " << i << " : c1= " << c1 << " c2=" << c2 << " c4=" << c4 << " gamma= " << gamma << std::endl;
 					x4 = 0;
 					goodSol = true;
@@ -1612,7 +1612,7 @@ void MarketEndoDirect::updateXWOCurrent()
 				x3 = x3max;
 				lambdaUp = -(2 * x3 + c3);
 			}
-			gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit être positif
+			gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit ï¿½tre positif
 			//std::cout << "x 1 : " << x1 << " " << x2 << " " << x3 * k2 << " " << x4 << " " << (x1 * x1 + x2 * x2) / x3  - k2 * x4 << std::endl;
 
 			if (gamma >= 0) {
@@ -1626,7 +1626,7 @@ void MarketEndoDirect::updateXWOCurrent()
 				}
 			}
 		}
-		if (!goodSol) { // cas dégénéré
+		if (!goodSol) { // cas dï¿½gï¿½nï¿½rï¿½
 			if (c1122 == 0) {
 				//std::cout << " bus " << i << " : c1= " << c1 << " c2=" << c2 << " c4=" << c4 << " gamma= " << gamma << std::endl;
 
@@ -1859,7 +1859,7 @@ void MarketEndoDirect::updatePMarket()
 	
 	}
 
-	//std::cout << "Résultat loss P " << P.get(0, 0) * nVoisin.get(0, 0) << "attendu "<< (Bp2.get(0, 0) + Bt1.get(0,0))/2 << std::endl;
+	//std::cout << "Rï¿½sultat loss P " << P.get(0, 0) * nVoisin.get(0, 0) << "attendu "<< (Bp2.get(0, 0) + Bt1.get(0,0))/2 << std::endl;
 
 	
 
@@ -1995,7 +1995,7 @@ void MarketEndoDirect::updateChat()
 	// pour puissance
 	updateBp2();
 	
-	// pour échanges
+	// pour ï¿½changes
 	updateLambda();
 	
 	updateBt1();

@@ -10,7 +10,7 @@ OPFADMMCons::OPFADMMCons() : MethodOPF()
 	_name = NAME;
 	timePerBlock = MatrixCPU(1, 12, 0); // Fb0, Fb11abcd, FB12, Fb2, Fb3, Fb4, Fb5,FB6, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 
@@ -23,7 +23,7 @@ OPFADMMCons::OPFADMMCons(float rho) : MethodOPF()
 	_rho = rho;
 	timePerBlock = MatrixCPU(1, 12, 0); // Fb0, Fb11, FB12, Fb2, Fb3, Fb4, Fb5, FB6, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 OPFADMMCons::~OPFADMMCons()
@@ -318,7 +318,7 @@ void OPFADMMCons::init(const Simparam& sim, const StudyCase& cas)
 	
 	_nBus = cas.getNBus();
 	_nBusWLoss = _nBus + 1;
-	_nLine = cas.getNLine(true); // ne doit pas être réduit ici !!!
+	_nLine = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
 
 	std::cout << _nAgent << " " << _nBus << " " << _nLine << std::endl;
 	_CoresAgentBus = cas.getCoresAgentBusLin();
@@ -327,7 +327,7 @@ void OPFADMMCons::init(const Simparam& sim, const StudyCase& cas)
 	nChild = MatrixCPU(_nBus, 1);
 	CoresLineBus = cas.getCoresLineBus(true);
 	_CoresBusAgent = cas.getCoresBusAgentLin(); // Cores[n] = b
-	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antécédent de i
+	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antï¿½cï¿½dent de i
 	PosChild = MatrixCPU(_nBus, 1, 0); // indice du bus i dans Child[Ai]
 	PosAgent = MatrixCPU(_nAgent, 1, -1); // indice de l'agent i dans _CoresAgentBus[CoresAgentBegin]
 	Ancestor.set(0, 0, -1); // the slack bus has no ancestor
@@ -445,7 +445,7 @@ void OPFADMMCons::init(const Simparam& sim, const StudyCase& cas)
 		sizeOPFADMMCons.set(i, 0, sizeOPF);
 
 		X[i] = MatrixCPU(sizeOPF, 1); // {Pi, Qi, vi, li, vAi, (pn, qn), (Pci, Qci, lci) for all child Ci}
-		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] noté dans l'article Yji est ce que i connait sur j
+		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] notï¿½ dans l'article Yji est ce que i connait sur j
 		Y[i] = MatrixCPU(sizeOPF, 1); //Y[i] = {Pi, Qi, vi, li, vAi, (pn, qn),  (Pci, Qci, lci) for all child Ci}
 		Mu[i] = MatrixCPU(sizeOPF, 1);
 		A[i] = MatrixCPU(2 + 1*(i>0), sizeOPF);
@@ -479,14 +479,14 @@ void OPFADMMCons::init(const Simparam& sim, const StudyCase& cas)
 
 
 	X[_nBus] = MatrixCPU(sizeOPF, 1, 0); // {Ploss, Pn for all agent}
-	Ypre[_nBus] = MatrixCPU(sizeOPF, 1, 0);// Y[i][j] noté dans l'article Yji est ce que i connait sur j
+	Ypre[_nBus] = MatrixCPU(sizeOPF, 1, 0);// Y[i][j] notï¿½ dans l'article Yji est ce que i connait sur j
 	Y[_nBus] = MatrixCPU(sizeOPF, 1, 0); // {Ploss, Pn for all agent}
 	Mu[_nBus] = MatrixCPU(sizeOPF, 1, 0);
 	A[_nBus] = MatrixCPU(2, sizeOPF, 0);
 	Hinv[_nBus] = MatrixCPU(sizeOPF, sizeOPF, 1.0/_nAgent);
 	Q[_nBus] = MatrixCPU(sizeOPF, 1);
 	tempM[_nBus] = MatrixCPU(sizeOPF, 1, 0);
-	Chat[_nBus] = MatrixCPU(2, 1); // que ploss et qloss à gerer 
+	Chat[_nBus] = MatrixCPU(2, 1); // que ploss et qloss ï¿½ gerer 
 	sizeOPFADMMCons.set(_nBus, 0, sizeOPF);
 
 
@@ -623,7 +623,7 @@ void OPFADMMCons::init(const Simparam& sim, const StudyCase& cas)
 		MatrixCPU temp3M(2 + 1 * (i > 0), sizeOPFADMMCons.get(i, 0));
 		MatrixCPU tempMM(sizeOPFADMMCons.get(i, 0), sizeOPFADMMCons.get(i, 0));
 		temp33.multiplyTrans(&A[i], &A[i]); // (3*o_b) * (o_b*3) -> 9 * o_b^2
-		temp33.invertEigen(&temp33); // 3^3 = 27 (fixe !!!)
+		temp33.invertGaussJordan(&temp33); // 3^3 = 27 (fixe !!!)
 		temp3M.MultiplyMatMat(&temp33, &A[i]); // (3*3) * (3*o_b) -> 27 *o_b
 		Hinv[i].multiplyTrans(&A[i], &temp3M, 0); // (o_b*3) * (3*o_b) -> 9 * o_b
 
@@ -638,7 +638,7 @@ void OPFADMMCons::init(const Simparam& sim, const StudyCase& cas)
 	MatrixCPU temp2M(2, sizeOPFADMMCons.get(_nBus, 0));
 	MatrixCPU tempMM(sizeOPFADMMCons.get(_nBus, 0), sizeOPFADMMCons.get(_nBus, 0));
 	temp22.multiplyTrans(&A[_nBus], &A[_nBus]);
-	temp22.invertEigen(&temp22); // 3^3 = 27 (fixe !!!)
+	temp22.invertGaussJordan(&temp22); // 3^3 = 27 (fixe !!!)
 	temp2M.MultiplyMatMat(&temp22, &A[_nBus]); // (3*3) * (3*o_b) -> 27 *o_b
 	Hinv[_nBus].multiplyTrans(&A[_nBus], &temp2M, 0); // (o_b*3) * (3*o_b) -> 9 * o_b
 
@@ -770,7 +770,7 @@ void OPFADMMCons::initConsensus(const Simparam& sim, const StudyCase& cas, float
 
 	_nBus = cas.getNBus();
 	_nBusWLoss = _nBus + 1;
-	_nLine = cas.getNLine(true); // ne doit pas être réduit ici !!!
+	_nLine = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
 
 	//std::cout << _nAgent << " " << _nBus << " " << _nLine << std::endl;
 	_CoresAgentBus = cas.getCoresAgentBusLin();
@@ -779,7 +779,7 @@ void OPFADMMCons::initConsensus(const Simparam& sim, const StudyCase& cas, float
 	nChild = MatrixCPU(_nBus, 1);
 	CoresLineBus = cas.getCoresLineBus(true);
 	_CoresBusAgent = cas.getCoresBusAgentLin(); // Cores[n] = b
-	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antécédent de i
+	Ancestor = MatrixCPU(_nBus, 1, 0); // A_i = bus antï¿½cï¿½dent de i
 	PosChild = MatrixCPU(_nBus, 1, 0); // indice du bus i dans Child[Ai]
 	PosAgent = MatrixCPU(_nAgent, 1, -1); // indice de l'agent i dans _CoresAgentBus[CoresAgentBegin]
 	Ancestor.set(0, 0, -1); // the slack bus has no ancestor
@@ -910,7 +910,7 @@ void OPFADMMCons::initConsensus(const Simparam& sim, const StudyCase& cas, float
 		sizeOPFADMMCons.set(i, 0, sizeOPF);
 
 		X[i] = MatrixCPU(sizeOPF, 1); // {Pi, Qi, vi, li, vAi, (pn, qn), (Pci, Qci, lci) for all child Ci}
-		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] noté dans l'article Yji est ce que i connait sur j
+		Ypre[i] = MatrixCPU(sizeOPF, 1);// Y[i][j] notï¿½ dans l'article Yji est ce que i connait sur j
 		Y[i] = MatrixCPU(sizeOPF, 1); //Y[i] = {Pi, Qi, vi, li, vAi, (pn, qn),  (Pci, Qci, lci) for all child Ci}
 		Mu[i] = MatrixCPU(sizeOPF, 1);
 		A[i] = MatrixCPU(2 + 1 * (i > 0), sizeOPF);
@@ -946,14 +946,14 @@ void OPFADMMCons::initConsensus(const Simparam& sim, const StudyCase& cas, float
 	
 	
 	X[_nBus] = MatrixCPU(sizeOPF, 1, 0); // {Ploss, Qloss, lj for all line}
-	Ypre[_nBus] = MatrixCPU(sizeOPF, 1, 0);// Y[i][j] noté dans l'article Yji est ce que i connait sur j
+	Ypre[_nBus] = MatrixCPU(sizeOPF, 1, 0);// Y[i][j] notï¿½ dans l'article Yji est ce que i connait sur j
 	Y[_nBus] = MatrixCPU(sizeOPF, 1, 0); // {Ploss, Qloss, lj for all line}
 	Mu[_nBus] = MatrixCPU(sizeOPF, 1, 0);
 	//A[_nBus] = MatrixCPU(2, sizeOPF, 0);
 	Hinv[_nBus] = MatrixCPU(sizeOPF, sizeOPF);
 	Q[_nBus] = MatrixCPU(sizeOPF, 1);
 	tempM[_nBus] = MatrixCPU(sizeOPF, 1, 0);
-	Chat[_nBus] = MatrixCPU(2, 1); // que ploss et qloss à gerer 
+	Chat[_nBus] = MatrixCPU(2, 1); // que ploss et qloss ï¿½ gerer 
 	sizeOPFADMMCons.set(_nBus, 0, sizeOPF);
 
 
@@ -1108,7 +1108,7 @@ void OPFADMMCons::initConsensus(const Simparam& sim, const StudyCase& cas, float
 		MatrixCPU temp3M(2 + 1 * (i > 0), sizeOPFADMMCons.get(i, 0));
 		MatrixCPU tempMM(sizeOPFADMMCons.get(i, 0), sizeOPFADMMCons.get(i, 0));
 		temp33.multiplyTrans(&A[i], &A[i]); // (3*o_b) * (o_b*3) -> 9 * o_b^2
-		temp33.invertEigen(&temp33); // 3^3 = 27 (fixe !!!)
+		temp33.invertGaussJordan(&temp33); // 3^3 = 27 (fixe !!!)
 		temp3M.MultiplyMatMat(&temp33, &A[i]); // (3*3) * (3*o_b) -> 27 *o_b
 		Hinv[i].multiplyTrans(&A[i], &temp3M, 0); // (o_b*3) * (3*o_b) -> 9 * o_b
 
@@ -1271,7 +1271,7 @@ void OPFADMMCons::updateX()
 				x4 = x4max;
 			}
 
-			gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit être positif
+			gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit ï¿½tre positif
 			//std::cout << "x 1 : " << x1 << " " << x2 << " " << x3 * k2 << " " << x4 << " " << (x1 * x1 + x2 * x2) / x3  - k2 * x4 << std::endl;
 
 			if (gamma >= 0) {
@@ -1280,7 +1280,7 @@ void OPFADMMCons::updateX()
 				goodSol = true;
 			}
 			else {
-				if (c1122 == 0) { // cas dégénéré
+				if (c1122 == 0) { // cas dï¿½gï¿½nï¿½rï¿½
 					std::cout << " bus " << i << " : c1= " << c1 << " c2=" << c2 << " c4=" << c4 << " gamma= " << gamma << std::endl;
 					x4 = 0;
 					goodSol = true;
@@ -1760,7 +1760,7 @@ void OPFADMMCons::updateXWOCurrent()
 			x3 = x3max;
 			lambdaUp = -(2 * x3 + c3);
 		}
-		gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit être positif
+		gamma = k2 * x4 - (x1 * x1 + x2 * x2) / x3; // ce n'est pas vraiment gamma, doit ï¿½tre positif
 		//std::cout << "x 1 : " << x1 << " " << x2 << " " << x3 * k2 << " " << x4 << " " << (x1 * x1 + x2 * x2) / x3  - k2 * x4 << std::endl;
 
 		if (gamma >= 0) {
@@ -1774,7 +1774,7 @@ void OPFADMMCons::updateXWOCurrent()
 			}
 		}
 
-		if (!goodSol) { // cas dégénéré
+		if (!goodSol) { // cas dï¿½gï¿½nï¿½rï¿½
 			if (c1122 == 0) {
 				//std::cout << " bus " << i << " : c1= " << c1 << " c2=" << c2 << " c4=" << c4 << " gamma= " << gamma << std::endl;
 

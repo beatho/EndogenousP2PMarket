@@ -10,8 +10,8 @@ void StudyCaseDCGrid::setGridFromFile(const std::string& path, MatrixCPU* fileCo
 		int nodeFromFile = matFile.get(i, 0);
 		int nodeToFile = matFile.get(i, 1);
 		float react = matFile.get(i, 2); 
-		if (react == 100000) { // cas pas de donnée dans le réseau européen
-			react = 100;// que faire de ces "non" données ?
+		if (react == 100000) { // cas pas de donnï¿½e dans le rï¿½seau europï¿½en
+			react = 100;// que faire de ces "non" donnï¿½es ?
 		}
 		float limit = matFile.get(i, 3) / _Sbase;
 
@@ -82,9 +82,9 @@ void StudyCaseDCGrid::CalcGridSensi()
 	
 	MatrixCPU temp1(_nLine, _nBus); // BC^T 
 	MatrixCPU temp2(_nBus, _nBus); // CBC^T
-	MatrixCPU temp3(_nBus, _nBus); // (CBC^T)^-1 avec mise à 0 de la ligne et colonne du noued de ref
+	MatrixCPU temp3(_nBus, _nBus); // (CBC^T)^-1 avec mise ï¿½ 0 de la ligne et colonne du noued de ref
 	MatrixCPU temp33(_nBus - 1, _nBus - 1); //(CBC ^ T) ^ -1 sans la ligne et colonne du noued de ref
-	MatrixCPU temp22(_nBus - 1, _nBus - 1); // on enlève la ligne du noeud de reférence
+	MatrixCPU temp22(_nBus - 1, _nBus - 1); // on enlï¿½ve la ligne du noeud de refï¿½rence
 	MatrixCPU result(_nBus - 1, _nBus - 1);
 	
 	//MatrixCPU identity(_nBus - 1, _nBus - 1);
@@ -127,7 +127,7 @@ void StudyCaseDCGrid::CalcGridSensi()
 	}
 	else {
 	
-		temp33.invertEigen(&temp22);
+		temp33.invertGaussJordan(&temp22);
 		//result.multiply(&temp33, &temp22);
 		//float err = result.distance2(&identity);
 
@@ -297,7 +297,7 @@ void StudyCaseDCGrid::genGridFromFile(std::string path, bool alreadyDefine)
 	std::string fileName3 = path + "SensiBusLineReduceEurope.txt";
 	std::string fileName4 = path + "lineLimitReduceEurope.txt";
 	std::string pathGrid = path + "Network.txt";
-	std::string pathBus = path + "BusAgent.txt"; // corespondance entre les "idBus" du fichier et celui du code (exemple commence à 0 ou à 1)
+	std::string pathBus = path + "BusAgent.txt"; // corespondance entre les "idBus" du fichier et celui du code (exemple commence ï¿½ 0 ou ï¿½ 1)
 
 	
 	_LineImpedance = MatrixCPU(_nLine, _nLine); // B
@@ -311,7 +311,7 @@ void StudyCaseDCGrid::genGridFromFile(std::string path, bool alreadyDefine)
 	if (alreadyDefine) {
 		setBusFromFile(pathBus, &fileCoresBus);
 		int idBusMax = fileCoresBus.max2();
-		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste à -1, le bus n'existe pas
+		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste ï¿½ -1, le bus n'existe pas
 		for (int i = 0; i < _nBus; i++) {
 			int bus = fileCoresBus.get(i, 0);
 			fileBusAgent.set(bus, 0, i);
@@ -335,13 +335,13 @@ void StudyCaseDCGrid::genGridFromFile(std::string path, bool alreadyDefine)
 		std::string pathGrid = path + "Network.txt";
 
 		
-		std::string pathBus = path + "BusAgent.txt"; // corespondance entre les "idBus" du fichier et celui du code (exemple commence à 0 ou à 1)
+		std::string pathBus = path + "BusAgent.txt"; // corespondance entre les "idBus" du fichier et celui du code (exemple commence ï¿½ 0 ou ï¿½ 1)
 
 
 		setBusFromFile(pathBus, &fileCoresBus);
 
 		int idBusMax = fileCoresBus.max2();
-		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste à -1, le bus n'existe pas
+		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste ï¿½ -1, le bus n'existe pas
 
 
 		for (int i = 0; i < _nBus; i++) {
@@ -523,7 +523,7 @@ void StudyCaseDCGrid::Set3Bus(std::string path) {
 }
 void StudyCaseDCGrid::Set4nodeBis(std::string path)
 {
-	// cas d'étude pour simuler le cas d'EVA pendant son stage
+	// cas d'ï¿½tude pour simuler le cas d'EVA pendant son stage
 	clock_t t = clock();
 	
 	// grid 
@@ -632,10 +632,10 @@ void StudyCaseDCGrid::SetEuropeP0(const std::string& path, bool alreadyDefine)
 
 		std::string pathGrid = path + "Network.txt";
 		fileCoresBus = MatrixCPU(_nBus, 1);
-		std::string pathBus = path + "BusAgent.txt"; // corespondance entre les "idBus" du fichier et celui du code (exemple commence à 0 ou à 1)
+		std::string pathBus = path + "BusAgent.txt"; // corespondance entre les "idBus" du fichier et celui du code (exemple commence ï¿½ 0 ou ï¿½ 1)
 		setBusFromFile(pathBus, &fileCoresBus);
 		int idBusMax = fileCoresBus.max2();
-		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste à -1, le bus n'existe pas
+		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste ï¿½ -1, le bus n'existe pas
 		//std::cout << idBusMax << std::endl;
 		for (int i = 0; i < _nBus; i++) {
 			int bus = fileCoresBus.get(i, 0);
@@ -697,11 +697,11 @@ void StudyCaseDCGrid::SetStudyCaseDCGrid(std::string path, std::string name, int
 
 		std::string pathGrid = path + "Network" + name + ".txt";
 		fileCoresBus = MatrixCPU(_nBus, 1);
-		std::string pathBus = path + "BusAgent" + name + ".txt"; // corespondance entre les "idBus" du fichier et celui du code (exemple commence à 0 ou à 1)
+		std::string pathBus = path + "BusAgent" + name + ".txt"; // corespondance entre les "idBus" du fichier et celui du code (exemple commence ï¿½ 0 ou ï¿½ 1)
 		
 		setBusFromFile(pathBus, &fileCoresBus);
 		int idBusMax = fileCoresBus.max2();
-		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste à -1, le bus n'existe pas
+		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste ï¿½ -1, le bus n'existe pas
 		//std::cout << idBusMax << std::endl;
 		
 		for (int i = 0; i < _nBus; i++) {
@@ -911,12 +911,12 @@ void StudyCaseDCGrid::display(int type)
 		MatrixCPU temp1(_nLine, _nBus); // BC^T 
 		MatrixCPU temp2(_nBus, _nBus); // CBC^T
 		MatrixCPU temp33(_nBus - 1, _nBus - 1); //(CBC ^ T) ^ -1 sans la ligne et colonne du noued de ref
-		MatrixCPU temp22(_nBus - 1, _nBus - 1); // on enlève la ligne du noeud de reférence
+		MatrixCPU temp22(_nBus - 1, _nBus - 1); // on enlï¿½ve la ligne du noeud de refï¿½rence
 
 		temp1.multiplyTrans(&_LineImpedance, &_CoresBusLine);
 		temp2.multiply(&_CoresBusLine, &temp1);
 		temp2.getBloc(&temp22, 1, _nBus, 1, _nBus);
-		temp33.invertEigen(&temp22);
+		temp33.invertGaussJordan(&temp22);
 		std::cout << " BC^T :" << std::endl;
 		temp1.display();
 		std::cout << " CBC^T :" << std::endl;

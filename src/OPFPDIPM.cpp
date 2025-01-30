@@ -10,7 +10,7 @@ OPFPDIPM::OPFPDIPM() : MethodOPF()
 	_name = NAME;
 	timePerBlock = MatrixCPU(1, 12, 0); // Fb0, Fb11abcd, FB12, Fb2, Fb3, Fb4, Fb5,FB6, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 
@@ -23,7 +23,7 @@ OPFPDIPM::OPFPDIPM(float sigma) : MethodOPF()
 	_sigma = sigma;
 	timePerBlock = MatrixCPU(1, 12, 0); // Fb0, Fb11, FB12, Fb2, Fb3, Fb4, Fb5, FB6, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 OPFPDIPM::~OPFPDIPM()
@@ -112,7 +112,7 @@ void OPFPDIPM::solve(Simparam* result, const Simparam& sim, const StudyCase& cas
 		VectSys.display();*/
 
 		/// STEP 1
-		// 1a : avoir PSI(O) - > c'est déjà fait avant
+		// 1a : avoir PSI(O) - > c'est dï¿½jï¿½ fait avant
 		//std::cout << "1a" << std::endl;
 		
 		updateJ();
@@ -301,10 +301,10 @@ void OPFPDIPM::init(const Simparam& sim, const StudyCase& cas)
 	_iterG = sim.getIterG() < 50 ? sim.getIterG() : 50;
 	_stepG = sim.getStepG();
 	
-	_nAgent = cas.getNagent() - 1; // on enlève l'agent des pertes
+	_nAgent = cas.getNagent() - 1; // on enlï¿½ve l'agent des pertes
 	
 	_nBus = cas.getNBus();
-	_nLine = cas.getNLine(true); // ne doit pas être réduit ici !!!
+	_nLine = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
 	_sizeEq = 2 * (_nBus + 1);
 	_sizeInEq = 2 * _nAgent + _nBus + _nLine;
 	_sizeVar = 2 * _nAgent + 2 * _nBus;
@@ -537,7 +537,7 @@ void OPFPDIPM::solveConsensus(float eps, MatrixCPU* PSO)
 
 	while ((_iterGlobal < _iterG) && (resG > epsG)) {
 		/// STEP 1
-		// 1a : avoir PSI(O) - > c'est déjà fait avant
+		// 1a : avoir PSI(O) - > c'est dï¿½jï¿½ fait avant
 		//std::cout << "1a" << std::endl;
 
 		updateJ();
@@ -628,10 +628,10 @@ void OPFPDIPM::initConsensus(const Simparam& sim, const StudyCase& cas, float rh
 	_iterG = sim.getIterG();
 	_stepG = sim.getStepG();
 
-	_nAgent = cas.getNagent() - 1; // on enlève l'agent des pertes
+	_nAgent = cas.getNagent() - 1; // on enlï¿½ve l'agent des pertes
 
 	_nBus = cas.getNBus();
-	_nLine = cas.getNLine(true); // ne doit pas être réduit ici !!!
+	_nLine = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
 	_sizeEq = 2 * (_nBus + 1);
 	_sizeInEq = 2 * _nAgent + _nBus + _nLine;
 	_sizeVar = 2 * _nAgent + 2 * _nBus;
@@ -875,24 +875,28 @@ void OPFPDIPM::updatePerturbedFactor()
 
 void OPFPDIPM::correctionEquation()
 {
-	dXY.solveSysEigen(&MatSys, &VectSys);
-	/*MatrixCPU AD(_sizeVar + _sizeEq, _sizeVar + _sizeEq);
-	MatrixCPU PD(_sizeVar + _sizeEq + 1, 1);
-	try
-	{
-		 //AD.invertGaussJordan(&MatSys); //inversion matrice Jac
-		 
-		 MatSys.LUPFactorization(&AD, &PD);
-	}
-	catch (const std::exception& e)
-	{
-		//AD.display();
-		std::cout << "error " << e.what() << std::endl;
-		exit(-1);
-	}
+	#ifdef Eigen
+		dXY.solveSysEigen(&MatSys, &VectSys);
+	#else
+		MatrixCPU AD(_sizeVar + _sizeEq, _sizeVar + _sizeEq);
+		MatrixCPU PD(_sizeVar + _sizeEq + 1, 1);
+		try
+		{
+			//AD.invertGaussJordan(&MatSys); //inversion matrice Jac
+			
+			MatSys.LUPFactorization(&AD, &PD);
+		}
+		catch (const std::exception& e)
+		{
+			//AD.display();
+			std::cout << "error " << e.what() << std::endl;
+			exit(-1);
+		}
 
 	//dXY.MultiplyMatVec(&AD, &VectSys);
-	dXY.solveSys(&AD, &PD, &VectSys);*/
+	dXY.solveSys(&AD, &PD, &VectSys);
+	#endif
+	/**/
 	
 
 	for (int i = 0; i < _sizeVar; i++) {
@@ -1057,7 +1061,7 @@ void OPFPDIPM::updateJ()
 		hJac.increment(offset + _nBus + b, b + _nBus, -2 * BgridLin.get(k, 0) * fi);
 
 		for (int voisin = k + 1; voisin < (k + nLines.get(b, 0)); voisin++) {
-			int j = CoresVoiLin.get(voisin, 0); // pour les égalités -> h c'est tous les bus , pour les inégalités -> g on considère les lignes
+			int j = CoresVoiLin.get(voisin, 0); // pour les ï¿½galitï¿½s -> h c'est tous les bus , pour les inï¿½galitï¿½s -> g on considï¿½re les lignes
 			float ej = X.get(offset + j, 0);
 			float fj = X.get(offset + _nBus + j, 0);
 			float B = BgridLin.get(voisin, 0);
@@ -1160,7 +1164,7 @@ void OPFPDIPM::updateH()
 		float y2 = Y.get(b + _nBus, 0);
 		float d2 = d.get(b + offset, 0);
 		float zw2 = z.get(offset + b, 0) + w.get(offset + b, 0);
-		double gii = 0; // double car reduction à faire...
+		double gii = 0; // double car reduction ï¿½ faire...
 		float gdgii  = 0;
 
 		

@@ -1,9 +1,11 @@
 
-
+#include "../head/Utilities.h"
 #include "../head/Utilities.cuh"
 #define PI 3.14159265359
 #define ITERNEWTON 50
 #define EPSNEWTON 0.00000001
+
+
 #define F3(a, b, c, x) (x*x*x + a *x*x + b*x + c)
 #define F4(a, b, c, d, x) (x*x*x*x + a *x*x*x + b*x*x + c*x + d)
 
@@ -44,7 +46,9 @@ void checkLast(const char* const file, const int line)
 	}
 }
 
-
+float min(float a, float b){
+	return b*(a>b) + a*(a<=b);
+}
 
 
 
@@ -71,8 +75,8 @@ int resolveRealPolynome3without2term(double* root, double* coef) {
 		root[0] = z0; // b2 = z0
 
 		double c2 = p + z0 * z0;
-		double delta2 = z0 * z0 - 4 * c2; // négatif normalement
-		root[1] = -z0 / 2; // partie réelle de la racine double
+		double delta2 = z0 * z0 - 4 * c2; // nï¿½gatif normalement
+		root[1] = -z0 / 2; // partie rï¿½elle de la racine double
 		root[2] = sqrt(-delta2) / 2;
 		return 1;
 	}
@@ -115,7 +119,7 @@ int resolveRealPolynome3Newton(double* root, double* coef, double init)
 		
 	}
 	if (i == ITERNEWTON) {
-		i = 0; // on réessaie avec une autre init
+		i = 0; // on rï¿½essaie avec une autre init
 		double b = coef[0];
 		double c = coef[1];
 		double d = coef[2];
@@ -130,14 +134,14 @@ int resolveRealPolynome3Newton(double* root, double* coef, double init)
 			x_pre = findAntpoly3Neg(p, q);
 			if (F3(0, p, q, x_pre) >= 0) {
 				std::cout << "polynome " << p << " " << q << std::endl;
-				std::cout << "problème on the solution neg " << x_pre << " " << F3(0, p, q, x_pre) << std::endl;
+				std::cout << "problï¿½me on the solution neg " << x_pre << " " << F3(0, p, q, x_pre) << std::endl;
 			}
 		}
 		else {
 			x_pre = findAntpoly3Pos(p, q);
 			if (F3(0, p, q, x_pre) <= 0) {
 				std::cout << "polynome " << p << " " << q << std::endl;
-				std::cout << "problème on the solution pos " << x_pre << " " << F3(0, p, q, x_pre) << std::endl;
+				std::cout << "problï¿½me on the solution pos " << x_pre << " " << F3(0, p, q, x_pre) << std::endl;
 			}
 		}
 		double eps = 2 * EPSNEWTON;
@@ -152,8 +156,8 @@ int resolveRealPolynome3Newton(double* root, double* coef, double init)
 		}
 		x_i = x_i - b / 3;
 
-		if (i == ITERNEWTON) { // racine non trouvé ...
-			std::cout << "***************** Cela n'a pas marché **********" << std::endl;
+		if (i == ITERNEWTON) { // racine non trouvï¿½ ...
+			std::cout << "***************** Cela n'a pas marchï¿½ **********" << std::endl;
 			double coefTemp[2];
 
 			coefTemp[0] = p;
@@ -171,7 +175,7 @@ int resolveRealPolynome3Newton(double* root, double* coef, double init)
 	root[nRoot] = x_i;
 	nRoot++;
 	
-	// second degré
+	// second degrï¿½
 	// x^2 + b x + c = 0 tel que  x^3 + s x^2 + px + q = (x-x_i)(x^2 + b x + c)
 	double B = coef[0] + x_i;
 	double C = coef[1] + x_i * B;
@@ -198,7 +202,7 @@ int resolveRealPolynome3Newton(double* root, double* coef, double init)
 		return nRoot;
 	}
 	else { // delta < 0
-		//std::cout << "pas d'autres racines réelle !!!! " << std::endl;
+		//std::cout << "pas d'autres racines rï¿½elle !!!! " << std::endl;
 	}
 return nRoot;
 	
@@ -217,7 +221,7 @@ int resolveRealPolynome3Laguerre(double* root, double* coef, double init)
 
 	double x_i = 0;
 	int nRoot = 0;
-	int n = 3; // degré du polynome
+	int n = 3; // degrï¿½ du polynome
 	int i = 0;
 	if (coef[2] != 0) {
 		// solve Laguerre
@@ -248,7 +252,7 @@ int resolveRealPolynome3Laguerre(double* root, double* coef, double init)
 		}
 		std::cout << i << " " << eps << " " << x_i << std::endl;
 	}
-	if (i == ITERNEWTON) { // racine non trouvé ...
+	if (i == ITERNEWTON) { // racine non trouvï¿½ ...
 		double coefTemp[2];
 		double b = coef[0];
 		double c = coef[1];
@@ -270,7 +274,7 @@ int resolveRealPolynome3Laguerre(double* root, double* coef, double init)
 	root[nRoot] = x_i;
 	nRoot++;
 
-	// second degré
+	// second degrï¿½
 	// x^2 + b x + c = 0 tel que  x^3 + s x^2 + px + q = (x-x_i)(x^2 + b x + c)
 	double B = coef[0] + x_i;
 	double C = coef[1] + x_i * B;
@@ -297,7 +301,7 @@ int resolveRealPolynome3Laguerre(double* root, double* coef, double init)
 		return nRoot;
 	}
 	else { // delta < 0
-		//std::cout << "pas d'autres racines réelle !!!! " << std::endl;
+		//std::cout << "pas d'autres racines rï¿½elle !!!! " << std::endl;
 	}
 
 
@@ -315,7 +319,7 @@ int resolveRealPolynome3Halley(double* root, double* coef, double init)
 
 	double x_i = 0;
 	int nRoot = 0;
-	int n = 3; // degré du polynome
+	int n = 3; // degrï¿½ du polynome
 	int i = 0;
 	double x_pre = init;
 	
@@ -339,7 +343,7 @@ int resolveRealPolynome3Halley(double* root, double* coef, double init)
 		}
 	}
 	if (i == ITERNEWTON) {
-		i = 0; // on réessaie avec une autre init
+		i = 0; // on rï¿½essaie avec une autre init
 		double b = coef[0];
 		double c = coef[1];
 		double d = coef[2];
@@ -354,14 +358,14 @@ int resolveRealPolynome3Halley(double* root, double* coef, double init)
 			x_pre = findAntpoly3Neg(p, q);
 			if (F3(0, p, q, x_pre) >= 0) {
 				std::cout << "polynome " << p << " " << q << std::endl;
-				std::cout << "problème on the solution neg " << x_pre << " " << F3(0, p, q, x_pre) << std::endl;
+				std::cout << "problï¿½me on the solution neg " << x_pre << " " << F3(0, p, q, x_pre) << std::endl;
 			}
 		}
 		else {
 			x_pre = findAntpoly3Pos(p, q);
 			if (F3(0, p, q, x_pre) <= 0) {
 				std::cout << "polynome " << p << " " << q << std::endl;
-				std::cout << "problème on the solution pos " << x_pre << " " << F3(0, p, q, x_pre) << std::endl;
+				std::cout << "problï¿½me on the solution pos " << x_pre << " " << F3(0, p, q, x_pre) << std::endl;
 			}
 		}
 		double eps = 2 * EPSNEWTON;
@@ -381,8 +385,8 @@ int resolveRealPolynome3Halley(double* root, double* coef, double init)
 		}
 		x_i = x_i - b / 3;
 
-		if (i == ITERNEWTON) { // racine non trouvé ...
-			std::cout << "***************** Cela n'a pas marché **********" << std::endl;
+		if (i == ITERNEWTON) { // racine non trouvï¿½ ...
+			std::cout << "***************** Cela n'a pas marchï¿½ **********" << std::endl;
 			double coefTemp[2];
 			
 			coefTemp[0] = p;
@@ -404,7 +408,7 @@ int resolveRealPolynome3Halley(double* root, double* coef, double init)
 	root[nRoot] = x_i;
 	nRoot++;
 
-	// second degré
+	// second degrï¿½
 	// x^2 + b x + c = 0 tel que  x^3 + s x^2 + px + q = (x-x_i)(x^2 + b x + c)
 	double B = coef[0] + x_i;
 	double C = coef[1] + x_i * B;
@@ -431,7 +435,7 @@ int resolveRealPolynome3Halley(double* root, double* coef, double init)
 		return nRoot;
 	}
 	else { // delta < 0
-		//std::cout << "pas d'autres racines réelle !!!! " << std::endl;
+		//std::cout << "pas d'autres racines rï¿½elle !!!! " << std::endl;
 	}
 
 
@@ -483,7 +487,7 @@ int resvolveRealPolynome4without2term(double* root, double* coef)
 			return nRoot;
 		}
 		else { // delta < 0
-			//std::cout << "pas de racines réelle !!!! rip, on tente le pas bicarré" << std::endl;
+			//std::cout << "pas de racines rï¿½elle !!!! rip, on tente le pas bicarrï¿½" << std::endl;
 		}
 	}
 
@@ -579,7 +583,7 @@ int resolveRealPolynome4Newton(double* root, double* coef, double init)
 		}
 	}
 	
-	// troisième degré
+	// troisiï¿½me degrï¿½
 	// x^2 + b x + c = 0 tel que  x^3 + s x^2 + px + q = (x-x_i)(x^2 + b x + c)
 	coef3[0] = coef[0] + x_i;
 	coef3[1] = coef[1] + x_i * coef3[0];
@@ -605,7 +609,7 @@ int resolveRealPolynome4Halley(double* root, double* coef, double init)
 
 	double x_i = 0;
 
-	int n = 3; // degré du polynome
+	int n = 3; // degrï¿½ du polynome
 	if (coef[2] != 0) {
 		 
 		double x_pre = init;
@@ -628,7 +632,7 @@ int resolveRealPolynome4Halley(double* root, double* coef, double init)
 	}
 
 
-	// troisième degré
+	// troisiï¿½me degrï¿½
 	double coef3[3];
 
 
@@ -669,7 +673,7 @@ int resvolveRealPolynome4without2termLagrange(double* root, double* coef) {
 	double e = coef[2];
 	int nRoot = 0;
 
-	// il faut passer de b d e à p q t, c'est le coef devant z^3 qui doit etre nul pas celui devant z^2 !!!
+	// il faut passer de b d e ï¿½ p q t, c'est le coef devant z^3 qui doit etre nul pas celui devant z^2 !!!
 
 	double p = -3.0 * b * b / (8.0);
 	double q = d + (b * b * b) / 8.0;
@@ -698,12 +702,12 @@ int resvolveRealPolynome4without2termLagrange(double* root, double* coef) {
 	//std::cout << coef2[0] << " " << coef2[1] << std::endl;
 
 	int nRootlambda = resolveRealPolynome3without2term(rootlambda, coef2);
-	// il y a eu un changement de variable donc il faut décaller les racines
+	// il y a eu un changement de variable donc il faut dï¿½caller les racines
 	double offset = 2.0 * p / 3.0; // b/3a du poly du 2nd ordre
 
 	
-	if (nRootlambda == 1) { // une réelle et 2 compl
-		rootlambda[0] = signe * sqrt(rootlambda[0] - offset); // racine réelle
+	if (nRootlambda == 1) { // une rï¿½elle et 2 compl
+		rootlambda[0] = signe * sqrt(rootlambda[0] - offset); // racine rï¿½elle
 		rootlambda[1] = rootlambda[1] - offset; // Partie relle de la racine 
 
 
@@ -720,10 +724,10 @@ int resvolveRealPolynome4without2termLagrange(double* root, double* coef) {
 		return 2;
 
 	}
-	else { // 3 réelles
+	else { // 3 rï¿½elles
 		for (int i = 0; i < 3; i++) {
 			if (rootlambda[i] - offset < 0) {
-				return 0; // que des racines négatives -> pas de racines réelles
+				return 0; // que des racines nï¿½gatives -> pas de racines rï¿½elles
 			}
 			else {
 				rootlambda[i] = signe * sqrt(rootlambda[i] - offset);
@@ -747,61 +751,6 @@ int resvolveRealPolynome4without2termLagrange(double* root, double* coef) {
 }
 
 
-int resolveRealPolynome3without2termEigen(double* root, double* coef) {
-	/*
-	* return : the number of real root for the polynome x^3 + px + q = 0
-	* root : is a array of size 3
-	* coeff : is a array of size 2 (p and q of x^3 + px + q = 0)
-	*/
-	int nRoot = 0;
-
-	Eigen::Vector4d coeff(coef[1], coef[0], 0 , 1); //double coef4[4] = { 1, -5, 3, 1 };
-	Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
-	solver.compute(coeff);
-	const Eigen::PolynomialSolver<double, Eigen::Dynamic>::RootsType& r = solver.roots();
-
-	//std::cout << r << std::endl;
-
-	for (int k = 0; k < 3; k++) {
-		if (r(k).imag() == 0) { // racine réelle
-			root[nRoot] = r(k).real();
-			nRoot++;
-		}
-	}
-
-	return nRoot;
-}
-
-int resvolveRealPolynome4without2termEigen(double* root, double* coef)
-{
-	/*
-	* return : the number of real root for the polynome x^4 + bx^3 + dx + e = 0
-	* root : is a array of size 4
-	* coeff : is a array of size 3 (b,d,e)
-	*/
-
-	int nRoot = 0;
-	Eigen::VectorXd coeff(5);
-	coeff(0) = coef[2];
-	coeff(1) = coef[1];
-	coeff(2) = 0;
-	coeff(3) = coef[0];
-	coeff(4) = 1;
-
-	Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
-	solver.compute(coeff);
-	const Eigen::PolynomialSolver<double, Eigen::Dynamic>::RootsType& r = solver.roots();
-
-	for (int k = 0; k < 4; k++) {
-		if (r(k).imag() == 0) { // racine réelle
-			root[nRoot] = r(k).real();
-			nRoot++;
-		}
-	}
-
-	return nRoot;
-
-}
 
 
 int resvolveRealPolynome4without2term(double* root, double* coef, bool Lagrange) {
@@ -869,8 +818,8 @@ __device__ int resolveRealPolynome3without2termGPU(double* root, double p, doubl
 		root[0] = z0; // b2 = z0
 		
 		double c2 = p + z0*z0;
-		double delta2 = z0 * z0 - 4 * c2; // négatif normalement
-		root[1] = -z0 / 2; // partie réelle de la racine double
+		double delta2 = z0 * z0 - 4 * c2; // nï¿½gatif normalement
+		root[1] = -z0 / 2; // partie rï¿½elle de la racine double
 		root[2] = sqrt(-delta2) / 2;
 		return 1;
 	}
@@ -964,7 +913,7 @@ __device__ int resvolveRealPolynome4without2termGPULagrange(double* root, double
 
 	int nRoot = 0;
 
-	// il faut passer de b d e à p q t, c'est le coef devant z^3 qui doit etre nul pas celui devant z^2 !!!
+	// il faut passer de b d e ï¿½ p q t, c'est le coef devant z^3 qui doit etre nul pas celui devant z^2 !!!
 
 	double p = -3.0 * b * b / (8.0);
 	double q = d + (b * b * b) / 8.0;
@@ -982,12 +931,12 @@ __device__ int resvolveRealPolynome4without2termGPULagrange(double* root, double
 
 	
 	int nRootlambda = resolveRealPolynome3without2termGPU(rootlambda, coef2_0, coef2_1);
-	// il y a eu un changement de variable donc il faut décaller les racines
+	// il y a eu un changement de variable donc il faut dï¿½caller les racines
 	double offset = 2.0 * p / 3.0; // b/3a du poly du 2nd ordre
 
 
-	if (nRootlambda == 1) { // une réelle et 2 compl
-		rootlambda[0] = signe * sqrt(rootlambda[0] - offset); // racine réelle
+	if (nRootlambda == 1) { // une rï¿½elle et 2 compl
+		rootlambda[0] = signe * sqrt(rootlambda[0] - offset); // racine rï¿½elle
 		rootlambda[1] = rootlambda[1] - offset; // Partie relle de la racine 
 
 
@@ -1004,10 +953,10 @@ __device__ int resvolveRealPolynome4without2termGPULagrange(double* root, double
 		return 2;
 
 	}
-	else { // 3 réelles
+	else { // 3 rï¿½elles
 		for (int i = 0; i < 3; i++) {
 			if (rootlambda[i] - offset < 0) {
-				return 0; // que des racines négatives -> pas de racines réelles
+				return 0; // que des racines nï¿½gatives -> pas de racines rï¿½elles
 			}
 			else {
 				rootlambda[i] = signe * sqrt(rootlambda[i] - offset);
@@ -1170,7 +1119,7 @@ __device__ int resolveRealPolynome3GPU(double* root, double b, double c, double 
 		}
 	}
 	if (i == ITERNEWTON) {
-		i = 0; // on réessaie avec une autre init
+		i = 0; // on rï¿½essaie avec une autre init
 
 		double p = (3 * c - b * b) / (3);
 		double q = (2 * b * b * b - 9 * b * c + 27 * d) / (27);
@@ -1198,7 +1147,7 @@ __device__ int resolveRealPolynome3GPU(double* root, double b, double c, double 
 		}
 		x_i = x_i - b / 3;
 
-		if (i == ITERNEWTON) { // racine non trouvé ...
+		if (i == ITERNEWTON) { // racine non trouvï¿½ ...
 			double coefTemp[2];
 
 			coefTemp[0] = p;
@@ -1214,7 +1163,7 @@ __device__ int resolveRealPolynome3GPU(double* root, double b, double c, double 
 	root[nRoot] = x_i;
 	nRoot++;
 
-	// second degré
+	// second degrï¿½
 	// x^2 + b x + c = 0 tel que  x^3 + s x^2 + px + q = (x-x_i)(x^2 + b x + c)
 	double B = b + x_i;
 	double C = c + x_i * B;
@@ -1267,7 +1216,7 @@ __device__ int resvolveRealPolynome4GPU(double* root, double b, double c, double
 	}
 
 
-	// troisième degré
+	// troisiï¿½me degrï¿½
 	 
 
 	double B = b + x_i;
@@ -1348,6 +1297,65 @@ __global__ void resolveSeveralRealPolynome4GPU(double* nRoot, double* roots, dou
 	}
 }
 
+
+#ifdef Eigen
+	int resolveRealPolynome3without2termEigen(double* root, double* coef) {
+		/*
+		* return : the number of real root for the polynome x^3 + px + q = 0
+		* root : is a array of size 3
+		* coeff : is a array of size 2 (p and q of x^3 + px + q = 0)
+		*/
+		int nRoot = 0;
+
+		Eigen::Vector4d coeff(coef[1], coef[0], 0 , 1); //double coef4[4] = { 1, -5, 3, 1 };
+		Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
+		solver.compute(coeff);
+		const Eigen::PolynomialSolver<double, Eigen::Dynamic>::RootsType& r = solver.roots();
+
+		//std::cout << r << std::endl;
+
+		for (int k = 0; k < 3; k++) {
+			if (r(k).imag() == 0) { // racine rï¿½elle
+				root[nRoot] = r(k).real();
+				nRoot++;
+			}
+		}
+
+		return nRoot;
+	}
+
+	int resvolveRealPolynome4without2termEigen(double* root, double* coef)
+	{
+		/*
+		* return : the number of real root for the polynome x^4 + bx^3 + dx + e = 0
+		* root : is a array of size 4
+		* coeff : is a array of size 3 (b,d,e)
+		*/
+
+		int nRoot = 0;
+		Eigen::VectorXd coeff(5);
+		coeff(0) = coef[2];
+		coeff(1) = coef[1];
+		coeff(2) = 0;
+		coeff(3) = coef[0];
+		coeff(4) = 1;
+
+		Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
+		solver.compute(coeff);
+		const Eigen::PolynomialSolver<double, Eigen::Dynamic>::RootsType& r = solver.roots();
+
+		for (int k = 0; k < 4; k++) {
+			if (r(k).imag() == 0) { // racine rï¿½elle
+				root[nRoot] = r(k).real();
+				nRoot++;
+			}
+		}
+
+		return nRoot;
+
+	}
+
+#endif
 
 
 
