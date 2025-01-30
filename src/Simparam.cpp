@@ -10,9 +10,11 @@ Simparam::Simparam()
 	_rho = RHOG;
 	_iterMaxGlobal = ITERMAXGLOBAL;
 	_iterMaxLocal = ITERMAXLOCAL;
+	
 	_epsGlobal = EPSGLOBAL;
 	_epsGlobalConst = EPSGLOBALCONST;
 	_epsLocal = EPSLOCAL;
+	
 	_stepL = STEPL;
 	_stepG = STEPG;
 	_nAgent = 0;
@@ -23,6 +25,12 @@ Simparam::Simparam()
 	_fcSym = 0;
 	_iterLocalTotal = 0;
 	_rho1 = RHOG;
+
+
+	_iterIntern = ITERMAXLOCAL;
+	_epsIntern = EPSLOCAL;
+	_stepIntern = STEPL;
+
 
 	_resF = MatrixCPU(3, (_iterMaxGlobal / STEPG) + 1);
 }
@@ -48,6 +56,11 @@ Simparam::Simparam(const Simparam& sim)
 	_lineLimitMin = sim._lineLimitMin;
 	_warmstart = sim._warmstart;
 	_AC = sim._AC;
+
+	_iterIntern = sim._iterIntern;
+	_epsIntern = sim._epsIntern;
+	_stepIntern = sim._stepIntern;
+
 
 	_LAMBDA = MatrixCPU(sim._LAMBDA);
 	_trade = MatrixCPU(sim._trade);
@@ -79,6 +92,11 @@ Simparam::Simparam(int nAgent) {
 	_rho1 = RHOG;
 	_nLine = 0;
 
+
+	_iterIntern = ITERMAXLOCAL;
+	_epsIntern = EPSLOCAL;
+	_stepIntern = STEPL;
+
 	_LAMBDA = MatrixCPU(nAgent, nAgent);
 	_trade = MatrixCPU(nAgent, nAgent);
 	_tradeSym = MatrixCPU(nAgent, nAgent);
@@ -108,6 +126,10 @@ Simparam::Simparam(int nAgent, int nLine, bool AC)
 	_rho1 = RHOG;
 	_nLine = nLine;
 	_AC = AC;
+
+	_iterIntern = ITERMAXLOCAL;
+	_epsIntern = EPSLOCAL;
+	_stepIntern = STEPL;
 	
 	if (AC) {
 		_Pn = MatrixCPU(2 * nAgent, 1);
@@ -148,6 +170,11 @@ Simparam::Simparam(int nAgent, int nLine, int nLineConstraint, bool AC)
 	_stepG = STEPG;
 	_rho1 = RHOG;
 	_nLine = nLine;
+
+	_iterIntern = ITERMAXLOCAL;
+	_epsIntern = EPSLOCAL;
+	_stepIntern = STEPL;
+
 	_AC = AC;
 
 	if (AC) {
@@ -189,6 +216,10 @@ Simparam::Simparam(float rho, int iterMaxGlobal, int iterMaxLocal, float epsGlob
 	_epsGlobal = epsGlobal;
 	_epsGlobalConst = epsGlobal;
 	_epsLocal =  epsLocal;
+
+	_iterIntern = iterMaxLocal;
+	_epsIntern = epsLocal;
+	_stepIntern = STEPL;
 	_nLine = 0;
 	
 	_stepL = STEPL;
@@ -248,6 +279,11 @@ Simparam& Simparam::operator=(const Simparam& sim)
 	_nLine = sim._nLine;
 	_AC = sim._AC;
 
+
+	_iterIntern = sim._iterIntern;
+	_epsIntern = sim._epsIntern;
+	_stepIntern = sim._stepIntern;
+
     _iter = sim._iter;
 	_iterLocalTotal = sim._iterLocalTotal;
 	_time = sim._time;
@@ -305,6 +341,11 @@ int Simparam::getIterL() const
 	return _iterMaxLocal;
 }
 
+int Simparam::getIterIntern() const
+{
+	return _iterIntern;
+}
+
 float Simparam::getEpsG() const
 {
 	return _epsGlobal;
@@ -320,6 +361,11 @@ float Simparam::getEpsL() const
 	return _epsLocal;
 }
 
+float Simparam::getEpsIntern() const
+{
+	return _epsIntern;
+}
+
 int Simparam::getNAgent() const
 {
 	return _nAgent;
@@ -333,6 +379,10 @@ int Simparam::getNLine() const
 int Simparam::getStepL() const
 {
 	return _stepL;
+}
+int Simparam::getStepIntern() const
+{
+	return _stepIntern;
 }
 int Simparam::getStepG() const
 {
@@ -397,6 +447,11 @@ void Simparam::setItG(int iter) {
 
 void Simparam::setItL(int iter) {
 	_iterMaxLocal = iter;
+}
+
+void Simparam::setItIntern(int iter)
+{
+	_iterIntern = iter;
 }
 
 
@@ -511,6 +566,14 @@ void Simparam::setStep(int stepG, int stepL)
 	_resF = MatrixCPU(3, (_iterMaxGlobal / _stepG) + 1);
 }
 
+void Simparam::setStep(int stepG, int stepL, int stepIntern)
+{
+	_stepG = stepG;
+	_stepL = stepL;
+	_stepIntern = stepIntern;
+	_resF = MatrixCPU(3, (_iterMaxGlobal / _stepG) + 1);
+}
+
 void Simparam::setEpsG(float epsG)
 {
 	_epsGlobal = epsG;
@@ -524,6 +587,11 @@ void Simparam::setEpsGC(float epsGConst)
 void Simparam::setEpsL(float epsL)
 {
 	_epsLocal = epsL;
+}
+
+void Simparam::setEpsIntern(float eps)
+{
+	_epsIntern = eps;
 }
 
 

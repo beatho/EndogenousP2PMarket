@@ -452,6 +452,7 @@ void System::solveIntervalle(std::string path, int begin, int end, int chosenAge
 	_ResX = MatrixCPU(1, Nsimu);
 
 	float epsG = _simparam.getEpsG();
+	float epsGC = _simparam.getEpsGC();
 	int stepG = _simparam.getStepG();
 	clock_t t = 0;// clock();
 	std::cout << "-";
@@ -472,7 +473,7 @@ void System::solveIntervalle(std::string path, int begin, int end, int chosenAge
 		_ResR.set(0, iter, resR);
 		_ResS.set(0, iter, resS);
 		_ResX.set(0, iter, resX);
-		if (resR <= epsG && resS <= epsG) {
+		if (resR <= epsG && resS <= epsG && resX <= epsGC) {
 			_conv.set(0, iter, 1);
 		}
 		else {
@@ -783,10 +784,20 @@ void System::setIter(int iterG, int iterL) {
 	_result->setItL(iterL);
 }
 
+void System::setItIntern(int iter)
+{
+	_simparam.setItIntern(iter);
+}
+
 void System::setStep(int stepG, int stepL)
 {
 	_simparam.setStep(stepG, stepL);
 	_result->setStep(stepG, stepL);
+}
+
+void System::setStep(int stepG, int stepL, int stepIntern)
+{
+	_simparam.setStep(stepG, stepL, stepIntern);
 }
 
 void System::setEpsG(float epsG)
@@ -797,6 +808,11 @@ void System::setEpsG(float epsG)
 void System::setEpsGC(float epsgC)
 {
 	_simparam.setEpsGC(epsgC);
+}
+
+void System::setEpsIntern(float eps)
+{
+	_simparam.setEpsIntern(eps);
 }
 
 void System::setEpsL(float epsL)

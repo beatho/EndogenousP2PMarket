@@ -1,5 +1,5 @@
 #include "../head/MarEndoCons.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+#define MAX(X, Y) (X) * ((X) >= (Y)) + (Y) * ((Y) > (X))
 
 
 
@@ -288,13 +288,22 @@ void MarEndoCons::init(const Simparam& sim, const StudyCase& cas)
 	_stepG = sim.getStepG();
 	float epsG = sim.getEpsG();
 	float epsGC = sim.getEpsGC();
+
+	_epsLim = sim.getEpsIntern();
 	_stepL = sim.getStepL();
+	
 	_ratioEps = epsG / epsGC;
+
+	std::cout << "precision demandee " << epsG << " " << epsGC << " ratio " << _ratioEps << std::endl;
+
 	_nAgentTrue = sim.getNAgent();
 	_nAgent = 2 * _nAgentTrue;
 
 	paramOPF = sim;
-	paramOPF.setItG(sim.getIterL());
+	paramOPF.setItG(sim.getIterIntern());
+	paramOPF.setEpsG(sim.getEpsIntern());
+	_stepIntern = sim.getStepIntern();
+
 
 	_rhol = _rho; //*nAgent
 	//std::cout << "rho " << _rho << std::endl;
@@ -314,6 +323,8 @@ void MarEndoCons::init(const Simparam& sim, const StudyCase& cas)
 		std::cout << "err ADMM : " << _nAgent << " " << _nAgentTrue << " " << _nTrade << " " << _nTradeP << " " << _nTradeQ << std::endl;
 		throw std::invalid_argument("Agent must be fully conected for the Q echanges, WIP");
 	}
+	std::cout << "Market" << std::endl;
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	if (initWithMarketClear) {
 		ADMMMarket market;
 		Simparam res(sim);
@@ -328,6 +339,11 @@ void MarEndoCons::init(const Simparam& sim, const StudyCase& cas)
 		trade = sim.getTrade();
 		Pn = sim.getPn(); // somme des trades
 	}
+
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	std::cout << "time : " << (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / 1000000000 << std::endl;
+	
+	
 	//Pn.display();
 	paramOPF.setPn(&Pn);
 	
@@ -514,11 +530,11 @@ void MarEndoCons::updateGlobalProb() {
 	std::chrono::high_resolution_clock::time_point t2;
 #endif // INSTRUMENTATION
 	
-	float eps = min(_resG / 10, 0.01);
+	float eps = min(_resG * _delta, _epsLim);
 	
 
 	//std::cout << "SolveOPF" << std::endl;
-	if (_iterGlobal % _stepL == 0) {
+	if (_iterGlobal % _stepIntern == 0) {
 		OPF->solveConsensus(eps, &PSO);/**/
 	
 	/*float Ploss = OPF->getPLoss();
@@ -736,8 +752,8 @@ float MarEndoCons::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
 	}
 	float resR = tempNN->max2();
 
-	float resS = tradeLin.distance2(&Tlocal);
-	float resXf = PSO.max2(&Pn) * _ratioEps;
+	float resS = tradeLin.max2(&Tlocal);
+	float resXf = PSO.max2(&Pn);
 	
 	/*for (int i = 1; i < _nAgentTrue; i++) {
 		resXf = MAX(abs(PSO.get(i,0) - Pn.get(i,0)), resXf);
@@ -749,7 +765,7 @@ float MarEndoCons::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
 	res->set(0, iter, resR);
 	res->set(1, iter, resS);
 	res->set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
+	return MAX(MAX(resXf * _ratioEps, resS), resR);
 }
 
 void MarEndoCons::updateP()

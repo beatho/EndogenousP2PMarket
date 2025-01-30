@@ -35,18 +35,24 @@ public:
 
 	float getRho() const;
 	float getRho1() const;
+
 	int getIterG() const;
 	int getIter() const;
 	int getIterLTot() const;
 	int getIterL() const;
+	int getIterIntern() const;
+
 	float getEpsG() const;
 	float getEpsGC() const;
 	float getEpsL() const;
+	float getEpsIntern() const;
 	int getNAgent() const;
 	int getNLine() const;
 
 	int getStepL() const;
 	int getStepG() const;
+	int getStepIntern() const;
+
 
 	MatrixCPU getTrade() const;
 	MatrixCPU getTradeSym() const;
@@ -64,6 +70,7 @@ public:
 	// setter
 	void setItG(int iter);
 	void setItL(int iter);
+	void setItIntern(int iter);
 
 	void setLAMBDA(MatrixCPU* m);
 	void setTrade(MatrixCPU* m);
@@ -86,9 +93,11 @@ public:
 	void setRho(float rho);
 	void setRho1(float rho1);
 	void setStep(int stepG, int stepL);
+	void setStep(int stepG, int stepL, int stepIntern);
 	void setEpsG(float epsG);
 	void setEpsGC(float epsGConst);
 	void setEpsL(float epsL);
+	void setEpsIntern(float eps);
 
 	// other
 	void saveCSV(const std::string& filename, int all=1);
@@ -100,11 +109,14 @@ private:
 	float _rho1;
 	int _iterMaxGlobal;
 	int _iterMaxLocal;
+	int _iterIntern;
 	int _stepG;
 	int _stepL;
+	int _stepIntern = 1;
 	float _epsGlobal;
 	float _epsGlobalConst;
 	float _epsLocal;
+	float _epsIntern;
 	int _nAgent;
 	int _nLine;
 	MatrixCPU _LAMBDA;

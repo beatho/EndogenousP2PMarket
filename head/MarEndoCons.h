@@ -41,6 +41,8 @@ private:
 	float _mu1 = 40;
 	float _mul = 40;
 	float _tau = 2;
+	float _delta = 0.01;
+	float _epsLim = 0.1;
 
 	float _rho = 0;
 	float _rhol = 0;
@@ -57,6 +59,8 @@ private:
 	int _stepG = 0;
 	int _iterG = 0;
 	int _stepL = 0;
+	int _stepIntern = 0;
+
 	clock_t timeMarketEndo;
 
 	MatrixCPU tempNN; // Matrix temporaire pour aider les calculs

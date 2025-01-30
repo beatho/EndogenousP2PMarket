@@ -103,9 +103,12 @@ public:
 	void setRho1(float rho1);
 	void setRhoL(float rho);
 	void setIter(int iterG, int iterL);
+	void setItIntern(int iter);
 	void setStep(int stepG, int stepL);
+	void setStep(int stepG, int stepL, int stepIntern);
 	void setEpsG(float epsG);
 	void setEpsGC(float epsgC);
+	void setEpsIntern(float eps);
 	void setEpsL(float epsL);
 	void setTrade(MatrixCPU* trade);
 	void setLineLimitMin(float lineMin);

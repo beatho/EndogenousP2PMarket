@@ -39,6 +39,9 @@ private:
 	float _mu1 = 40;
 	float _mul = 40;
 	float _tau = 2;
+	float _delta = 1;
+	float _epsLim = 0.1;
+	int _stepIntern = 0;
 
 	int _blockSize = 512;
 	int _numBlocksN = 0;

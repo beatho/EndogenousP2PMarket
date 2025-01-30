@@ -1,5 +1,5 @@
 #include "../head/MarEndoConsGPU.cuh"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+#define MAX(X, Y) (X) * ((X) >= (Y)) + (Y) * ((Y) > (X))
 
 
 
@@ -77,10 +77,11 @@ void MarEndoConsGPU::solve(Simparam* result, const Simparam& sim, const StudyCas
 		occurencePerBlock.set(0, 0, 1);
 #endif // INSTRUMENTATION
 	}
+	
 	_rhog = sim.getRho();
 	_at1 = _rhog;
 	_iterG = sim.getIterG();
-	int iterL = sim.getIterL() * 10;
+	int iterL = sim.getIterL();
 	int stepL = sim.getStepL();
 
 	
@@ -331,13 +332,20 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	_stepG = sim.getStepG();
 	float epsG = sim.getEpsG();
 	float epsGC = sim.getEpsGC();
+	_epsLim = sim.getEpsIntern();
 	_stepL = sim.getStepL();
 	_ratioEps = epsG / epsGC;
 	_nAgentTrue = sim.getNAgent();
+	if (_nAgentTrue != cas.getNagent()) {
+		throw std::invalid_argument("nAgent different on Simparam and study case");
+	}
 	_nAgent = 2 * _nAgentTrue;
 
 	paramOPF = sim;
-	paramOPF.setItG(sim.getIterL());
+	paramOPF.setItG(sim.getIterIntern());
+	paramOPF.setEpsG(sim.getEpsIntern());
+	_stepIntern = sim.getStepIntern();
+
 
 	_rhol = _rho; //*nAgent
 	
@@ -355,7 +363,7 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 		std::cout << _blockSize << " " << NMAXPEERPERTRHREAD << " " << nVoisinMax << std::endl;
 		throw std::invalid_argument("For this Method, an agent must not have more than 5120 peers");
 	}
-
+	//std::cout << "Trades" << std::endl;
 	_nTrade = nVoisin.sum();
 	_nTradeP = nVoisin.sum(0, _nAgentTrue);
 	
@@ -369,7 +377,9 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 
 	/*cudaDeviceSynchronize();
 	//CHECK_LAST_CUDA_ERROR();*/
-
+	std::cout << "Market" << std::endl;
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	
 	MatrixCPU PnCPU(2 * _nAgent, 1);
 	if (initWithMarketClear) {
 		ADMMMarketGPU market;
@@ -385,6 +395,9 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 		trade = sim.getTrade();
 		PnCPU = sim.getPn();
 	}
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	
+	std::cout << "time : " <<  (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / 1000000000 << std::endl;
 	//PnCPU.display();
 	Pn = MatrixGPU(PnCPU, 1);
 	//Pn.display(true);
@@ -598,10 +611,12 @@ void MarEndoConsGPU::updateGlobalProb() {
 	std::chrono::high_resolution_clock::time_point t2;
 #endif // INSTRUMENTATION
 
-	float eps = min(_resG / 10, 0.01);
-
+	
+	float eps = min(_resG * _delta, _epsLim);
+	
+	
 	//std::cout << "SolveOPF" << std::endl;
-	if (_iterGlobal % _stepL == 0) {
+	if (_iterGlobal % _stepIntern == 0) {
 		if (OPFonCPU) {
 			PSO.toMatCPU(PSOCPU);
 			OPFCPU->solveConsensus(eps, &PSOCPU);
@@ -778,7 +793,7 @@ float MarEndoConsGPU::updateResBis(int iter)
 
 
 	 
-	float resXf = PSO.max2(&Pn) * _ratioEps;
+	float resXf = PSO.max2(&Pn);
 	/*for (int i = 1; i < _nAgentTrue; i++) {
 		resXf = MAX(abs(PSO.get(i,0) - Pn.get(i,0)), resXf);
 		resXf = MAX(abs(PSO.get(i + _nAgentTrue, 0) - Pn.get(i + _nAgentTrue, 0)), resXf);
@@ -789,7 +804,7 @@ float MarEndoConsGPU::updateResBis(int iter)
 	resF.set(0, iter, resR);
 	resF.set(1, iter, resS);
 	resF.set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
+	return MAX(MAX(resXf * _ratioEps, resS), resR);
 }
 
 
