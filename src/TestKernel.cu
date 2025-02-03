@@ -2536,7 +2536,7 @@ float testCalculVGS(int method) {
 		for (int j = 0; j < nNLine; j++) {
 			int nLine = 0;
 			int nLineFully = nBus[i] * (nBus[i] - 1) / 2;
-			nLineFully = min(nLineFully, nLineMax);
+			nLineFully = Mymin(nLineFully, nLineMax);
 			switch (j)
 			{
 			case 0:

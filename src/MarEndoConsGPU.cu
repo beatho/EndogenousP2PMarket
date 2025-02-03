@@ -12,7 +12,7 @@ MarEndoConsGPU::MarEndoConsGPU() : MethodP2P()
 	_name = NAME;
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 
@@ -25,7 +25,7 @@ MarEndoConsGPU::MarEndoConsGPU(float rho) : MethodP2P()
 	_rho = rho;
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 MarEndoConsGPU::~MarEndoConsGPU()
@@ -417,7 +417,7 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	MatrixGPU Lb(cas.getLb());
 	
 	
-	//std::cout << "mise sous forme linéaire" << std::endl;
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
 	
 	CoresMatLin = MatrixGPU(_nAgent, _nAgentTrue, -1);
 	CoresAgentLin = MatrixGPU(_nAgent + 1, 1);
@@ -527,10 +527,10 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 
 	
 	//CHECK_LAST_CUDA_ERROR();
-	//std::cout << "autres donnée sur CPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur CPU" << std::endl;
 	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
 	tempNN.preallocateReduction();
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	
 
 	Tlocal = MatrixGPU(_nTrade, 1, 0, 1);
@@ -541,7 +541,7 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	a = MatrixGPU(cas.geta(), 1);
 	b = MatrixGPU(cas.getb(), 1);
 
-	// on enn veut pas que l'agent des pertes consomme plus que nécessaire !!!
+	// on enn veut pas que l'agent des pertes consomme plus que nï¿½cessaire !!!
 	//a.set(0, 0, 1);
 	//a.set(_nAgentTrue, 0, 1);
 
@@ -612,7 +612,7 @@ void MarEndoConsGPU::updateGlobalProb() {
 #endif // INSTRUMENTATION
 
 	
-	float eps = min(_resG * _delta, _epsLim);
+	float eps = Mymin(_resG * _delta, _epsLim);
 	
 	
 	//std::cout << "SolveOPF" << std::endl;

@@ -19,14 +19,10 @@ int testMatrix()
 	n++;
 	if (!testMGet2()) return n;
 	n++;
-	if (!testMSetFromEigen()) return n;
-	n++;
-	if (!testMToEigen()) return n;
-	n++;//10
 	if (!testMEquality1()) return n;
 	n++;
 	if (!testMEquality2()) return n;
-	n++;
+	n++; // 10
 	if (!testMEquality3()) return n;
 	n++;
 	if (!testMAdd1()) return n;
@@ -44,9 +40,9 @@ int testMatrix()
 	if (!testMAddVect1()) return n;
 	n++;
 	if (!testMAddVect2()) return n;
-	n++;//20
-	if (!testMAddTrans1()) return n;
 	n++;
+	if (!testMAddTrans1()) return n;
+	n++;//20
 	if (!testMAddTrans2()) return n;
 	n++;
 	if (!testMSubstract1()) return n;
@@ -64,9 +60,9 @@ int testMatrix()
 	if (!testMSubstractTrans1()) return n;
 	n++;
 	if (!testMSubstractTrans2()) return n;
-	n++;// 30
-	if (!testMMultiply1()) return n;
 	n++;
+	if (!testMMultiply1()) return n;
+	n++;// 30
 	if (!testMMultiply2()) return n;
 	n++;
 	if (!testMMultiply3()) return n;
@@ -84,16 +80,14 @@ int testMatrix()
 	if (!testMDivide2()) return n;
 	n++;
 	if (!testMDivide3()) return n;
-	n++;// 40
-	if (!testMDivide4()) return n;
 	n++;
+	if (!testMDivide4()) return n;
+	n++;// 40
 	if (!testMDivide5()) return n;
 	n++;
 	if (!testMDivideGJ1()) return n;
 	n++; 
 	if (!testMDivideGJ2()) return n;
-	n++;
-	if (!testMDivideEigen()) return n;
 	n++;
 	if (!testMmoy1()) return n;
 	n++; 
@@ -104,11 +98,11 @@ int testMatrix()
 	if (!testMmoy4()) return n;
 	n++;
 	if (!testMSum1()) return n;
-	n++;// 50
+	n++;
 	if (!testMSum2()) return n;
 	n++;
 	if (!testMSum3()) return n;
-	n++;
+	n++;// 50
 	if (!testMSum4()) return n;
 	n++; 
 	if (!testMDistance1()) return n;
@@ -124,15 +118,9 @@ int testMatrix()
 	if (!testMProjectNeg()) return n;
 	n++;
 	if (!testMMax()) return n;
-	n++;// 60
-	if (!testMCSC()) return n;
-	n++;
-	if (!testMToCSC1()) return n;
-	n++;
-	if (!testMToCSC2()) return n;
 	n++;
 	if (!testMSwap()) return n;
-	n++;
+	n++;// 60
 	if (!testMSetFromFile()) return n;
 	n++; 
 	if (!testMMinAbs()) return n;
@@ -141,9 +129,24 @@ int testMatrix()
 	n++; 
 	if (!testMSort()) return n;
 	n++; 
-	if (!testMSolveSys()) return n;
-	n++;
-	
+	#ifdef EIGEN
+		if (!testMSolveSys()) return n;
+		n++;
+		if (!testMDivideEigen()) return n;
+		n++;
+		if (!testMSetFromEigen()) return n;
+		n++;
+		if (!testMToEigen()) return n;
+		n++;//10
+	#endif
+	#ifdef OSQP
+		if (!testMToCSC1()) return n;
+		n++;
+		if (!testMToCSC2()) return n;
+		n++;
+		if (!testMCSC()) return n;
+		n++;
+	#endif
 	
 	return 0;
 }
@@ -270,45 +273,6 @@ bool testMSetRand()
 	return true;
 }
 
-bool testMSetFromEigen()
-{
-	Eigen::MatrixXd eMat(2, 2);
-	eMat(0, 0) = 1;
-	eMat(0, 1) = 2;
-	eMat(1, 0) = -1;
-	eMat(1, 1) = -4;
-
-	
-
-
-	MatrixCPU m1(2, 2);
-	MatrixCPU m11(2, 2);
-	m11.set(0, 0, 1);
-	m11.set(0, 1, 2);
-	m11.set(1, 0, -1);
-	m11.set(1, 1, -4);
-	m1.set(&eMat);
-
-	
-
-	return m1.isEqual(&m11);
-}
-
-bool testMToEigen()
-{
-	Eigen::MatrixXd eMat(2, 2);
-	MatrixCPU m1(2, 2);
-	MatrixCPU m11(2, 2);
-	m11.set(0, 0, 1);
-	m11.set(0, 1, 2);
-	m11.set(1, 0, -1);
-	m11.set(1, 1, -4);
-	m11.toEigenMatrix(&eMat);
-	m1.set(&eMat);
-
-
-	return m1.isEqual(&m11);
-}
 
 bool testMGet1()
 {
@@ -964,6 +928,7 @@ bool testMDivide2()
 	}
 	return false;
 }
+
 bool testMDivide3()
 {
 	int line = 2;
@@ -1105,100 +1070,7 @@ bool testMDivideGJ2()
 	}
 	return false;
 }
-#ifdef EIGEN
-bool testMDivideEigen()
-{
-	int n = 3;
-	MatrixCPU ident(n, n);
-	ident.setEyes(1);
 
-	MatrixCPU invert(n, n);
-	invert.invertEigen(&ident);
-
-	ident.display();
-	invert.display();
-
-	if (!ident.isEqual(&invert)) return false;
-
-
-	MatrixCPU m1(n, n);
-	m1.set(0, 0, 2);
-	m1.set(0, 1, -1);
-	m1.set(1, 1, -1);
-	m1.set(1, 2, 2);
-	m1.set(2, 0, -1);
-	m1.set(2, 1, 2);
-	m1.set(2, 2, 1);
-
-	MatrixCPU m2(n, n);
-	MatrixCPU m22(n, n);
-	m22.set(0, 0, 5.0 / 8);
-	m22.set(0, 1, -1.0 / 8);
-	m22.set(0, 2, 1.0 / 4);
-	m22.set(1, 0, 1.0 / 4);
-	m22.set(1, 1, -1.0 / 4);
-	m22.set(1, 2, 1.0 / 2);
-	m22.set(2, 0, 1.0 / 8);
-	m22.set(2, 1, 3.0 / 8);
-	m22.set(2, 2, 1.0 / 4);
-
-	m2.invertGaussJordan(&m1);
-
-
-
-	MatrixCPU temp(n, n);
-	temp.multiply(&m2, &m1);
-
-
-	return m2.isEqual(&m22) && temp.isEqual(&ident);
-}
-
-bool testMSolveSys()
-{
-	Eigen::Matrix3f M;
-	Eigen::Vector3f b;
-	M << 1, 2, 3, 4, 5, 6, 7, 8, 10;
-	b << 3, 3, 4;
-	std::cout << "Here is the matrix A:\n" << M << std::endl;
-	std::cout << "Here is the vector b:\n" << b << std::endl;
-	Eigen::Vector3f x = M.colPivHouseholderQr().solve(b);
-	std::cout << "The solution is:\n" << x << std::endl;
-
-	MatrixCPU Mm(3, 3);
-	MatrixCPU bm(3, 1);
-	MatrixCPU xm(3, 1);
-	MatrixCPU xm2(3, 1);
-	MatrixCPU Am(3, 3);
-	MatrixCPU P(4, 1);
-	for (int i = 0; i < 3; i++) {
-		bm.set(i, 0, b(i));
-		for (int j = 0; j < 3; j++) {
-			Mm.set(i, j, M(i,j));
-		}
-	}
-	bm.display();
-	xm.solveSysEigen(&Mm, &bm);
-	Mm.LUPFactorization(&Am, &P);
-	xm2.solveSys(&Am, &P, &bm);
-	
-
-	for (int i = 0; i < 3; i++) {
-		if (abs(xm.get(i, 0) - x(i))>0.00001) {
-			std::cout << xm.get(i, 0) << " " << x(i) << " "<< abs(xm.get(i, 0) - x(i)) << " "<< (abs(xm.get(i, 0) - x(i)) > 0.00001) << std::endl;
-			return false;
-		}
-	}
-	for (int i = 0; i < 3; i++) {
-		if (abs(xm2.get(i, 0) - x(i)) > 0.00001) {
-			std::cout << xm2.get(i, 0) << " " << x(i) << " " << abs(xm2.get(i, 0) - x(i)) << " " << (abs(xm2.get(i, 0) - x(i)) > 0.00001) << std::endl;
-			return false;
-		}
-	}
-
-
-	return true;
-}
-#endif
 
 // void Moy(MatrixCPU* m, MatrixCPU* nb, int sens=0); 
 bool testMmoy1()
@@ -1559,78 +1431,6 @@ bool testMMax()
 }
 
 
-bool testMToCSC1()
-{
-	MatrixCPU P(2, 2);
-	P.set(0, 0, 4);
-	P.set(0, 1, 1);
-	P.set(1, 0, 1);
-	P.set(1, 1, 2);
-	c_int P_n = P.getNNullHalf();
-	c_float* Pdata = new c_float[P_n];
-	c_int* Pidx = new c_int[P_n];
-	c_int* Pptr = new c_int[P_n];
-	P.toCSCHalf(Pdata, Pidx, Pptr);
-	c_float P_x[3] = { 4.0, 1.0, 2.0, };
-	c_int P_nnz = 3;
-	c_int P_i[3] = { 0, 0, 1, };
-	c_int P_p[3] = { 0, 1, 3, };
-
-	if(P_nnz != P_n) return false;
-	for (int i = 0;i < P_nnz; i++) {
-		if ((Pidx[i] != P_i[i]) || (Pptr[i] != P_p[i]) || (Pdata[i] != P_x[i])) {
-			return false;
-		}
-	}
-	DELETEA(Pdata);
-	DELETEA(Pidx);
-	DELETEA(Pptr);
-
-
-	return true;
-
-	
-}
-
-bool testMToCSC2()
-{
-	MatrixCPU A(3, 2);
-	A.set(0, 0, 1);
-	A.set(0, 1, 1);
-	A.set(1, 0, 1);
-	A.set(2, 1, 1);
-	c_int An = A.getNNull();
-	int col = A.getNCol();
-	c_float* Adata = new c_float[An];
-	c_int* Aidx = new c_int[An];
-	c_int* Aptr = new c_int[col+1];
-	
-	A.toCSC(Adata, Aidx, Aptr);
-
-
-	c_float A_x[4] = { 1.0, 1.0, 1.0, 1.0, };
-	c_int A_nnz = 4;
-	c_int A_i[4] = { 0, 1, 0, 2, };
-	c_int A_p[3] = { 0, 2, 4, };
-	if (A_nnz != An) return false;
-	for (int i = 0;i < A_nnz; i++) {
-		if ((Aidx[i] != A_i[i]) || (Adata[i] != A_x[i])) {
-			return false;
-		}
-	}
-	for (int i = 0;i < 3; i++) {
-		if (A_p[i] != Aptr[i]) {
-			return false;
-		}
-	}
-	DELETEA(Adata);
-	DELETEA(Aidx);
-	DELETEA(Aptr);
-
-
-	return true;
-}
-
 bool testMSwap()
 {
 	int line = 4;
@@ -1702,6 +1502,216 @@ bool testMSort()
 	return true;
 }
 
+
+
+
+
+#ifdef EIGEN
+	bool testMSetFromEigen()
+	{
+		Eigen::MatrixXd eMat(2, 2);
+		eMat(0, 0) = 1;
+		eMat(0, 1) = 2;
+		eMat(1, 0) = -1;
+		eMat(1, 1) = -4;
+
+		
+
+
+		MatrixCPU m1(2, 2);
+		MatrixCPU m11(2, 2);
+		m11.set(0, 0, 1);
+		m11.set(0, 1, 2);
+		m11.set(1, 0, -1);
+		m11.set(1, 1, -4);
+		m1.set(&eMat);
+
+		
+
+		return m1.isEqual(&m11);
+	}
+
+	bool testMToEigen()
+	{
+		Eigen::MatrixXd eMat(2, 2);
+		MatrixCPU m1(2, 2);
+		MatrixCPU m11(2, 2);
+		m11.set(0, 0, 1);
+		m11.set(0, 1, 2);
+		m11.set(1, 0, -1);
+		m11.set(1, 1, -4);
+		m11.toEigenMatrix(&eMat);
+		m1.set(&eMat);
+
+
+		return m1.isEqual(&m11);
+	}
+
+	bool testMDivideEigen()
+	{
+		int n = 3;
+		MatrixCPU ident(n, n);
+		ident.setEyes(1);
+
+		MatrixCPU invert(n, n);
+		invert.invertEigen(&ident);
+
+		ident.display();
+		invert.display();
+
+		if (!ident.isEqual(&invert)) return false;
+
+
+		MatrixCPU m1(n, n);
+		m1.set(0, 0, 2);
+		m1.set(0, 1, -1);
+		m1.set(1, 1, -1);
+		m1.set(1, 2, 2);
+		m1.set(2, 0, -1);
+		m1.set(2, 1, 2);
+		m1.set(2, 2, 1);
+
+		MatrixCPU m2(n, n);
+		MatrixCPU m22(n, n);
+		m22.set(0, 0, 5.0 / 8);
+		m22.set(0, 1, -1.0 / 8);
+		m22.set(0, 2, 1.0 / 4);
+		m22.set(1, 0, 1.0 / 4);
+		m22.set(1, 1, -1.0 / 4);
+		m22.set(1, 2, 1.0 / 2);
+		m22.set(2, 0, 1.0 / 8);
+		m22.set(2, 1, 3.0 / 8);
+		m22.set(2, 2, 1.0 / 4);
+
+		m2.invertGaussJordan(&m1);
+
+
+
+		MatrixCPU temp(n, n);
+		temp.multiply(&m2, &m1);
+
+
+		return m2.isEqual(&m22) && temp.isEqual(&ident);
+	}
+
+	bool testMSolveSys()
+	{
+		Eigen::Matrix3f M;
+		Eigen::Vector3f b;
+		M << 1, 2, 3, 4, 5, 6, 7, 8, 10;
+		b << 3, 3, 4;
+		std::cout << "Here is the matrix A:\n" << M << std::endl;
+		std::cout << "Here is the vector b:\n" << b << std::endl;
+		Eigen::Vector3f x = M.colPivHouseholderQr().solve(b);
+		std::cout << "The solution is:\n" << x << std::endl;
+
+		MatrixCPU Mm(3, 3);
+		MatrixCPU bm(3, 1);
+		MatrixCPU xm(3, 1);
+		MatrixCPU xm2(3, 1);
+		MatrixCPU Am(3, 3);
+		MatrixCPU P(4, 1);
+		for (int i = 0; i < 3; i++) {
+			bm.set(i, 0, b(i));
+			for (int j = 0; j < 3; j++) {
+				Mm.set(i, j, M(i,j));
+			}
+		}
+		bm.display();
+		xm.solveSysEigen(&Mm, &bm);
+		Mm.LUPFactorization(&Am, &P);
+		xm2.solveSys(&Am, &P, &bm);
+		
+
+		for (int i = 0; i < 3; i++) {
+			if (abs(xm.get(i, 0) - x(i))>0.00001) {
+				std::cout << xm.get(i, 0) << " " << x(i) << " "<< abs(xm.get(i, 0) - x(i)) << " "<< (abs(xm.get(i, 0) - x(i)) > 0.00001) << std::endl;
+				return false;
+			}
+		}
+		for (int i = 0; i < 3; i++) {
+			if (abs(xm2.get(i, 0) - x(i)) > 0.00001) {
+				std::cout << xm2.get(i, 0) << " " << x(i) << " " << abs(xm2.get(i, 0) - x(i)) << " " << (abs(xm2.get(i, 0) - x(i)) > 0.00001) << std::endl;
+				return false;
+			}
+		}
+		return true;
+	}
+#endif
+
+#ifdef OSQP
+	
+bool testMToCSC1()
+{
+	MatrixCPU P(2, 2);
+	P.set(0, 0, 4);
+	P.set(0, 1, 1);
+	P.set(1, 0, 1);
+	P.set(1, 1, 2);
+	c_int P_n = P.getNNullHalf();
+	c_float* Pdata = new c_float[P_n];
+	c_int* Pidx = new c_int[P_n];
+	c_int* Pptr = new c_int[P_n];
+	P.toCSCHalf(Pdata, Pidx, Pptr);
+	c_float P_x[3] = { 4.0, 1.0, 2.0, };
+	c_int P_nnz = 3;
+	c_int P_i[3] = { 0, 0, 1, };
+	c_int P_p[3] = { 0, 1, 3, };
+
+	if(P_nnz != P_n) return false;
+	for (int i = 0;i < P_nnz; i++) {
+		if ((Pidx[i] != P_i[i]) || (Pptr[i] != P_p[i]) || (Pdata[i] != P_x[i])) {
+			return false;
+		}
+	}
+	DELETEA(Pdata);
+	DELETEA(Pidx);
+	DELETEA(Pptr);
+
+
+	return true;
+
+	
+}
+
+bool testMToCSC2()
+{
+	MatrixCPU A(3, 2);
+	A.set(0, 0, 1);
+	A.set(0, 1, 1);
+	A.set(1, 0, 1);
+	A.set(2, 1, 1);
+	c_int An = A.getNNull();
+	int col = A.getNCol();
+	c_float* Adata = new c_float[An];
+	c_int* Aidx = new c_int[An];
+	c_int* Aptr = new c_int[col+1];
+	
+	A.toCSC(Adata, Aidx, Aptr);
+
+
+	c_float A_x[4] = { 1.0, 1.0, 1.0, 1.0, };
+	c_int A_nnz = 4;
+	c_int A_i[4] = { 0, 1, 0, 2, };
+	c_int A_p[3] = { 0, 2, 4, };
+	if (A_nnz != An) return false;
+	for (int i = 0;i < A_nnz; i++) {
+		if ((Aidx[i] != A_i[i]) || (Adata[i] != A_x[i])) {
+			return false;
+		}
+	}
+	for (int i = 0;i < 3; i++) {
+		if (A_p[i] != Aptr[i]) {
+			return false;
+		}
+	}
+	DELETEA(Adata);
+	DELETEA(Aidx);
+	DELETEA(Aptr);
+
+
+	return true;
+}
 bool testMCSC()
 {
 	/*
@@ -1764,3 +1774,4 @@ bool testMCSC()
 	return true;
 }
 
+#endif

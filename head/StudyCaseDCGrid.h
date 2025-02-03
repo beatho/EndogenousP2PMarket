@@ -9,6 +9,8 @@
 #include <math.h>
 #include <iostream>
 #include <vector>
+#include <string>
+
 
 
 #define DELETEB(x) if (x!=nullptr) {delete x; x = nullptr;}

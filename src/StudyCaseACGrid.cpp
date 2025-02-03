@@ -85,14 +85,14 @@ void StudyCaseACGrid::genGridBalance(int nBus, float length, float dlength)
 	initMat();
 
 	int Nstep = getBalanceNChild(nBus);
-	//std::cout << "nombre de bus " << nBus << " nombre d'étage et d'enfant par bus " << Nstep << std::endl;
+	//std::cout << "nombre de bus " << nBus << " nombre d'ï¿½tage et d'enfant par bus " << Nstep << std::endl;
 	int line = 0;
 	int from = 0;
 	int nBusOnStep = 1;
 	int i = 0;
 	hasCurrentLimit = true;
 	for (int step = 1; step < Nstep; step++) {
-		//std::cout << "étage " << step << " nombre de bus de letage precedent " << nBusOnStep << std::endl;
+		//std::cout << "ï¿½tage " << step << " nombre de bus de letage precedent " << nBusOnStep << std::endl;
 		int futurNBusOnStep = 0;
 		for (int bus = 0; bus < nBusOnStep; bus++) {
 			i = from + bus;
@@ -505,7 +505,7 @@ StudyCaseACGrid::StudyCaseACGrid() : StudyCaseDCGrid()
 	_nBus = 2;
 	_nLine = 1;
 	_nLineConstraint = 1;
-	_zoneBus = MatrixCPU(_nBus,1); // taille B*1 indique pour chaque agent la zone où il est 
+	_zoneBus = MatrixCPU(_nBus,1); // taille B*1 indique pour chaque agent la zone oï¿½ il est 
 		
 	_CoresLineBus = MatrixCPU(_nLine, 2); // Perso from, to
 	_CoresLineBus.set(0, 1, 1);
@@ -773,7 +773,7 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 		for (int l = 0; l < _nLine; l++) {
 			if (MatLine.get(l, 0) > MatLine.get(l, 1)) {
 				if (MatLine.get(l, 5) > 0 && MatLine.get(l, 5) != 1) {
-					std::cout << "la presence de transformateur est peut être mal prise en compte ?" << std::endl;
+					std::cout << "la presence de transformateur est peut ï¿½tre mal prise en compte ?" << std::endl;
 					inversionLine.set(l, 0, 1);
 				}
 				int temp = MatLine.get(l, 0);
@@ -811,7 +811,7 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 	//Mat.display();
 	
 	
-	MatrixCPUD MatBus(_nBus, 6); // Gs, Bs, min, max, V0, theta0, zone à rajouter ici ?
+	MatrixCPUD MatBus(_nBus, 6); // Gs, Bs, min, max, V0, theta0, zone ï¿½ rajouter ici ?
 	MatBus.setFromFile(fileName4);
 	
 	
@@ -1009,7 +1009,7 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 	if (!radial) {
 		throw std::invalid_argument("problem with the study case, not radial");
 	}
-	for (int l = 0; l < _nLine; l++) { // s'il y a des bus non relié et donc un resau pas radial cela ne marchera pas
+	for (int l = 0; l < _nLine; l++) { // s'il y a des bus non reliï¿½ et donc un resau pas radial cela ne marchera pas
 		while (MatLine.get(l, 1) != l + 1) {
 			MatLine.swapLine(l, MatLine.get(l, 1) - 1);
 		}
@@ -1295,15 +1295,15 @@ void StudyCaseACGrid::genGridHTB(int nBus, int nLine, int dnLine, float length, 
 		//std::cout << " bus " << b << " il y a " << indiceLine << " ligne et il reste " << (_nLine - indiceLine) << " ligne a faire ";
 		int nLineBus = randab(rapLineBus - dnLine, rapLineBus + dnLine + 1);
 		//std::cout << nLineBus << " ,";
-		int oldnLineBus = _nLines.get(b, 0); // nombre de ligne qu'il a déjà
+		int oldnLineBus = _nLines.get(b, 0); // nombre de ligne qu'il a dï¿½jï¿½
 		int nLineToDo = 0;
 		if (nLineBus > oldnLineBus) { // s'il y a besoin d'ajouter de ligne
 			nLineToDo = nLineBus - oldnLineBus;
 		}
 		//std::cout << nLineToDo << " ,";
-		nLineToDo = min(nLineToDo, nBus - b - 1);
+		nLineToDo = Mymin(nLineToDo, nBus - b - 1);
 		//std::cout << nLineToDo << " ,";
-		nLineToDo = min(nLineToDo, _nLine - indiceLine - ( nBus-b ) );
+		nLineToDo = Mymin(nLineToDo, _nLine - indiceLine - ( nBus-b ) );
 
 		//std::cout << nLineToDo << std::endl;
 
@@ -1573,7 +1573,7 @@ StudyCaseACGrid::StudyCaseACGrid(const StudyCaseACGrid& s)
 StudyCaseACGrid& StudyCaseACGrid::operator= (const StudyCaseACGrid& s) 
 {
 	clock_t t = clock();
-	std::cout << " Copie égalité AC " << std::endl;
+	std::cout << " Copie ï¿½galitï¿½ AC " << std::endl;
 	_nLine = s._nLine;
 	_nBus = s._nBus;
 	_nLineConstraint = s._nLineConstraint;
@@ -1920,7 +1920,7 @@ void StudyCaseACGrid::displayLineCores(MatrixCPU* g, bool all)
 		else {
 			for (int l = 0; l < getNLine(); l++) {
 				if (fabs(g->get(l, 0)) > Limit.get(l, 0)) {
-					std::cout << "*********Limites depassé :Line n " << l << " from node " << Cores.get(l, 0)
+					std::cout << "*********Limites depassï¿½ :Line n " << l << " from node " << Cores.get(l, 0)
 						<< " to node " << Cores.get(l, 1) << " line limit " << Limit.get(l, 0)
 						<< " flow " << g->get(l, 0) << "*********" << std::endl;
 				}

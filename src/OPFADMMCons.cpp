@@ -1513,7 +1513,7 @@ void OPFADMMCons::updateX()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 2;
-					bestGamma = min((x4max - x4), min(gamma, lambdaUp));
+					bestGamma = Mymin((x4max - x4), Mymin(gamma, lambdaUp));
 					BestRoot = n;
 				}
 
@@ -1549,7 +1549,7 @@ void OPFADMMCons::updateX()
 				}
 				if (gamma > bestGamma && lambdaLo > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 3;
-					bestGamma = min((x4max - x4), min(gamma, lambdaLo));
+					bestGamma = Mymin((x4max - x4), Mymin(gamma, lambdaLo));
 					BestRoot = n;
 				}
 			}
@@ -1583,7 +1583,7 @@ void OPFADMMCons::updateX()
 					break;
 				}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 4;
-					bestGamma = min((x4max - x4), min(min(gamma, (x3max - x3)), (x3 - x3min)));
+					bestGamma = Mymin((x4max - x4), Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min)));
 					BestRoot = n;
 				}
 			}
@@ -1809,7 +1809,7 @@ void OPFADMMCons::updateXWOCurrent()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = min(gamma, lambdaUp);
+					bestGamma = Mymin(gamma, lambdaUp);
 					BestRoot = n;
 				}
 
@@ -1844,7 +1844,7 @@ void OPFADMMCons::updateXWOCurrent()
 				}
 				if (gamma > bestGamma && lambdaLo > bestGamma) {
 					typeSol = 3;
-					bestGamma = min(gamma, lambdaLo);
+					bestGamma = Mymin(gamma, lambdaLo);
 					BestRoot = n;
 				}
 			}
@@ -1877,7 +1877,7 @@ void OPFADMMCons::updateXWOCurrent()
 					break;
 				}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 					typeSol = 4;
-					bestGamma = min(min(gamma, (x3max - x3)), (x3 - x3min));
+					bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
 					BestRoot = n;
 				}
 			}

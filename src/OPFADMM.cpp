@@ -1177,7 +1177,7 @@ void OPFADMM::updateX()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = min(gamma, lambdaLo);
+					bestGamma = Mymin(gamma, lambdaLo);
 					BestRoot = n;
 				}
 
@@ -1211,7 +1211,7 @@ void OPFADMM::updateX()
 					}
 					if (gamma > bestGamma && lambdaLo > bestGamma) {
 						typeSol = 3;
-						bestGamma = min(gamma, lambdaLo);
+						bestGamma = Mymin(gamma, lambdaLo);
 						BestRoot = n;
 					}
 				}
@@ -1244,7 +1244,7 @@ void OPFADMM::updateX()
 						break;
 					}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 						typeSol = 4;
-						bestGamma = min(min(gamma, (x3max - x3)), (x3 - x3min));
+						bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
 						BestRoot = n;
 					}
 				}

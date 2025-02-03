@@ -530,7 +530,7 @@ void MarEndoCons::updateGlobalProb() {
 	std::chrono::high_resolution_clock::time_point t2;
 #endif // INSTRUMENTATION
 	
-	float eps = min(_resG * _delta, _epsLim);
+	float eps = Mymin(_resG * _delta, _epsLim);
 	
 
 	//std::cout << "SolveOPF" << std::endl;

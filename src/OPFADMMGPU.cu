@@ -110,7 +110,7 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	int stepL = sim.getStepL();
 
 	float epsG = sim.getEpsG();
-	float epsL = min(sim.getEpsL(), epsG / 200);
+	float epsL = Mymin(sim.getEpsL(), epsG / 200);
 	float rhoInit = sim.getRho();
 
 

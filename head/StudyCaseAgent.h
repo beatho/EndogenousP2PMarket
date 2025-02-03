@@ -7,9 +7,11 @@
 #include "Agent.h"
 #include "MatrixCPU.h"
 #include "MatrixCPUD.h"
+#include "Utilities.h"
 #include <math.h>
 #include <iostream>
 #include <vector>
+#include <string>
 
 #define DELETEB(x) if (x!=nullptr) {delete x; x = nullptr;}
 #define DELETEA(x) if (x!=nullptr) {delete[] x; x = nullptr;}

@@ -78,7 +78,7 @@ void StudyCaseAgent::initCaseFromPobj()
 			Q0 = S0 * sqrt(1 - _PF.get(id - offset, 0) * _PF.get(id - offset, 0));
 			_Pobj.set(id + _nAgent, 0, Q0);
 			float randomFloat = rand1();
-			//int signe = -1; // 2 * (randomFloat > 0.8) - 1; // 4 chance sur 5 d'être inductif (même signe que P)
+			//int signe = -1; // 2 * (randomFloat > 0.8) - 1; // 4 chance sur 5 d'ï¿½tre inductif (mï¿½me signe que P)
 			int signe = 2 * (id % 5) - 1; // un sur 5 ?
 			Q0 = signe * Q0; 
 			qLim1 = Q0 * (1 - dP + 2 * dP * (Q0 < 0));
@@ -988,7 +988,7 @@ void StudyCaseAgent::genAgentsFullRandom(int nAgent, float aMin, float aMax, flo
 
 	_nAgent = nAgent;
 	float propConso = randabfloat(propConsoMin, propConsoMax);
-	_nCons = min(max(propConso, 1), _nAgent - 1);
+	_nCons = Mymin(Mymax(propConso, 1), _nAgent - 1);
 	_nPro = 0;
 	_nGen = _nAgent - _nCons;
 	_nGenFle = _nGen;
@@ -1013,7 +1013,7 @@ void StudyCaseAgent::genAgentsFullRandom(int nAgent, float aMin, float aMax, flo
 		if (id < _nCons) { // consumer
 				
 			pLim1 =  - (1 + borne) * P0;
-			pLim2 = min((1 - borne) * (-P0), 0);
+			pLim2 = Mymin((1 - borne) * (-P0), 0);
 			cost2 =  P0 / cost1;
 			nVoisin = _nGen + _nPro;
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, nAgent, 1);
@@ -1021,7 +1021,7 @@ void StudyCaseAgent::genAgentsFullRandom(int nAgent, float aMin, float aMax, flo
 			_Lb.set(id, 0, pLim1);
 		}
 		else { // generator
-			pLim1 = max((1 - borne) * (P0), 0);
+			pLim1 = Mymax((1 - borne) * (P0), 0);
 			pLim2 = (1 + borne) * P0;
 			cost2 = -P0 / cost1;
 			nVoisin = _nCons + _nPro;
@@ -1087,9 +1087,9 @@ void StudyCaseAgent::genConnec(MatrixCPU* connec)
 
 void StudyCaseAgent::genBetaUniforme(float beta)
 {
-	// Cons de 0 à nCons exclus
-	// Prod de nCons à nCons+nGen exclus
-	// Pro de nCons+nGen à nAgent exclus
+	// Cons de 0 ï¿½ nCons exclus
+	// Prod de nCons ï¿½ nCons+nGen exclus
+	// Pro de nCons+nGen ï¿½ nAgent exclus
 	int offset = 0;
 	if (_AC) {
 		offset = 1;
@@ -1275,9 +1275,9 @@ MatrixCPU StudyCaseAgent::Set29node(bool AC)
 	int nVoisin;
 	
 	if (AC) { // agent des pertes
-		pLim1 = 0; // sera modifié par l'algo selon le calcul des pertes
+		pLim1 = 0; // sera modifiï¿½ par l'algo selon le calcul des pertes
 		pLim2 = 0; // idem
-		cost1 = 0; // cela ne cause aucune division par 0 et la non convexité ne joue pas comme on a qu'un seul point défini
+		cost1 = 0; // cela ne cause aucune division par 0 et la non convexitï¿½ ne joue pas comme on a qu'un seul point dï¿½fini
 		cost2 = 0; // idem
 		nVoisin = _nGen + _nPro;
 
@@ -1419,7 +1419,7 @@ MatrixCPU StudyCaseAgent::Set3BusOld(bool AC) {
 	_agents = new Agent[_nAgent];
 	float Plim1[3] = { -1.51, 0, 0};
 	float Plim2[3] = { -1.50, 1.00, 2.00};
-	float Cost1[3] = { 1000, 0.01, 0.01 }; // on aimerait a = 0 mais on va éviter
+	float Cost1[3] = { 1000, 0.01, 0.01 }; // on aimerait a = 0 mais on va ï¿½viter
 	float Cost2[3] = { 1.50, 60, 120};
 	
 	int BusAgent[3] = { 0, 1, 2 };
@@ -1531,9 +1531,9 @@ MatrixCPU StudyCaseAgent::Set3Bus(bool AC)
 	int nVoisin;
 
 	if (AC) { // agent des pertes
-		pLim1 = 0; // sera modifié par l'algo selon le calcul des pertes
+		pLim1 = 0; // sera modifiï¿½ par l'algo selon le calcul des pertes
 		pLim2 = 0; // idem
-		cost1 = 0; // cela ne cause aucune division par 0 et la non convexité ne joue pas comme on a qu'un seul point défini
+		cost1 = 0; // cela ne cause aucune division par 0 et la non convexitï¿½ ne joue pas comme on a qu'un seul point dï¿½fini
 		cost2 = 0; // idem
 		nVoisin = _nGen + _nPro;
 
@@ -1751,9 +1751,9 @@ MatrixCPU StudyCaseAgent::Set2node(bool AC)
 	int nVoisin;
 
 	if (AC) { // agent des pertes
-		pLim1 = 0; // sera modifié par l'algo selon le calcul des pertes
+		pLim1 = 0; // sera modifiï¿½ par l'algo selon le calcul des pertes
 		pLim2 = 0; // idem
-		cost1 = 1; // Doit être convee
+		cost1 = 1; // Doit ï¿½tre convee
 		cost2 = 0; // idem
 		nVoisin = _nGen + _nPro;
 
@@ -1767,7 +1767,7 @@ MatrixCPU StudyCaseAgent::Set2node(bool AC)
 		_Ub.set(0, 0, 0);
 		_Lb.set(0, 0, -FLT_MAX); // pour ne pas avoir besoin de le modifier
 
-		_Ub.set(0 + _nAgent, 0, 0); // Pour éviter de la spéculation
+		_Ub.set(0 + _nAgent, 0, 0); // Pour ï¿½viter de la spï¿½culation
 		_Lb.set(0 + _nAgent, 0, -0);
 		_nVoisin.set(0, 0, nVoisin);
 		_nVoisin.set(_nAgent, 0, _nAgent - 1);
@@ -1888,7 +1888,7 @@ MatrixCPU StudyCaseAgent::Set2node(bool AC)
 
 MatrixCPU StudyCaseAgent::Set4nodeBis(bool AC)
 {
-	// cas d'étude pour simuler le cas d'EVA pendant son stage
+	// cas d'ï¿½tude pour simuler le cas d'EVA pendant son stage
 	if (AC) {
 		throw std::invalid_argument("WIP not done yet");
 	}
@@ -2338,7 +2338,7 @@ MatrixCPU StudyCaseAgent::SetEuropeTestFeeder(std::string path, int beggining)
 	// le pri spot pour la cost fonction ?
 	std::cout << "reseau " << std::endl;
 	_a.set(_nCons, 0, 0.01);
-	_b.set(_nCons, 0, 0.03); // 30€ / MWh	
+	_b.set(_nCons, 0, 0.03); // 30ï¿½ / MWh	
 	_Ub.set(_nCons, 0, 10000); // pour ne pas avoir besoin de le modifier
 	_Lb.set(_nCons, 0, -10000); // pour ne pas avoir besoin de le modifier
 	_Pmin.set(_nCons, 0, -10000);

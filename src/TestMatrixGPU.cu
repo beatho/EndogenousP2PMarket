@@ -148,8 +148,10 @@ int testMGPU()
     n++;
     if (!testMGPUDivideGJ2()) return n;
     n++;
+    #ifdef EIGEN
     if (!testMGPUSolveSys()) return n;
     n++;
+    #endif
 
     return 0;
 
@@ -1882,7 +1884,8 @@ bool testMGPUDivideGJ2()
     return false;
 }
 
-bool testMGPUSolveSys()
+#ifdef Eigen
+    bool testMGPUSolveSys()
 {
     Eigen::Matrix3f M;
     Eigen::Vector3f b;
@@ -1964,3 +1967,4 @@ bool testMGPUSolveSys()
 
     return true;
 }
+#endif

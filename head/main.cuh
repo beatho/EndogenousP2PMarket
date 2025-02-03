@@ -87,6 +87,8 @@
 #include "TestMatrixCPU.h"
 #include "TestKernel.cuh"
 #include "TestUtilities.cuh"
+#include "Utilities.h"
+
 
 
 

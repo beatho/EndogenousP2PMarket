@@ -39,5 +39,6 @@ __global__ void resolveSeveralRealPolynome3GPU(double* nRoot, double* roots, dou
 
 __global__ void resolveSeveralRealPolynome4GPU(double* nRoot, double* roots, double* coefs, int nPoly);
 
-
+__host__ __device__ double findAntpoly3Neg(double p, double q);
+__host__ __device__ double findAntpoly3Pos(double p, double q);
 

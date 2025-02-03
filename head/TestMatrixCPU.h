@@ -22,8 +22,7 @@ bool testMSet1();
 bool testMSet2();
 bool testMSetFromFile();
 bool testMSetRand();
-bool testMSetFromEigen();
-bool testMToEigen();
+
 
 
 bool testMAdd1();
@@ -67,11 +66,6 @@ bool testMDivide5();
 bool testMDivideGJ1();
 bool testMDivideGJ2();
 
-#ifdef EIGEN
-    bool testMDivideEigen();
-    bool testMSolveSys();
-#endif
-
 bool testMmoy1();
 bool testMmoy2();
 bool testMmoy3();
@@ -91,8 +85,6 @@ bool testMProjectPos();
 bool testMProjectNeg();
 
 bool testMMax();
-bool testMToCSC1();
-bool testMToCSC2();
 
 bool testMSwap();
 
@@ -100,4 +92,17 @@ bool testMMinAbs();
 
 bool testMSort();
 
-bool testMCSC();
+
+
+#ifdef EIGEN
+    bool testMDivideEigen();
+    bool testMSolveSys();
+    bool testMSetFromEigen();
+    bool testMToEigen();
+#endif
+
+#ifdef OSQP
+    bool testMToCSC1();
+    bool testMToCSC2();
+    bool testMCSC();
+#endif

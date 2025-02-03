@@ -2,6 +2,8 @@
 #include <cuda_runtime.h>
 #include "MatrixGPU.cuh"
 #include "Utilities.cuh"
+#include "Utilities.h"
+
 
 #define NSTEPLOCAL 5
 #define NMAXPEERPERTRHREAD 5

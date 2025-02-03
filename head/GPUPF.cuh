@@ -12,7 +12,7 @@
 #include <chrono>
 #include "kernelFunction.cuh"
 #include "Utilities.cuh"
-
+#include "Utilities.h"
 
 class GPUPF
 {
@@ -63,7 +63,7 @@ public:
 protected:
 
 	bool _useDouble = false;
-	int _blockSize = 32; // petit car chaque noeud a peu de voisin, à voir...
+	int _blockSize = 32; // petit car chaque noeud a peu de voisin, ï¿½ voir...
 	int numBlock = 0;
 	int Nagent = 0;
 	int Nbus = 0;
@@ -145,16 +145,16 @@ protected:
 	MatrixGPUD AD;
 	MatrixGPUD PD;
 
-	// Pour interactionmarche endogène
+	// Pour interactionmarche endogï¿½ne
 	MatrixGPU _Blin2; // que les lignes
 	MatrixGPU _Glin2;
-	MatrixGPU CoresLineBusGPU; // doit prendre la transposée 
+	MatrixGPU CoresLineBusGPU; // doit prendre la transposï¿½e 
 
 
 	// instrumentation
 	MatrixCPU timePerBlock = MatrixCPU(7, 1); // Fb0, Fb1abc, Fb2, Fb3abc, Fb4, Fb5, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	MatrixCPU occurencePerBlock = MatrixCPU(7, 1);; //nb de fois utilisé pendant la simu
+	MatrixCPU occurencePerBlock = MatrixCPU(7, 1);; //nb de fois utilisï¿½ pendant la simu
 
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;

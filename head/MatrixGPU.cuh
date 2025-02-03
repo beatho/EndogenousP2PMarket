@@ -25,6 +25,8 @@
 #include "MatrixCPU.h"
 #include "MatrixGPUD.cuh"
 #include "Utilities.cuh"
+#include "Utilities.h"
+
 
 #define DELETEB(x) if (x!=nullptr) {delete x; x = nullptr;}
 #define DELETEA(x) if (x!=nullptr) {delete[] x; x = nullptr;}

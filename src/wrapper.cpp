@@ -27,6 +27,8 @@ PyObject* setStudyCase(PyObject* self, PyObject* args){
     char* buffer;
     PyArg_ParseTuple(args, "s", &buffer);
 
+    filename = buffer;
+    std::cout << "creation du cas " << filename <<std::endl; 
 
 
 
@@ -52,10 +54,10 @@ PyMethodDef EndoCudaFunction[] = {
 
 PyModuleDef EndoCudaModule = {
     PyModuleDef_HEAD_INIT,
-    "verlet",
-    "le super module du cours de C",
+    "EndoCuda",
+    "le super module de bea",
     -1,
-    verletFunctions
+    EndoCudaFunction
 };
 
 PyMODINIT_FUNC PyInit_EndoCuda(){

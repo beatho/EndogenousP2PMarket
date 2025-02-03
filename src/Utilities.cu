@@ -46,11 +46,13 @@ void checkLast(const char* const file, const int line)
 	}
 }
 
-float min(float a, float b){
+float Mymin(float a, float b){
 	return b*(a>b) + a*(a<=b);
 }
 
-
+float Mymax(float a, float b){
+	return a*(a>b) + b*(a<=b);
+}
 
 
 int resolveRealPolynome3without2term(double* root, double* coef) {
@@ -911,8 +913,6 @@ __device__ int resvolveRealPolynome4without2termGPU(double* root, double b, doub
 
 __device__ int resvolveRealPolynome4without2termGPULagrange(double* root, double b, double d, double e) {
 
-	int nRoot = 0;
-
 	// il faut passer de b d e � p q t, c'est le coef devant z^3 qui doit etre nul pas celui devant z^2 !!!
 
 	double p = -3.0 * b * b / (8.0);
@@ -1148,10 +1148,6 @@ __device__ int resolveRealPolynome3GPU(double* root, double b, double c, double 
 		x_i = x_i - b / 3;
 
 		if (i == ITERNEWTON) { // racine non trouv� ...
-			double coefTemp[2];
-
-			coefTemp[0] = p;
-			coefTemp[1] = q;
 			nRoot = resolveRealPolynome3without2termGPU(root, p, q);
 			for (int k = 0; k < nRoot; k++) {
 				root[k] = root[k] - b / 3;

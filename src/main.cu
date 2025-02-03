@@ -2341,7 +2341,7 @@ void SimuStatPowerTech()
 	for (int line = 0; line < nNLine; line++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
 
-		int lines = line * (nLineMax - offsetLine) / max((nNLine - 1), 1) + offsetLine;
+		int lines = line * (nLineMax - offsetLine) / Mymax((nNLine - 1), 1) + offsetLine;
 		std::cout << lines << std::endl;
 		//std::cout << "--------- --------- --------- --------- ----------" << std::endl;
 		Lines.set(0, line, lines);
@@ -2581,7 +2581,7 @@ void SimuStatPFSGE() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / max(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		for (int casBus = 0; casBus < nCasBuses; casBus++) {
 			int nDeep = 0;
@@ -2810,7 +2810,7 @@ void SimuStatPFTransport() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / max(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		for (int casBus = 0; casBus < nCasBuses; casBus++) {
 			int nLines = 0;
@@ -3035,7 +3035,7 @@ void SimuStatPFCompare() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / max(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		
 		int nDeep = 2 * buses;
@@ -3308,7 +3308,7 @@ void SimuStatOPF() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / max(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		for (int casBus = 0; casBus < nCasBuses; casBus++) {
 			int nDeep = 0;
@@ -3515,7 +3515,7 @@ void SimuStatOPFCompare() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / max(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 
 		int nDeep = 2 * buses;
@@ -3698,7 +3698,7 @@ void SimuCompareISGT() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / max(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 
 		int nDeep = 2 * buses;
@@ -3904,7 +3904,7 @@ void SimuStatMarketEndo() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / max(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 
 		int nDeep = 2 * buses;
@@ -4119,7 +4119,7 @@ void SimuStatMarketEndoAC() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / max(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 
 		int nDeep = 2 * buses;
@@ -4344,7 +4344,7 @@ void SimuStatMarketEndoACAgent() {
 
 	for (int agent = 0; agent < nNAgent; agent++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int agents = offsetAgent > 0 ? agent * (nAgentMax - offsetAgent) / max(nNAgent - 1, 1) + offsetAgent : (agent + 1) * nAgentMax / nNAgent;
+		int agents = offsetAgent > 0 ? agent * (nAgentMax - offsetAgent) / Mymax(nNAgent - 1, 1) + offsetAgent : (agent + 1) * nAgentMax / nNAgent;
 		Agents.set(0, agent, agents);
 
 		int nDeep = 2 * nBus;
@@ -4804,7 +4804,7 @@ void SimuStatMarketEndoGrid() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / max(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		for (int casBus = 0; casBus < nCasBuses; casBus++) {
 			int nBranch = buses;

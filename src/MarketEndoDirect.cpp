@@ -1200,7 +1200,7 @@ void MarketEndoDirect::updateX()
 			}
 			else if (gamma > bestGamma && lambdaUp > bestGamma && delta > bestGamma) {
 				typeSol = 5;
-				bestGamma = min(min(gamma, lambdaUp), delta);
+				bestGamma = Mymin(Mymin(gamma, lambdaUp), delta);
 			}
 		}
 		if (!goodSol) {
@@ -1224,7 +1224,7 @@ void MarketEndoDirect::updateX()
 			if (gamma > bestGamma && lambdaUp > bestGamma && delta > bestGamma) {
 				typeSol = 5;
 				neg = true;
-				bestGamma = min(min(gamma, lambdaUp), delta);
+				bestGamma = Mymin(Mymin(gamma, lambdaUp), delta);
 			}
 		}
 		//x3 = x3min
@@ -1252,7 +1252,7 @@ void MarketEndoDirect::updateX()
 			}
 			else if (gamma > bestGamma && lambdaLo > bestGamma && delta > bestGamma) {
 				typeSol = 6;
-				bestGamma = min(min(gamma, lambdaLo), delta);
+				bestGamma = Mymin(Mymin(gamma, lambdaLo), delta);
 			}
 		}
 		if (!goodSol) {
@@ -1277,7 +1277,7 @@ void MarketEndoDirect::updateX()
 			}
 			else if (gamma > bestGamma && lambdaLo > bestGamma && delta > bestGamma) {
 				typeSol = 6;
-				bestGamma = min(min(gamma, lambdaLo), delta);
+				bestGamma = Mymin(Mymin(gamma, lambdaLo), delta);
 				neg = true;
 			}
 		}
@@ -1317,7 +1317,7 @@ void MarketEndoDirect::updateX()
 					}
 					if (gamma > bestGamma && delta > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 						typeSol = 7;
-						bestGamma = min(min(min(gamma, (x3max - x3)), (x3 - x3min)), delta);
+						bestGamma = Mymin(Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min)), delta);
 						BestRoot = n;
 					}
 				}
@@ -1357,7 +1357,7 @@ void MarketEndoDirect::updateX()
 					}
 					if (gamma > bestGamma && delta > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 						typeSol = 8;
-						bestGamma = min(min(min(gamma, (x3max - x3)), (x3 - x3min)), delta);
+						bestGamma = Mymin(Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min)), delta);
 						BestRoot = n;
 						neg = true;
 					}
@@ -1398,7 +1398,7 @@ void MarketEndoDirect::updateX()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 2;
-					bestGamma = min((x4max - x4), min(gamma, lambdaUp));
+					bestGamma = Mymin((x4max - x4), Mymin(gamma, lambdaUp));
 					BestRoot = n;
 				}
 
@@ -1434,7 +1434,7 @@ void MarketEndoDirect::updateX()
 				}
 				if (gamma > bestGamma && lambdaLo > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 3;
-					bestGamma = min((x4max - x4), min(gamma, lambdaLo));
+					bestGamma = Mymin((x4max - x4), Mymin(gamma, lambdaLo));
 					BestRoot = n;
 				}
 			}
@@ -1468,7 +1468,7 @@ void MarketEndoDirect::updateX()
 					break;
 				}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 4;
-					bestGamma = min((x4max - x4), min(min(gamma, (x3max - x3)), (x3 - x3min)));
+					bestGamma = Mymin((x4max - x4), Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min)));
 					BestRoot = n;
 				}
 			}
@@ -1662,7 +1662,7 @@ void MarketEndoDirect::updateXWOCurrent()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = min(gamma, lambdaLo);
+					bestGamma = Mymin(gamma, lambdaLo);
 					BestRoot = n;
 				}
 
@@ -1696,7 +1696,7 @@ void MarketEndoDirect::updateXWOCurrent()
 					}
 					if (gamma > bestGamma && lambdaLo > bestGamma) {
 						typeSol = 3;
-						bestGamma = min(gamma, lambdaLo);
+						bestGamma = Mymin(gamma, lambdaLo);
 						BestRoot = n;
 					}
 				}
@@ -1729,7 +1729,7 @@ void MarketEndoDirect::updateXWOCurrent()
 						break;
 					}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 						typeSol = 4;
-						bestGamma = min(min(gamma, (x3max - x3)), (x3 - x3min));
+						bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
 						BestRoot = n;
 					}
 				}

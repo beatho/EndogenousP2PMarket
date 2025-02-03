@@ -456,10 +456,10 @@ void OPFPDIPM::init(const Simparam& sim, const StudyCase& cas)
 
 		XHess.set(n, n, -Cost1.get(n + 1, 0));
 		XHess.set(n + _nAgent, n + _nAgent, -Cost1.get(n + 2 + _nAgent, 0));
-		l.set(n, 0, min(MAX((X.get(n, 0) - LowerBound.get(n, 0)), valMin), valMax));
-		u.set(n, 0, min(MAX((UpperBound.get(n, 0) - X.get(n, 0)), valMin), valMax));
-		l.set(n + _nAgent, 0, min(MAX((X.get(n + _nAgent, 0) - LowerBound.get(n + _nAgent, 0)), valMin), valMax));
-		u.set(n + _nAgent, 0, min(MAX((UpperBound.get(n + _nAgent, 0) - X.get(n + _nAgent, 0)), valMin), valMax));
+		l.set(n, 0, Mymin(MAX((X.get(n, 0) - LowerBound.get(n, 0)), valMin), valMax));
+		u.set(n, 0, Mymin(MAX((UpperBound.get(n, 0) - X.get(n, 0)), valMin), valMax));
+		l.set(n + _nAgent, 0, Mymin(MAX((X.get(n + _nAgent, 0) - LowerBound.get(n + _nAgent, 0)), valMin), valMax));
+		u.set(n + _nAgent, 0, Mymin(MAX((UpperBound.get(n + _nAgent, 0) - X.get(n + _nAgent, 0)), valMin), valMax));
 	}
 	int offset = 2 * _nAgent;
 	int indice = 0;
@@ -476,8 +476,8 @@ void OPFPDIPM::init(const Simparam& sim, const StudyCase& cas)
 		X.set(b + offset, 0, ei);
 		X.set(b + _nBus + offset, 0, fi);
 		int k = CoresBusLin.get(b, 0);
-	    l.set(b + offset, 0, min(MAX((V - Vmin), valMin), valMax));
-		u.set(b + offset, 0, min(MAX((Vma - V), valMin), valMax));
+	    l.set(b + offset, 0, Mymin(MAX((V - Vmin), valMin), valMax));
+		u.set(b + offset, 0, Mymin(MAX((Vma - V), valMin), valMax));
 		for (int voisin = k + 1; voisin < (k + nLines.get(b, 0)); voisin++) {
 			int j = CoresVoiLin.get(voisin, 0);
 			if (j > b) {
@@ -486,8 +486,8 @@ void OPFPDIPM::init(const Simparam& sim, const StudyCase& cas)
 				float B = BgridLin.get(voisin, 0);
 				float G = GgridLin.get(voisin, 0);
 				float Pij = (ei * ei + fi * fi - ei * ej - fi * fj) * G + (ei * fj - ej * fi) * B;
-				l.set(_nBus + offset + indice , 0, min(MAX((Pij - LowerBound.get(_nBus + offset + indice, 0)), valMin), valMax));
-				u.set(_nBus + offset + indice, 0, min(MAX((UpperBound.get(_nBus + offset + indice, 0) - Pij), valMin), valMax));
+				l.set(_nBus + offset + indice , 0, Mymin(MAX((Pij - LowerBound.get(_nBus + offset + indice, 0)), valMin), valMax));
+				u.set(_nBus + offset + indice, 0, Mymin(MAX((UpperBound.get(_nBus + offset + indice, 0) - Pij), valMin), valMax));
 				indice++;
 			}
 		}
@@ -760,10 +760,10 @@ void OPFPDIPM::initConsensus(const Simparam& sim, const StudyCase& cas, float rh
 
 		XHess.set(n, n, -Cost1.get(n + 1, 0));
 		XHess.set(n + _nAgent, n + _nAgent, -Cost1.get(n + 2 + _nAgent, 0));
-		l.set(n, 0, min(MAX((X.get(n, 0) - LowerBound.get(n, 0)), valMin), valMax));
-		u.set(n, 0, min(MAX((UpperBound.get(n, 0) - X.get(n, 0)), valMin), valMax));
-		l.set(n + _nAgent, 0, min(MAX((X.get(n + _nAgent, 0) - LowerBound.get(n + _nAgent, 0)), valMin), valMax));
-		u.set(n + _nAgent, 0, min(MAX((UpperBound.get(n + _nAgent, 0) - X.get(n + _nAgent, 0)), valMin), valMax));
+		l.set(n, 0, Mymin(MAX((X.get(n, 0) - LowerBound.get(n, 0)), valMin), valMax));
+		u.set(n, 0, Mymin(MAX((UpperBound.get(n, 0) - X.get(n, 0)), valMin), valMax));
+		l.set(n + _nAgent, 0, Mymin(MAX((X.get(n + _nAgent, 0) - LowerBound.get(n + _nAgent, 0)), valMin), valMax));
+		u.set(n + _nAgent, 0, Mymin(MAX((UpperBound.get(n + _nAgent, 0) - X.get(n + _nAgent, 0)), valMin), valMax));
 	}
 	int offset = 2 * _nAgent;
 	int indice = 0;
@@ -780,8 +780,8 @@ void OPFPDIPM::initConsensus(const Simparam& sim, const StudyCase& cas, float rh
 		X.set(b + offset, 0, ei);
 		X.set(b + _nBus + offset, 0, fi);
 		int k = CoresBusLin.get(b, 0);
-		l.set(b + offset, 0, min(MAX((V - Vmin), valMin), valMax));
-		u.set(b + offset, 0, min(MAX((Vma - V), valMin), valMax));
+		l.set(b + offset, 0, Mymin(MAX((V - Vmin), valMin), valMax));
+		u.set(b + offset, 0, Mymin(MAX((Vma - V), valMin), valMax));
 		for (int voisin = k + 1; voisin < (k + nLines.get(b, 0)); voisin++) {
 			int j = CoresVoiLin.get(voisin, 0);
 			if (j > b) {
@@ -790,8 +790,8 @@ void OPFPDIPM::initConsensus(const Simparam& sim, const StudyCase& cas, float rh
 				float B = BgridLin.get(voisin, 0);
 				float G = GgridLin.get(voisin, 0);
 				float Pij = (ei * ei + fi * fi - ei * ej - fi * fj) * G + (ei * fj - ej * fi) * B;
-				l.set(_nBus + offset + indice, 0, min(MAX((Pij - LowerBound.get(_nBus + offset + indice, 0)), valMin), valMax));
-				u.set(_nBus + offset + indice, 0, min(MAX((UpperBound.get(_nBus + offset + indice, 0) - Pij), valMin), valMax));
+				l.set(_nBus + offset + indice, 0, Mymin(MAX((Pij - LowerBound.get(_nBus + offset + indice, 0)), valMin), valMax));
+				u.set(_nBus + offset + indice, 0, Mymin(MAX((UpperBound.get(_nBus + offset + indice, 0) - Pij), valMin), valMax));
 				indice++;
 			}
 		}

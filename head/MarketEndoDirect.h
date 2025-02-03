@@ -3,7 +3,8 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include "Utilities.cuh"
+#include "Utilities.h"
+
 #include "ADMMMarket.h"
 
 
@@ -142,7 +143,7 @@ private:
 
 
 	MatrixCPU tempN1; // Matrix temporaire pour aider les calculs
-	MatrixCPU tempNN; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixCPU tempNN; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 
 
 	// Reseau

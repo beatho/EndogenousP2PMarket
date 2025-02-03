@@ -4,10 +4,12 @@
 #include <string>
 #include <chrono>
 #include "Utilities.cuh"
+#include "Utilities.h"
+
 #include "kernelFunction.cuh"
 
 
-class OPFADMMConsGPU : public MethodOPFGPU // OPFADMM2 mais on considère que l'on peut avoir un fonction cout sur les pertes, il y a donc un bus fictif
+class OPFADMMConsGPU : public MethodOPFGPU // OPFADMM2 mais on considï¿½re que l'on peut avoir un fonction cout sur les pertes, il y a donc un bus fictif
 {
 public:
 	OPFADMMConsGPU();
@@ -89,7 +91,7 @@ private:
 
 
 	MatrixGPU tempN1; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempNN; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixGPU tempNN; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	MatrixGPU tempM1; //
 	MatrixGPU tempM; //
 	
@@ -157,7 +159,7 @@ private:
 	MatrixGPU _indiceBusBegin; // size : nBus
 	MatrixGPU _indiceBusBeginBig; // size : sizeOPFTotal
 	MatrixGPU _indiceChildBegin;
-	MatrixGPU PSOGPU; // dans le cas où on onterface avec un marché sur CPU
+	MatrixGPU PSOGPU; // dans le cas oï¿½ on onterface avec un marchï¿½ sur CPU
 
 
 

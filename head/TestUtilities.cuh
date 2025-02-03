@@ -1,6 +1,7 @@
 
 
 #include "Utilities.cuh"
+#include "Utilities.h"
 #include "MatrixGPU.cuh"
 
 
@@ -31,11 +32,14 @@ bool testresolveRealPolynome3without2termGPU();
 bool testresolveRealPolynome4without2termGPU();
 bool testresolveRealPolynome4without2termGPULagrange();
 
+#ifdef EIGEN
+
 bool testPolyEigen3();
 bool testPolyEigen4();
 
 bool testresolveRealPolynome3without2termEigen();
 bool testresolveRealPolynome4without2termEigen();
+#endif
 
 bool testresolveRealPolynome3Newton1();
 bool testresolveRealPolynome3Newton2();

@@ -11,6 +11,7 @@
 #include "StudyCase.h"
 #include "GPUPF.cuh"
 #include "Utilities.cuh"
+#include "Utilities.h"
 
 
 class GPUPFdistPQ : public GPUPF

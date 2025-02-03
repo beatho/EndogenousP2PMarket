@@ -4,6 +4,8 @@
 #include <string>
 #include <chrono>
 #include "Utilities.cuh"
+#include "Utilities.h"
+
 #include "kernelFunction.cuh"
 
 

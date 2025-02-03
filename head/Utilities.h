@@ -22,7 +22,8 @@
 
 #define MILLION 1000000
 
-float min(float a, float b);
+float Mymin(float a, float b);
+float Mymax(float a, float b);
 
 // am�lioration : passer MatrixCPU en param�tre (au moins c'est safe)
 
@@ -40,9 +41,6 @@ int resolveRealPolynome4Halley(double* root, double* coef, double init = 0);
 
 
 void coefPolynome3From4to2coef(double* coef4, double* coef2);
-
-double findAntpoly3Neg(double p, double q);
-double findAntpoly3Pos(double p, double q);
 
 
 // EIGEN

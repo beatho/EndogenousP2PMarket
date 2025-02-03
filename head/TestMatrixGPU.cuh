@@ -4,6 +4,7 @@
 #include "MatrixCPU.h"
 #include <iostream>
 #include <stdexcept>
+#include <chrono>
 
 
 int testMGPU(); // host
@@ -99,5 +100,6 @@ bool testMGPUMax3();
 bool testMGPUDivideGJ1();
 bool testMGPUDivideGJ2();
 
-
-bool testMGPUSolveSys();
+#ifdef Eigen
+    bool testMGPUSolveSys();
+#endif

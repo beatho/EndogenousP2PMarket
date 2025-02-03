@@ -4,6 +4,8 @@
 #include <string>
 #include <chrono>
 #include "Utilities.cuh"
+#include "Utilities.h"
+
 #include "CPUPF.h"
 #include "CPUPFdist.h"
 #include "ADMMMarket.h"
@@ -115,7 +117,7 @@ private:
 	MatrixGPU Lu;
 
 	//MatrixGPU tempN1; // Matrix temporaire pour aider les calculs
-	//MatrixGPU tempNN; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	//MatrixGPU tempNN; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	//MatrixGPU tempM1; //
 	MatrixGPU tempM1; //
 	MatrixGPU tempS1;

@@ -34,6 +34,7 @@ int testUtilities() {
 	n++;
 	if (!testresolveRealPolynome4without2termGPULagrange()) return n;
 	n++;
+	#ifdef EIGEN
 	std::cout << "---------- Eigen------------------" << std::endl;
 	if (!testPolyEigen3()) return n;
 	n++;
@@ -43,6 +44,7 @@ int testUtilities() {
 	n++;
 	if (!testresolveRealPolynome4without2termEigen()) return n;
 	n++;
+	#endif
 	std::cout << "---------- NEWTON------------------" << std::endl;
 	if (!testresolveRealPolynome3Newton1()) return n;
 	n++;
@@ -101,7 +103,7 @@ void compareCPUGPU()
 
 	int blocksize = 512;
 
-	int N = nQ * nP; // nombre total de polynome à résoudre
+	int N = nQ * nP; // nombre total de polynome ï¿½ rï¿½soudre
 
 	int Numblock = ceil((N + blocksize - 1) / blocksize);
 
@@ -393,7 +395,7 @@ bool testresolveRealPolynome4without2term()
 	}
 	
 	bool find[4] = { false, false, false, false};
-	for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicité mais les bonnes racines -> pas grave dans notre cas.
+	for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicitï¿½ mais les bonnes racines -> pas grave dans notre cas.
 
 		if (abs(root[k] - root1) < 0.001) {
 			find[0] = true;
@@ -476,7 +478,7 @@ bool testresolveRealPolynome4without2termLagrange()
 	}
 
 	bool find[4] = { false, false, false, false };
-	for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicité mais les bonnes racines -> pas grave dans notre cas.
+	for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicitï¿½ mais les bonnes racines -> pas grave dans notre cas.
 
 		if (abs(root[k] - root1) < 0.001) {
 			find[0] = true;
@@ -716,162 +718,31 @@ bool testresolveRealPolynome4without2termGPULagrange() {
 
 	return true;
 }
-
-bool testPolyEigen3()
-{
-	Eigen::Vector4d coeff(1, 3, -5, 1); //double coef4[4] = { 1, -5, 3, 1 };
-	Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
-	solver.compute(coeff);
-	const Eigen::PolynomialSolver<double, Eigen::Dynamic>::RootsType& r = solver.roots();
-
-	std::cout << r << std::endl;
-	
-	double root1 = 2 - sqrt(5);
-	double root2 = 1;
-	double root3 = 2 + sqrt(5);
-	double root[3];
-
-	if (r(0).imag() || r(1).imag() || r(2).imag()) {
-		std::cout << r(0).imag() << " " << r(1).imag() << " " << r(2).imag() << std::endl;
-		return false;
-	}
-	bool find[3] = { false, false, false };
-	
-	for (int k = 0; k < 3; k++) {
-		root[k] = r(k).real();
-	}
-	
-	for (int k = 0; k < 3; k++) {
-
-		if (abs(root[k] - root1) < 0.001) {
-			find[0] = true;
-		}
-		else if (abs(root[k] - root2) < 0.001) {
-			find[1] = true;
-		}
-		else if (abs(root[k] - root3) < 0.001) {
-			find[2] = true;
-		}
-		else {
-			std::cout << "wrong root " << root[k] << " against " << root1 << " " << root2 << " " << root3 << std::endl;
-			return false;
-		}
-	}
-
-	for (int k = 0; k < 3; k++) {
-		if (!find[k]) {
-			std::cout << "wrong root " << root[0] << " " << root[1] << " " << root[2] << " against " << root1 << " " << root2 << " " << root3 << std::endl;
-			return false;
-		}
-	}
-	std::cout << std::endl << std::endl;
-
-	return true;
-}
-
-bool testPolyEigen4()
-{
-	Eigen::VectorXd coeff(5);
-	coeff(0) = 6;
-	coeff(1) = -13;
-	coeff(2) = 0;
-	coeff(3) = 6;
-	coeff(4) = 1;
-	
-	Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
-	solver.compute(coeff);
-	const Eigen::PolynomialSolver<double, Eigen::Dynamic>::RootsType& r = solver.roots();
-
-	std::cout << r << std::endl;
-
-	double rootbis[3];
-	double coef4[4] = { 1, 7, 7, -6 };
-	double coef3[3] = { 6, -13, 6 };
-	double coef2[2];
-	coefPolynome3From4to2coef(coef4, coef2);
-	int nroot = resolveRealPolynome3without2term(rootbis, coef2);
-
-	for (int k = 0; k < nroot; k++) {
-		rootbis[k] += -coef4[1] / (3 * coef4[0]);
-	}
-
-	double root1 = rootbis[0];
-	double root2 = rootbis[1];
-	double root3 = rootbis[2];
-	double root4 = 1;
-
-	double root[4];
-
-	bool find[4] = { false, false, false, false };
-
-	for (int k = 0; k < 4; k++) {
-		if (r(k).imag()) {
-			std::cout << r(k).imag() << std::endl;
-			return false;
-		}
-		root[k] = r(k).real();
-	}
-
-
-	for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicité mais les bonnes racines -> pas grave dans notre cas.
-
-		if (abs(root[k] - root1) < 0.001) {
-			find[0] = true;
-		}
-		else if (abs(root[k] - root2) < 0.001) {
-			find[1] = true;
-		}
-		else if (abs(root[k] - root3) < 0.001) {
-			find[2] = true;
-		}
-		else if (abs(root[k] - root4) < 0.001) {
-			find[3] = true;
-		}
-		else {
-			std::cout << "wrong root " << root[k] << " against " << root1 << " " << root2 << " " << root3 << " " << root4 << std::endl;
-			return false;
-		}
-	}
-
-	for (int k = 0; k < 4; k++) {
-		if (!find[k]) {
-			std::cout << "wrong root " << root[0] << " " << root[1] << " " << root[2] << " " << root[3] << " against " << root1 << " " << root2 << " " << root3 << " " << root4 << std::endl;
-			return false;
-		}
-	}
-
-	std::cout << std::endl << std::endl;
-
-	return true;
-}
-
-bool testresolveRealPolynome3without2termEigen()
-{
+#ifdef EIGEN
+	bool testPolyEigen3()
 	{
-		double a = 1;
-		double b = -5;
+		Eigen::Vector4d coeff(1, 3, -5, 1); //double coef4[4] = { 1, -5, 3, 1 };
+		Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
+		solver.compute(coeff);
+		const Eigen::PolynomialSolver<double, Eigen::Dynamic>::RootsType& r = solver.roots();
 
-		double coef4[4] = { 1, -5, 3, 1 };
-		double coef2[2];
+		std::cout << r << std::endl;
+		
 		double root1 = 2 - sqrt(5);
 		double root2 = 1;
 		double root3 = 2 + sqrt(5);
-
-		coefPolynome3From4to2coef(coef4, coef2);
-
-		
 		double root[3];
 
-		int nRoot = resolveRealPolynome3without2termEigen(root, coef2);
-		if (nRoot != 3) {
-			std::cout << "wrong number of root " << nRoot << std::endl;
+		if (r(0).imag() || r(1).imag() || r(2).imag()) {
+			std::cout << r(0).imag() << " " << r(1).imag() << " " << r(2).imag() << std::endl;
 			return false;
 		}
-		for (int k = 0; k < 3; k++) {
-			root[k] += -b / (3 * a);
-		}
-
 		bool find[3] = { false, false, false };
+		
+		for (int k = 0; k < 3; k++) {
+			root[k] = r(k).real();
+		}
+		
 		for (int k = 0; k < 3; k++) {
 
 			if (abs(root[k] - root1) < 0.001) {
@@ -895,78 +766,56 @@ bool testresolveRealPolynome3without2termEigen()
 				return false;
 			}
 		}
-		std::cout << "root Eigen ";
-		for (int k = 0; k < nRoot; k++) {
+		std::cout << std::endl << std::endl;
 
-			std::cout << root[k] << " ";
-		}
-		std::cout << std::endl;
+		return true;
 	}
 
+	bool testPolyEigen4()
 	{
-		double a = 1;
-		double b = 0;
-		double c = 3;
-		double d = 1;
+		Eigen::VectorXd coeff(5);
+		coeff(0) = 6;
+		coeff(1) = -13;
+		coeff(2) = 0;
+		coeff(3) = 6;
+		coeff(4) = 1;
+		
+		Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
+		solver.compute(coeff);
+		const Eigen::PolynomialSolver<double, Eigen::Dynamic>::RootsType& r = solver.roots();
 
-		double coef4[4] = { 1, 0, 3, 1 };
+		std::cout << r << std::endl;
+
+		double rootbis[3];
+		double coef4[4] = { 1, 7, 7, -6 };
+		double coef3[3] = { 6, -13, 6 };
 		double coef2[2];
-		double root1 = cbrt((-1 + sqrt(5)) / 2) + cbrt((-1 - sqrt(5)) / 2);
-
 		coefPolynome3From4to2coef(coef4, coef2);
-		double root[1];
+		int nroot = resolveRealPolynome3without2term(rootbis, coef2);
 
-		int nRoot = resolveRealPolynome3without2term(root, coef2);
-		if (nRoot != 1) {
-			std::cout << "wrong number of root " << nRoot << std::endl;
-			return false;
+		for (int k = 0; k < nroot; k++) {
+			rootbis[k] += -coef4[1] / (3 * coef4[0]);
 		}
 
-		root[0] += -b / (3 * a);
+		double root1 = rootbis[0];
+		double root2 = rootbis[1];
+		double root3 = rootbis[2];
+		double root4 = 1;
 
+		double root[4];
 
-		if (abs(root[0] - root1) > 0.001) {
-			std::cout << "wrong root " << root[0] << " against " << root1 << std::endl;
-			return false;
-		}
-		std::cout << "root Eigen ";
-		for (int k = 0; k < nRoot; k++) {
+		bool find[4] = { false, false, false, false };
 
-			std::cout << root[k] << " ";
-		}
-		std::cout << std::endl;
-	}
-
-
-	{
-		double a = 1;
-		double b = 2;
-		double c = -12.75;
-		double d = 11.25;
-
-		double coef4[4] = { 1, 2,  -12.75, 11.25 };
-		double coef2[2];
-		double root1 = 1.5;
-		double root2 = -5;
-
-
-		coefPolynome3From4to2coef(coef4, coef2);
-
-		std::cout << "poly 3 " << coef2[0] << " " << coef2[1] << std::endl;
-
-		double root[3];
-
-		int nRoot = resolveRealPolynome3without2term(root, coef2);
-		if (nRoot == 1) {
-			std::cout << "wrong number of root " << nRoot << std::endl;
-			return false;
-		}
-		for (int k = 0; k < 2; k++) {
-			root[k] += -b / (3 * a);
+		for (int k = 0; k < 4; k++) {
+			if (r(k).imag()) {
+				std::cout << r(k).imag() << std::endl;
+				return false;
+			}
+			root[k] = r(k).real();
 		}
 
-		bool find[2] = { false, false };
-		for (int k = 0; k < 2; k++) {
+
+		for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicitï¿½ mais les bonnes racines -> pas grave dans notre cas.
 
 			if (abs(root[k] - root1) < 0.001) {
 				find[0] = true;
@@ -974,30 +823,183 @@ bool testresolveRealPolynome3without2termEigen()
 			else if (abs(root[k] - root2) < 0.001) {
 				find[1] = true;
 			}
+			else if (abs(root[k] - root3) < 0.001) {
+				find[2] = true;
+			}
+			else if (abs(root[k] - root4) < 0.001) {
+				find[3] = true;
+			}
 			else {
-				std::cout << "wrong root " << root[k] << " against " << root1 << " " << root2 << " " << std::endl;
+				std::cout << "wrong root " << root[k] << " against " << root1 << " " << root2 << " " << root3 << " " << root4 << std::endl;
 				return false;
 			}
 		}
 
-		for (int k = 0; k < 2; k++) {
+		for (int k = 0; k < 4; k++) {
 			if (!find[k]) {
-				std::cout << "wrong root " << root[0] << " " << root[1] << " against " << root1 << " " << root2 << std::endl;
+				std::cout << "wrong root " << root[0] << " " << root[1] << " " << root[2] << " " << root[3] << " against " << root1 << " " << root2 << " " << root3 << " " << root4 << std::endl;
 				return false;
 			}
 		}
-		std::cout << "root Eigen ";
-		for (int k = 0; k < nRoot; k++) {
 
-			std::cout << root[k] << " ";
-		}
-		std::cout << std::endl;
+		std::cout << std::endl << std::endl;
+
+		return true;
 	}
-	return true;
-}
+
+	bool testresolveRealPolynome3without2termEigen()
+	{
+		{
+			double a = 1;
+			double b = -5;
+
+			double coef4[4] = { 1, -5, 3, 1 };
+			double coef2[2];
+			double root1 = 2 - sqrt(5);
+			double root2 = 1;
+			double root3 = 2 + sqrt(5);
+
+			coefPolynome3From4to2coef(coef4, coef2);
+
+			
+			double root[3];
+
+			int nRoot = resolveRealPolynome3without2termEigen(root, coef2);
+			if (nRoot != 3) {
+				std::cout << "wrong number of root " << nRoot << std::endl;
+				return false;
+			}
+			for (int k = 0; k < 3; k++) {
+				root[k] += -b / (3 * a);
+			}
+
+			bool find[3] = { false, false, false };
+			for (int k = 0; k < 3; k++) {
+
+				if (abs(root[k] - root1) < 0.001) {
+					find[0] = true;
+				}
+				else if (abs(root[k] - root2) < 0.001) {
+					find[1] = true;
+				}
+				else if (abs(root[k] - root3) < 0.001) {
+					find[2] = true;
+				}
+				else {
+					std::cout << "wrong root " << root[k] << " against " << root1 << " " << root2 << " " << root3 << std::endl;
+					return false;
+				}
+			}
+
+			for (int k = 0; k < 3; k++) {
+				if (!find[k]) {
+					std::cout << "wrong root " << root[0] << " " << root[1] << " " << root[2] << " against " << root1 << " " << root2 << " " << root3 << std::endl;
+					return false;
+				}
+			}
+			std::cout << "root Eigen ";
+			for (int k = 0; k < nRoot; k++) {
+
+				std::cout << root[k] << " ";
+			}
+			std::cout << std::endl;
+		}
+
+		{
+			double a = 1;
+			double b = 0;
+			double c = 3;
+			double d = 1;
+
+			double coef4[4] = { 1, 0, 3, 1 };
+			double coef2[2];
+			double root1 = cbrt((-1 + sqrt(5)) / 2) + cbrt((-1 - sqrt(5)) / 2);
+
+			coefPolynome3From4to2coef(coef4, coef2);
+			double root[1];
+
+			int nRoot = resolveRealPolynome3without2term(root, coef2);
+			if (nRoot != 1) {
+				std::cout << "wrong number of root " << nRoot << std::endl;
+				return false;
+			}
+
+			root[0] += -b / (3 * a);
 
 
-bool testresolveRealPolynome4without2termEigen()
+			if (abs(root[0] - root1) > 0.001) {
+				std::cout << "wrong root " << root[0] << " against " << root1 << std::endl;
+				return false;
+			}
+			std::cout << "root Eigen ";
+			for (int k = 0; k < nRoot; k++) {
+
+				std::cout << root[k] << " ";
+			}
+			std::cout << std::endl;
+		}
+
+
+		{
+			double a = 1;
+			double b = 2;
+			double c = -12.75;
+			double d = 11.25;
+
+			double coef4[4] = { 1, 2,  -12.75, 11.25 };
+			double coef2[2];
+			double root1 = 1.5;
+			double root2 = -5;
+
+
+			coefPolynome3From4to2coef(coef4, coef2);
+
+			std::cout << "poly 3 " << coef2[0] << " " << coef2[1] << std::endl;
+
+			double root[3];
+
+			int nRoot = resolveRealPolynome3without2term(root, coef2);
+			if (nRoot == 1) {
+				std::cout << "wrong number of root " << nRoot << std::endl;
+				return false;
+			}
+			for (int k = 0; k < 2; k++) {
+				root[k] += -b / (3 * a);
+			}
+
+			bool find[2] = { false, false };
+			for (int k = 0; k < 2; k++) {
+
+				if (abs(root[k] - root1) < 0.001) {
+					find[0] = true;
+				}
+				else if (abs(root[k] - root2) < 0.001) {
+					find[1] = true;
+				}
+				else {
+					std::cout << "wrong root " << root[k] << " against " << root1 << " " << root2 << " " << std::endl;
+					return false;
+				}
+			}
+
+			for (int k = 0; k < 2; k++) {
+				if (!find[k]) {
+					std::cout << "wrong root " << root[0] << " " << root[1] << " against " << root1 << " " << root2 << std::endl;
+					return false;
+				}
+			}
+			std::cout << "root Eigen ";
+			for (int k = 0; k < nRoot; k++) {
+
+				std::cout << root[k] << " ";
+			}
+			std::cout << std::endl;
+		}
+		return true;
+	}
+
+
+	bool testresolveRealPolynome4without2termEigen()
 {
 	{
 		double rootbis[3];
@@ -1025,7 +1027,7 @@ bool testresolveRealPolynome4without2termEigen()
 		}
 
 		bool find[4] = { false, false, false, false };
-		for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicité mais les bonnes racines -> pas grave dans notre cas.
+		for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicitï¿½ mais les bonnes racines -> pas grave dans notre cas.
 
 			if (abs(root[k] - root1) < 0.001) {
 				find[0] = true;
@@ -1090,12 +1092,9 @@ bool testresolveRealPolynome4without2termEigen()
 	}
 	return true;
 }
-
+#endif
 
 bool testresolveRealPolynome3Newton1() {
-
-	double a = 1;
-	double b = -5;
 
 	double coef3[3] = {-5, 3, 1 };
 	double root1 = 2 - sqrt(5);
@@ -1140,11 +1139,6 @@ bool testresolveRealPolynome3Newton1() {
 }
 bool testresolveRealPolynome3Newton2() {
 	
-	double a = 1;
-	double b = 0;
-	double c = 3;
-	double d = 1;
-
 	double coef3[3] = { 0, 3, 1 };
 	double root1 = cbrt((-1 + sqrt(5)) / 2) + cbrt((-1 - sqrt(5)) / 2);
 
@@ -1169,10 +1163,10 @@ bool testresolveRealPolynome3Newton2() {
 	return true;
 }
 bool testresolveRealPolynome3Newton3() {
-	double a = 1;
+	/*double a = 1;
 	double b = 2;
 	double c = -12.75;
-	double d = 11.25;
+	double d = 11.25;*/
 
 	double coef3[3] = { 2,  -12.75, 11.25 };
 	
@@ -1247,7 +1241,7 @@ bool testresolveRealPolynome4Newton1()
 	}
 
 	bool find[4] = { false, false, false, false };
-	for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicité mais les bonnes racines -> pas grave dans notre cas.
+	for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicitï¿½ mais les bonnes racines -> pas grave dans notre cas.
 
 		if (abs(root[k] - root1) < 0.001) {
 			find[0] = true;
@@ -1580,7 +1574,7 @@ bool testresolveRealPolynome4Halley1()
 	}
 
 	bool find[4] = { false, false, false, false };
-	for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicité mais les bonnes racines -> pas grave dans notre cas.
+	for (int k = 0; k < 4; k++) { // si racine multiple ne renvoie pas d'erreur si on ne trouve pas la bonne multiplicitï¿½ mais les bonnes racines -> pas grave dans notre cas.
 
 		if (abs(root[k] - root1) < 0.001) {
 			find[0] = true;
