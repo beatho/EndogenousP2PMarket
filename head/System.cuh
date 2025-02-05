@@ -5,6 +5,7 @@
 #include "Method.h"
 #include "MethodP2P.cuh"
 /* Market */
+#include "ADMMMarketGPU.cuh"
 #include "PAC.h"
 #include "ADMMConst.h"
 #include "ADMMConst1.h"

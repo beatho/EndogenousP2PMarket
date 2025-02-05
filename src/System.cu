@@ -671,7 +671,6 @@ void System::setBestRho(float rhoMax, bool rhoVar, float rhoTest)
 void System::setStudyCase(const StudyCase& cas)
 {
 	_case = cas;
-	
 	if (cas.getNagent() != _simparam.getNAgent() || cas.getNLine() != _simparam.getNLine())
 	{
 		std::cout << "wrong number of agent or branch, simparam and result update " << std::endl;
@@ -681,6 +680,22 @@ void System::setStudyCase(const StudyCase& cas)
 	}
 
 }
+
+void System::setStudyCase(std::string fileName)
+{
+	_case.SetACFromFile(fileName);
+	if (_case.getNagent() != _simparam.getNAgent() || _case.getNLine() != _simparam.getNLine())
+	{
+		std::cout << "wrong number of agent or branch, simparam and result update " << std::endl;
+		_simparam.setNAgentLine(_case.getNagent(), _case.getNLine(), _case.isAC());
+		_result->setNAgentLine(_case.getNagent(), _case.getNLine(), _case.isAC());
+		//std::cout << "end update" << std::endl;
+	}
+
+}
+
+
+
 void System::setSimparam(const Simparam& param)
 {
 	_simparam = param;
@@ -699,7 +714,15 @@ void System::setMethod(std::string nameMethode) {
 	
 	DELETEB(_methode);
 	useOPF = false;
-	if (!nameMethode.compare(sADMMConst)) {
+	if (!nameMethode.compare(sADMMMarket)) {
+		_methode = new ADMMMarket;
+	}
+	else if ((!nameMethode.compare(sADMMMarketMP))) {
+		_methode = new ADMMMarketOpenMP;
+	}else if ((!nameMethode.compare(sADMMMarketGPU))) {
+		_methode = new ADMMMarketGPU;
+	}
+	else if (!nameMethode.compare(sADMMConst)) {
 		_methode = new ADMMConst();
 	}
 	else if ((!nameMethode.compare(sADMMConst1))) {

@@ -1,5 +1,5 @@
 %% create data for my PF
-name = "case39"; 
+name = "case10ba"; 
 
 % dist : case4_dist case10ba case85
 % case3 case9 case39 case85 case141 case_ACTIVSg200 case_ACTIVSg500 case1888rte 

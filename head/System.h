@@ -6,13 +6,13 @@
 
 
 
-/* Market endogene DC*/
-
-#include "MethodOPF.h"
-
+/* Market */
+#include "ADMMMarket.h"
+#include "ADMMMarketOpenMP.h"
 
 
 /* OPF */
+#include "MethodOPF.h"
 #include "OPFADMM.h"
 #include "OPFADMM2.h"
 
@@ -37,6 +37,14 @@ public:
 	System();
 	System(float rho, int iterMaxGlobal, int iterMaxLocal, float epsGlobal, float epsLocal, std::string nameMethode, int nAgent, float P = 0, float dP = 0, float a = 0, float da = 0, float b = 0, float db = 0);
 	~System();
+	/*ADMMMarket admmMarket;
+	ADMMMarketOpenMP admmMarketOpenMP;
+	ADMMMarketGPU admmMarketGPU;
+	*/
+	const std::string sADMMMarket 	 = "ADMM";
+	const std::string sADMMMarketMP  = "ADMMMP";
+	const std::string sADMMMarketGPU = "ADMMGPU";
+
 	const std::string sADMMConst = "ADMMConst";
 	const std::string sADMMConst1 = "ADMMConst1";
 	const std::string sADMMGPUConst1 = "ADMMGPUConst1";
@@ -72,6 +80,7 @@ public:
 
 	// mettre tous les set permettant de modifier les param�tres...
 	void setStudyCase(const StudyCase& cas);
+	void setStudyCase(std::string caseName);
 	void setSimparam(const Simparam& param);
 	void setMethod(std::string nameMethode);
 	void setMethod(Method* method);
