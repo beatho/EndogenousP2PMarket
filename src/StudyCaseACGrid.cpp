@@ -850,7 +850,6 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 			double theta = MatLine.get(l, 6);
 
 			//std::cout << " Ligne numero " << l << " entre bus " << i << " et " << j << " re " << YlsRe << " im " << YlsIm << " b " << Ylp << std::endl;
-
 			if (tau > 0) {
 				if (inversionLine.get(l, 0)) {
 					int temp = i;
@@ -868,13 +867,11 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 				_lineReactance.increment(j, i, -YjiRe); // Ytf
 				_lineSuceptance.increment(j, i, -YjiImag);
 
-
 				_lineReactance.increment(j, j, YlsRe); // Ytt
 				_lineSuceptance.increment(j, j, YlsIm + Ylp);
 
 				_lineReactance.increment(i, i, YlsRe / (tau * tau)); // Yff
 				_lineSuceptance.increment(i, i, (YlsIm + Ylp) / (tau * tau));
-
 
 				_lineReactanceD.increment(i, j, -YijRe);  // Yft
 				_lineSuceptanceD.increment(i, j, -YijImag);
@@ -882,13 +879,11 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 				_lineReactanceD.increment(j, i, -YjiRe); // Ytf
 				_lineSuceptanceD.increment(j, i, -YjiImag);
 
-
 				_lineReactanceD.increment(j, j, YlsRe); // Ytt
 				_lineSuceptanceD.increment(j, j, YlsIm + Ylp);
 
 				_lineReactanceD.increment(i, i, YlsRe / (tau * tau)); // Yff
 				_lineSuceptanceD.increment(i, i, (YlsIm + Ylp) / (tau * tau));
-
 
 			}
 			else {
@@ -1121,6 +1116,227 @@ void StudyCaseACGrid::setLineLimit(int line, float limit)
 		_upperBound.set(2 * _nBus + line, 0, limit);
 		_lowerBound.set(2 * _nBus + line, 0, -limit);
 	}
+}
+
+void StudyCaseACGrid::setFromInterface(StudyCaseInterface interface) {
+	
+
+	MatrixCPU Info = interface.getInfoCase();
+	 // Sbase, Vbase, nAgent, nCons, nGenSup, nBus, nLine, V0, theta0
+	
+	//Info.display();
+	
+	
+	_Sbase = Info.get(0, 0);
+	_Vbase = Info.get(0, 1);
+	_Zbase = _Vbase * _Vbase / _Sbase;
+
+	_nBus = Info.get(0, 5);
+	_nLine = Info.get(0, 6);
+	_nConstraint = _nLine + 2 * _nBus;
+	_V0 = Info.get(0, 7);
+	_theta0 = Info.get(0, 8);
+
+	std::cout << "V0 " << _V0 << " theta0 " << _theta0 << std::endl;
+	_zoneBus = MatrixCPU(_nBus, 1);
+	
+
+	MatrixCPUD MatLine(_nLine, 10); // from, to, Ys Real, Ys Im, Yp , tau, theta, Limit=0, zs Real, Zs imag
+
+	MatrixCPU inversionLine(_nLine, 1, 0);
+
+	if (_nBus == _nLine + 1) {
+		for (int l = 0; l < _nLine; l++) {
+			if (MatLine.get(l, 0) > MatLine.get(l, 1)) {
+				if (MatLine.get(l, 5) > 0 && MatLine.get(l, 5) != 1) {
+					std::cout << "la presence de transformateur est peut etre mal prise en compte ?" << std::endl;
+					inversionLine.set(l, 0, 1);
+				}
+				int temp = MatLine.get(l, 0);
+				MatLine.set(l, 0, MatLine.get(l, 1));
+				MatLine.set(l, 1, temp);
+				MatLine.set(l, 6, -MatLine.get(l, 6));	// ????
+			}
+		}
+		// il faut ordonner pour que Matline(k,1) = k+1;
+		std::cout << "changement de l'ordre" << std::endl;
+		radial = true;
+		for (int l = 0; l < _nLine; l++) {
+			while (MatLine.get(l, 1) != l + 2) {
+				if (MatLine.get(l, 1) == l) {
+					throw std::invalid_argument("problem with branch for distribution network");
+				}
+				if (MatLine.get(l, 1) - 2 < 0) {
+					std::cout << "arret du tri des branchs" << std::endl;
+					radial = false;
+					break;
+				}
+				else {
+					MatLine.swapLine(l, MatLine.get(l, 1) - 2);
+				}
+				
+			}
+		}
+	}
+	else {
+		radial = false;
+	}
+	
+	int offsetbus = 0; 
+
+	//Mat.display();
+	
+	
+	MatrixCPU MatBus = interface.getBusCase();
+	 // Gs, Bs, min, max, V0, theta0, zone � rajouter ici ?
+		
+	initMat();
+	
+	
+	bool impedanceToBeDefined = false;
+	std::cout << "set Line" << std::endl;
+	
+	if(interface.isImpedanceDefined()){
+		//_lineReactanceD.setFromFile(fileName7);
+		//_lineSuceptanceD.setFromFile(fileName6);
+		_lineReactance = interface.getGmat();
+		_lineSuceptance = interface.getBmat();
+		_lineReactance.toMatCPUD(_lineReactanceD);
+		_lineSuceptance.toMatCPUD(_lineSuceptanceD);
+	} else{
+		impedanceToBeDefined = true;
+	}
+	
+
+	for (int l = 0; l < _nLine; l++) {
+		int i = MatLine.get(l, 0) - offsetbus;
+		int j = MatLine.get(l, 1) - offsetbus;
+		
+		_CoresLineBus.set(l, 0, i);
+		_CoresLineBus.set(l, 1, j);
+		double limit = MatLine.get(l, 7);
+		double ZsRe = MatLine.get(l, 8);
+		double ZsIm = MatLine.get(l, 9);
+		if (impedanceToBeDefined) {
+			double YlsRe = MatLine.get(l, 2); // re(1/Z)
+			double YlsIm = MatLine.get(l, 3); // re(1/Z)
+			double Ylp = MatLine.get(l, 4); // b/2
+			double tau = MatLine.get(l, 5);
+			double theta = MatLine.get(l, 6);
+
+			//std::cout << " Ligne numero " << l << " entre bus " << i << " et " << j << " re " << YlsRe << " im " << YlsIm << " b " << Ylp << std::endl;
+			if (tau > 0) {
+				if (inversionLine.get(l, 0)) {
+					int temp = i;
+					i = j;
+					j = temp;
+				}
+				double YijRe = (YlsRe * cos(theta) - YlsIm * sin(theta)) / tau;
+				double YijImag = (YlsIm * cos(theta) + YlsRe * sin(theta)) / tau;
+
+				double YjiRe = (YlsRe * cos(theta) + YlsIm * sin(theta)) / tau;
+				double YjiImag = (YlsIm * cos(theta) - YlsRe * sin(theta)) / tau;
+				_lineReactance.increment(i, j, -YijRe);  // Yft
+				_lineSuceptance.increment(i, j, -YijImag);
+
+				_lineReactance.increment(j, i, -YjiRe); // Ytf
+				_lineSuceptance.increment(j, i, -YjiImag);
+
+				_lineReactance.increment(j, j, YlsRe); // Ytt
+				_lineSuceptance.increment(j, j, YlsIm + Ylp);
+
+				_lineReactance.increment(i, i, YlsRe / (tau * tau)); // Yff
+				_lineSuceptance.increment(i, i, (YlsIm + Ylp) / (tau * tau));
+
+				_lineReactanceD.increment(i, j, -YijRe);  // Yft
+				_lineSuceptanceD.increment(i, j, -YijImag);
+
+				_lineReactanceD.increment(j, i, -YjiRe); // Ytf
+				_lineSuceptanceD.increment(j, i, -YjiImag);
+
+				_lineReactanceD.increment(j, j, YlsRe); // Ytt
+				_lineSuceptanceD.increment(j, j, YlsIm + Ylp);
+
+				_lineReactanceD.increment(i, i, YlsRe / (tau * tau)); // Yff
+				_lineSuceptanceD.increment(i, i, (YlsIm + Ylp) / (tau * tau));
+
+			}
+			else {
+				_lineReactance.increment(i, j, -YlsRe);
+				_lineReactance.increment(j, i, -YlsRe);
+				_lineSuceptance.increment(j, i, -YlsIm);
+				_lineSuceptance.increment(i, j, -YlsIm);
+
+				_lineReactance.increment(j, j, YlsRe);
+				_lineSuceptance.increment(j, j, YlsIm + Ylp);
+				_lineReactance.increment(i, i, YlsRe);
+				_lineSuceptance.increment(i, i, YlsIm + Ylp);
+
+
+				_lineReactanceD.increment(i, j, -YlsRe);
+				_lineReactanceD.increment(j, i, -YlsRe);
+				_lineSuceptanceD.increment(j, i, -YlsIm);
+				_lineSuceptanceD.increment(i, j, -YlsIm);
+
+				_lineReactanceD.increment(j, j, YlsRe);
+				_lineSuceptanceD.increment(j, j, YlsIm + Ylp);
+				_lineReactanceD.increment(i, i, YlsRe);
+				_lineSuceptanceD.increment(i, i, YlsIm + Ylp);
+
+
+				_busSuceptance.increment(i, 0, Ylp);
+				_busSuceptance.increment(j, 0, Ylp);
+			}
+		}
+		_lineImpedanceReal.increment(l, 0, ZsRe);
+		_lineImpedanceImag.increment(l, 0, ZsIm);
+		if (limit > 0) {
+			_nLineConstraint++;
+			_lineLimits.set(l, 0, limit);
+		}
+		else {
+			_lineLimits.set(l, 0, LINELIMITMAX);
+			//_lineLimits.set(i, 0, FLT_MAX);
+		}
+	}
+	
+	
+	std::cout << "set bus" <<std::endl;
+
+	for (int i = 0; i < _nBus; i++) { // bound on voltage angle rad
+		_upperBound.set(i, 0, 3);
+		_lowerBound.set(i, 0, -3);
+		_VoltageInit.set(i, 0, MatBus.get(i, 5));
+		_VoltageInit.set(i + _nBus, 0, MatBus.get(i, 4));
+		_VoltageInitD.set(i, 0, MatBus.get(i, 5));
+		_VoltageInitD.set(i + _nBus, 0, MatBus.get(i, 4));
+		if (impedanceToBeDefined) {
+			_lineReactance.increment( i, i, MatBus.get(i, 0) / _Sbase);
+			_lineSuceptance.increment(i, i, MatBus.get(i, 1) / _Sbase);
+
+			_lineReactanceD.increment(i, i, MatBus.get(i, 0) / _Sbase);
+			_lineSuceptanceD.increment(i, i, MatBus.get(i, 1) / _Sbase);
+		}
+		
+
+		_busSuceptance.increment(i, 0, MatBus.get(i, 1) / _Sbase);
+	}
+	for (int i = _nBus; i < 2 * _nBus; i++) { // bound on voltage 
+		_upperBound.set(i, 0, MatBus.get(i - _nBus, 3));
+		_lowerBound.set(i, 0, MatBus.get(i - _nBus, 2));
+
+	}
+	
+	int indice = 0;
+	for (int i = 2 * _nBus; i < _nConstraint; i++) { // bound on power flow
+		_upperBound.set(i, 0,  _lineLimits.get(indice, 0));
+		_lowerBound.set(i, 0, -_lineLimits.get(indice, 0));
+		indice++;
+	}
+
+	_SolutionPF = MatrixCPUD(_nBus, 4);
+	
+	LinearizeImp();
 }
 
 

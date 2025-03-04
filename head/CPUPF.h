@@ -16,8 +16,8 @@ class CPUPF
 public:
 	CPUPF();
 	~CPUPF();
-	virtual void init(const StudyCase& cas, MatrixCPU* PQ);
-	virtual void init(const StudyCase& cas, MatrixCPU* Pn, MatrixCPUD* PnD, bool useDouble);
+	//virtual void init(const StudyCase& cas, MatrixCPU* PQ);
+	virtual void init(const StudyCase& cas, MatrixCPU* Pn, MatrixCPUD* PnD =nullptr, bool useDouble = false);
 	virtual void solve();
 	virtual void updatePQ(MatrixCPU* PQ);
 	virtual void calcW(bool end=false);
@@ -46,7 +46,7 @@ public:
 	virtual MatrixCPU getY(); // (angle, amplitude, flow)
 
 	void display();
-	void display2(bool all=true);
+	virtual void display2(bool all=true);
 	void saveTimeBlock(std::string fileName);
 
 protected:
@@ -132,7 +132,7 @@ protected:
 	// instrumentation
 	MatrixCPU timePerBlock = MatrixCPU(1, 7); // Fb0, Fb1abc, Fb2, Fb3abc, Fb4, Fb5, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	MatrixCPU occurencePerBlock = MatrixCPU(1, 7);; //nb de fois utilisé pendant la simu
+	MatrixCPU occurencePerBlock = MatrixCPU(1, 7);; //nb de fois utilisï¿½ pendant la simu
 
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;

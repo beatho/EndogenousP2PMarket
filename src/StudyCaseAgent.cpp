@@ -2,6 +2,7 @@
 
 
 
+
 void StudyCaseAgent::setMatFromFile(const std::string& path, const std::string& date, MatrixCPU* Pgen, MatrixCPU* P0, MatrixCPU* costGen)
 {
 	std::string namePgen = "/PowerMaxCountry.csv";
@@ -2285,6 +2286,132 @@ MatrixCPU StudyCaseAgent::SetACFromFileSimplify(std::string name, std::string pa
 	return coresBusAgentLin;
 }
 
+MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface interface, bool DC)
+{
+    MatrixCPU Info = interface.getInfoCase();
+	// Sbase, Vbase, nAgent, nCons, nGenSup, nBus, nLine, V0, theta0
+
+	_Sbase = Info.get(0, 0);
+	_AC = !DC;
+	int offset = 1 * (_AC);
+
+	_nAgent = Info.get(0, 2) + offset; // + the loss agent
+	_nCons = Info.get(0, 3) + offset; // + the loss agent
+	_nGen = _nAgent - _nCons;
+	_nPro = 0;
+
+	if(_AC){
+		initMatAC();
+	} else{
+		initMat();
+	}
+
+	
+	if(interface.isConnexionDefined()){
+		MatrixCPU connect_temp = interface.getConnexion(); // taille (2*(N-1)) * (N-1)
+		_connect = MatrixCPU(2*_nAgent, _nAgent);
+		for(int i=_nCons; i<_nAgent;i++){ // P
+			_connect.set(0, i, 1);
+			_connect.set(i, 0, 1);
+		}
+		if(_AC){
+			for(int i=1; i<_nAgent;i++){ // Q
+				_connect.set(_nAgent, i, 1);
+				_connect.set(_nAgent + i, _nAgent, 1);
+			}
+		}
+		
+		for(int i=1; i<_nAgent;i++){
+			for(int j=1; j<_nAgent; j++){
+				_connect.set(i, j, connect_temp.get(i - 1,j - 1));
+				if(_AC){
+					_connect.set(_nAgent + i, j, connect_temp.get(_nAgent + i - 2, j - 1));
+				}
+			}
+		}
+
+	}
+
+	MatrixCPU Mat = interface.getAgentCase();
+	// bus, a, b, P, Pmin, Pmax, Qobj, Qmin, Qmax, zone
+	
+	double pLim1, pLim2, cost1, cost2, qLim1, qLim2, costQ1, costQ2, Qobj;
+	int nVoisin;
+	int offsetbus = 0;
+
+	if(_AC){
+		(_agents[0]).setAgent(0, 0, 0, 0, 0, _nGen, &_connect, _nAgent, 1);
+		_Lb.set(0, 0, -10000); // pour ne pas avoir besoin de le modifier
+		_Ub.set(_nAgent, 0, 10000); // idem
+		_Lb.set(_nAgent, 0, -10000);
+		//_CoresBusAgent.set(0, 0, 1);
+		_nVoisin.set(0, 0, _nGen);
+		_nVoisin.set(_nAgent, 0, _nAgent - 1);
+	}
+	
+
+	MatrixCPU coresBusAgentLin = MatrixCPU(_nAgent, 1);
+
+#ifdef DEBUG
+	std::cout << "set Agent" << std::endl;
+#endif // DEBUG
+
+	for (int i = offset; i < _nAgent; i++) {
+		int bus = Mat.get(i - 1, 0);
+		coresBusAgentLin.set(i, 0, bus - offsetbus);
+		cost1 = Mat.get(i - 1, 1) * (_Sbase * _Sbase);
+		cost2 = Mat.get(i - 1, 2) * _Sbase;
+		_Pobj.set(i, 0, Mat.get(i - 1, 3) / _Sbase);
+		_PobjD.set(i, 0, Mat.get(i - 1, 3) / _Sbase);
+		pLim1 = Mat.get(i - 1, 4) / _Sbase;
+		pLim2 = Mat.get(i - 1, 5) / _Sbase;
+		Qobj = Mat.get(i - 1, 6) / _Sbase;
+
+		_Pobj.set(i + _nAgent, 0, Qobj);
+		_PobjD.set(i + _nAgent, 0, Qobj);
+		qLim1 = Mat.get(i - 1, 7) / _Sbase;
+		qLim2 = Mat.get(i - 1, 8) / _Sbase;
+		
+		costQ1 = 0.1 * (_Sbase * _Sbase);
+		costQ2 = -costQ1 * Qobj;
+		
+		if (i < _nCons) {
+			nVoisin = _nGen;
+			_Ub.set(i, 0, 0);
+			_Lb.set(i, 0, pLim1);
+		}
+		else {
+			nVoisin = _nCons;
+			_Ub.set(i, 0, pLim2);
+			_Lb.set(i, 0, 0);
+		}
+		_Pmin.set(i, 0, pLim1);
+		_Pmax.set(i, 0, pLim2);
+
+		(_agents[i]).setAgent(i, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 1);
+
+		_a.set(i, 0, cost1);
+		_b.set(i, 0, cost2);
+		_nVoisin.set(i, 0, nVoisin);
+
+		if(_AC){
+			_a.set(i + _nAgent, 0, costQ1);
+			_b.set(i + _nAgent, 0, costQ2);
+			_Pmin.set(i + _nAgent, 0, qLim1);
+			_Pmax.set(i + _nAgent, 0, qLim2);
+			_nVoisin.set(i + _nAgent, 0, _nAgent - 1);
+			_Ub.set(i + _nAgent, 0, qLim2 * (qLim2 > 0));
+			_Lb.set(i + _nAgent, 0, qLim1 * (qLim1 < 0));
+		}
+	}
+
+
+	if(interface.isTradeBoundDefined()){
+		throw std::invalid_argument("WIP : special tradeBound not yet implemented");
+	}
+
+	return coresBusAgentLin;
+}
 MatrixCPU StudyCaseAgent::SetEuropeTestFeeder(std::string path, int beggining)
 {
 	std::string fileName1 = path + "CaseTestFeeder.txt";

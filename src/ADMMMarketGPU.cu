@@ -197,7 +197,7 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 	result->setPn(&PnCPU);
 	result->setFc(fc);
 	result->setMU(&MUCPU);
-	result->setRho(_rhog);
+	//result->setRho(_rhog);
 
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize();
@@ -316,7 +316,7 @@ void ADMMMarketGPU::init(const Simparam& sim, const StudyCase& cas)
 	LAMBDA = sim.getLambda();
 	trade = sim.getTrade();
 
-	//std::cout << "mise sous forme linéaire" << std::endl;
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
 	if (Ct.getPos()) { // une copie en trop mais pour l'instant c'est ok...
 		CoresMatLin.transferCPU();
 
@@ -418,16 +418,16 @@ void ADMMMarketGPU::init(const Simparam& sim, const StudyCase& cas)
 
 	
 
-	//std::cout << "autres donnée sur GPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur GPU" << std::endl;
 	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	//MatrixCPU temp1N(1, _nAgent, 0, 1);
 
 	Tlocal = MatrixGPU(_nTrade, 1, 0, 1);
 	
 	
 	Pn = MatrixGPU(sim.getPn(), 1); // somme des trades
-	P = Pn;// moyenne des trades, ici c'est juste pour qu'il ait la même taille sans avoir besoin de se poser de question
+	P = Pn;// moyenne des trades, ici c'est juste pour qu'il ait la mï¿½me taille sans avoir besoin de se poser de question
 	
 	a = MatrixGPU(cas.geta(), 1);
 	b = MatrixGPU(cas.getb(), 1);
@@ -582,7 +582,7 @@ void ADMMMarketGPU::display() {
 	std::cout << "      System Summary                                           |" << std::endl;
 	std::cout << "===============================================================|" << std::endl;
 	std::cout << "Agent            " << _nAgentTrue << std::endl;
-	std::cout << "Nombre d'échange " << _nTrade << std::endl;
+	std::cout << "Nombre d'ï¿½change " << _nTrade << std::endl;
 
 	std::cout << std::endl << std::endl;
 

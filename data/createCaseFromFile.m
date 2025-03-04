@@ -1,19 +1,20 @@
 %% Recup data
 clear mpc
 
-name = "case2383wp"; 
-% case3 case9 case39 case85 case141 case_ACTIVSg200 case_ACTIVSg500 case1888rte 
+name = "case39"; 
+% case3 case9 case39 case85 case141 case_ACTIVSg200 case_ACTIVSg500
+% case1888rte  case2383wp
 mpopt = mpoption('verbose',1, 'pf.alg', 'NR');
 
 cas = name+ ".m";
 %open(cas);
 define_constants;
 oldmpc = loadcase(cas);
-name1 = strcat('Agent', name, '.txt');
-name2 = strcat('Branch', name, '.txt');
-name3 = strcat('Case', name, '.txt');
-name4 = strcat('Bus', name, '.txt');
-name5 = strcat('Sol', name, '.txt');
+name1 = strcat('ACGrid/Agent', name, '.txt');
+name2 = strcat('ACGrid/Branch', name, '.txt');
+name3 = strcat('ACGrid/Case', name, '.txt');
+name4 = strcat('ACGrid/Bus', name, '.txt');
+name5 = strcat('ACGrid/Sol', name, '.txt');
 
 AgentInfo = load(name1); % bus, a, b, P, Pmin, Pmax, Qobj, Qmin, Qma, zone
 BranchInfo = load(name2); % from, to, Ys Real, Ys Im, Yp, tau, theta, Limit=0, zs Real, zs Imag;

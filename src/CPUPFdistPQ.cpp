@@ -4,23 +4,25 @@
 CPUPFdistPQ::CPUPFdistPQ() {}
 CPUPFdistPQ::~CPUPFdistPQ() {}
 
-void CPUPFdistPQ::init(const StudyCase& cas, MatrixCPU* PQ)
+void CPUPFdistPQ::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD * PnD, bool useDouble)
 {
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
-    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise à jour
+    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise ï¿½ jour
 
-    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
+    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisï¿½ pendant la simu
 
 #endif // INSTRUMENTATION
-
+    if(useDouble){
+        std::cout << "WARNING : double precision computation is not yet implemented" << std::endl;
+    }
 
     //std::cout << "init PF" <<std::endl;
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
     N2 = 2 * Nagent;
-    Nline = cas.getNLine(true); // ne doit pas être réduit ici !!!
+    Nline = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
     Nconstraint = B2 + Nline;
     iterM = 30;
     iter = 0;
@@ -33,10 +35,10 @@ void CPUPFdistPQ::init(const StudyCase& cas, MatrixCPU* PQ)
    // std::cout << "V0 :" << V0 << " theta0 " << theta0 << std::endl;
     v0 = V0 * cos(theta0);
     w0 = V0 * sin(theta0);
-    _name = "Power summation method"; // meilleure covergence quand c'est beaucoup chargé
+    _name = "Power summation method"; // meilleure covergence quand c'est beaucoup chargï¿½
 
     W0 = MatrixCPU(B2, 1);
-    I = cas.getCoresBusAgentLin(); // I_n = bus de l'agent n, l'agent 0 est pour gérer les pertes du marché, il n'existe pas vraiment
+    I = cas.getCoresBusAgentLin(); // I_n = bus de l'agent n, l'agent 0 est pour gï¿½rer les pertes du marchï¿½, il n'existe pas vraiment
     
     for (int n = 1; n < Nagent; n++) {
         int bus = I.get(n, 0);
@@ -60,13 +62,11 @@ void CPUPFdistPQ::init(const StudyCase& cas, MatrixCPU* PQ)
 
     dE = MatrixCPU(B2, 1);
    
-
-   
     //std::cout << " E : " << std::endl;
     //E.display();
 
-    // W0[2 * N] : puissance active et réactive au noeud (I*[P Q])
-    // W[2 * N] : puissance obtenue par calcul à partir de E
+    // W0[2 * N] : puissance active et rï¿½active au noeud (I*[P Q])
+    // W[2 * N] : puissance obtenue par calcul ï¿½ partir de E
     // dW[2 * N] : derive de puissance
     // E[2 * N] : angle puis tension [O et 1] pour l'init ?
     // dE[2 * N] : derive de angle puis tension
@@ -86,12 +86,13 @@ void CPUPFdistPQ::init(const StudyCase& cas, MatrixCPU* PQ)
     // specificite algo
     //CoresLineBus.display();
     //std::cout << Nbus << " " << Nline << std::endl;
+    
     ZsRe = cas.getZsRe();
     ZsIm = cas.getZsImag();
     Yd = cas.getYd();
     chekcase();
 
-    F = MatrixCPU(Nbus, 1, -1); // F_i = bus antécédent de i
+    F = MatrixCPU(Nbus, 1, -1); // F_i = bus antï¿½cï¿½dent de i
     F.set(1, 0, 0);
     if (Nbus != (Nline + 1)) {
         std::cout << "Warning this is not a distribution network, F not set" << std::endl;
@@ -115,8 +116,6 @@ void CPUPFdistPQ::init(const StudyCase& cas, MatrixCPU* PQ)
     /*ZsRe.display();
     ZsIm.display();
     Yd.display();*/
-    
-
 
     for (int i = 0; i < Nbus; i++) {
         VoltageRealImPre.set(i, 0, v0);
@@ -365,7 +364,7 @@ void CPUPFdistPQ::calcW(bool end)
         }
     }
 
-    if (!end) { // pendant simu, la puissance à ce noeud est libre
+    if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
         W.set(0, 0, W0.get(0, 0));
         W.set(Nbus, 0, W0.get(Nbus, 0));
 
@@ -484,31 +483,24 @@ void CPUPFdistPQ::setE(MatrixCPU* Enew)
 
 void CPUPFdistPQ::display2(bool all)
 {
+
+    std::cout << "***************ON EST BIEN ICI******************" <<std::endl;
     std::cout.precision(3);
+    calcE();
     float errV = err;
     if (iter == 0) {
         std::cout << "algorithm not launch" << std::endl;
         calcW(true);
-        if (_useDouble) {
-            double temp = WD.get(0, 0);
-            double temp2 = WD.get(Nbus, 0);
-            WD.set(0, 0, W0.get(0, 0));
-            WD.set(Nbus, 0, W0.get(Nbus, 0));
-            dWD.subtract(&W0D, &WD); // dW = W0 - W
-            err = dWD.max2(); //err = ||dW||
-            WD.set(0, 0, temp);
-            WD.set(Nbus, 0, temp2);
-        }
-        else {
-            float temp = W.get(0, 0);
-            float temp2 = W.get(Nbus, 0);
-            W.set(0, 0, W0.get(0, 0));
-            W.set(Nbus, 0, W0.get(Nbus, 0));
-            dW.subtract(&W0, &W); // dW = W0 - W
-            err = dW.max2(); //err = ||dW||
-            W.set(0, 0, temp);
-            W.set(Nbus, 0, temp2);
-        }
+        
+        float temp = W.get(0, 0);
+        float temp2 = W.get(Nbus, 0);
+        W.set(0, 0, W0.get(0, 0));
+        W.set(Nbus, 0, W0.get(Nbus, 0));
+        dW.subtract(&W0, &W); // dW = W0 - W
+        err = dW.max2(); //err = ||dW||
+        W.set(0, 0, temp);
+        W.set(Nbus, 0, temp2);
+        
     }
     else if (iter < iterM) {
         std::cout << "method " << _name << " converged in " << iter << " iterations." << std::endl;
@@ -518,7 +510,7 @@ void CPUPFdistPQ::display2(bool all)
         float temp = W.get(0, 0);
         if (temp == 0) {
             calcW(true);
-            temp = WD.get(0, 0);
+            temp = W.get(0, 0);
         }
         float temp2 = W.get(Nbus, 0);
         W.set(0, 0, W0.get(0, 0));
@@ -527,8 +519,6 @@ void CPUPFdistPQ::display2(bool all)
         err = dW.max2(); //err = ||dW||
         W.set(0, 0, temp);
         W.set(Nbus, 0, temp2);
-        
-
     }
     else {
         std::cout << "method " << _name << " not converged in " << iter << " iterations." << std::endl;

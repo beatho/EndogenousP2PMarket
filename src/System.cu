@@ -1,6 +1,7 @@
 #include "../head/System.h"
 #include "../head/System.cuh"
 
+
 // To DO MatrixCPU genererP0(path,dateMonth)
 // To DO updateCas(P0)
 
@@ -37,16 +38,37 @@ System::System(float rho, int iterMaxGlobal, int iterMaxLocal, float epsGlobal, 
 System::~System()
 {
 	DELETEB(_methode);
-	
+	DELETEB(_methodePF)
+	DELETEB(_methodePFGPU);
 	DELETEB(_result);
-	
-	
 }
 
 Simparam System::solve()
 {
 	_methode->solve(_result, _simparam, _case);
  	return *_result;
+}
+
+Simparam System::solvePF()
+{
+	if(usePFGPU){
+		MatrixGPU PQ = MatrixGPU(_case.getPobj(), 1);
+		MatrixGPUD PQD = MatrixGPUD(_case.getPobjD(), 1);
+
+		_methodePFGPU->init(_case, &PQ, &PQD, useDoublePF);
+		_methodePFGPU->solve();
+		_methodePFGPU->display2(true);
+	} else{
+		MatrixCPU PQ = _case.getPobj();
+		MatrixCPUD PQD = _case.getPobjD();
+
+		_methodePF->init(_case, &PQ, &PQD, useDoublePF);
+		_methodePF->solve();
+		_methodePF->display2(true);
+	}
+
+
+    return *_result;
 }
 
 void System::solveIntervalle(std::string path, MatrixCPU* interval, int nCons, int nGen)
@@ -784,6 +806,32 @@ void System::setMethod(std::string nameMethode) {
 	}
 }
 
+void System::setMethodPF(std::string nameMethode, bool isDouble)
+{
+	useDoublePF = isDouble;
+	if (!nameMethode.compare(sNR)) {
+		_methodePF = new CPUPF;
+	}
+	else if ((!nameMethode.compare(sNRGPU))) {
+		_methodePFGPU = new GPUPF;
+		usePFGPU = false;
+	}else if ((!nameMethode.compare(sGS))) {
+		_methodePF = new CPUPFGS;
+	}
+	else if ((!nameMethode.compare(sNRGPU))) {
+		_methodePFGPU = new GPUPFGS;
+		usePFGPU = false;
+	}
+	else if ((!nameMethode.compare(sDistPQ))) {
+		_methodePF = new CPUPFdistPQ;
+	}
+	else if ((!nameMethode.compare(sDistPQGPU))) {
+		_methodePFGPU = new GPUPFdistPQ;
+		usePFGPU = false;
+	}else {
+		std::cout << "unknonwn method " << nameMethode << " !" << std::endl;
+	}
+}
 void System::setRho(float rho) {
 	_simparam.setRho(rho);
 	_result->setRho(rho);

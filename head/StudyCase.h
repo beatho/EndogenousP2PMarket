@@ -14,8 +14,9 @@
 #include "StudyCaseAgent.h"
 #include "StudyCaseDCGrid.h"
 #include "StudyCaseACGrid.h"
+#include "StudyCaseInterface.h"
 
-// rajouter securit� pour que les Sbases soit les m�mes, et que les r�seaux DC utilise un march� DC (et inversement)
+// rajouter securite pour que les Sbases soit les memes, et que les reseaux DC utilise un marche DC (et inversement)
 // refaire les simulations sans le alreadyDefined pour refaire les matrices
 // generation europe il faut remettre le caclul de power Sensi dans le linkage 
 // genBetaDistanceZone
@@ -111,11 +112,14 @@ public:
     void SetEuropeP0(const std::string& path, MatrixCPU* P0, bool alreadyDefine=0);
     void SetEuropeP0WithoutConstraint(const std::string& path, MatrixCPU* P0);
     void SetStudyCase(std::string path, std::string name, MatrixCPU* P0, bool alreadyDefine=0);
+    
    
     void SetAC39Bus(std::string path = "data/", bool alreadyDefine = false);
     void SetAC3Bus(std::string path = "data/");
     void SetAC2node();
     void SetACFromFile(std::string name, std::string path = "data/ACGrid/");
+    void SetDCStudyCaseFromInterface(StudyCaseInterface interface);
+    void SetACStudyCaseFromInterface(StudyCaseInterface interface);
     void SetACFromFileSimplify(std::string name, std::string path = "data/ACGrid/");
     void SetEuropeTestFeeder(std::string path = "data/ACGrid/", int typeOfAgentGen = 0, int beggining = 0);
    

@@ -112,6 +112,7 @@ public:
     void SetACFromFile(std::string name, std::string path = "data/ACGrid/");
     void SetEuropeTestFeeder(std::string path = "data/ACGrid/");
     void setLineLimit(int line, float limit);
+    virtual void setFromInterface(StudyCaseInterface interface);
     
     
     // getter 

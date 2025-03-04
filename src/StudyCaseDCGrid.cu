@@ -741,6 +741,82 @@ void StudyCaseDCGrid::SetStudyCaseDCGrid(std::string path, std::string name, int
 	//_timeInit = (float)t / CLOCKS_PER_SEC;
 }
 
+void StudyCaseDCGrid::setFromInterface(StudyCaseInterface interface){
+	clock_t t = clock();
+
+	_name = interface.getName();
+	
+	MatrixCPU infoCase = interface.getInfoCase();
+	_Sbase = infoCase.get(0, 0);
+
+	// grid 
+	_nBus = interface.getB(); //_nBus = _nCons;
+	_nLine = interface.getL();
+	//std::cout << "nb de ligne " <<  _nLine << std::endl;
+	_LineImpedance = MatrixCPU(_nLine, _nLine); // B
+	_CoresBusLine = MatrixCPU(_nBus, _nLine); // C
+	_lineLimits = MatrixCPU(_nLine, 1);
+	_SensiBusLine = MatrixCPU(_nLine, _nBus); // A
+	_zoneBus = MatrixCPU(_nBus, 1);
+	_CoresLineBus = MatrixCPU(_nLine, 2);
+	
+	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
+	
+	MatrixCPU branchCase = interface.getBranchCase();
+	MatrixCPU busCase    = interface.getBusCase();
+
+	_nLineConstraint = 0;
+	for (int i = 0; i < _nLine; i++) {
+		int nodeFrom = branchCase.get(i, 0);
+		int nodeTo   = branchCase.get(i, 1);
+		float react = branchCase.get(i, 9); 
+		
+		float limit = branchCase.get(i, 7) / _Sbase;
+
+		_LineImpedance.set(i, i, react);
+		_CoresBusLine.set(nodeFrom, i, 1);
+		_CoresBusLine.set(nodeTo, i, -1);
+		_CoresLineBus.set(i, 0, nodeFrom);
+		_CoresLineBus.set(i, 1, nodeTo);
+		if (limit > 0) {
+			_nLineConstraint++;
+			_lineLimits.set(i, 0, limit);
+			_indiceLineConstraint.push_back(i);
+		}
+		else {
+			_lineLimits.set(i, 0, LINELIMITMAX);
+			_indiceLineNonConstraint.push_back(i);
+		}
+	}
+
+	CalcGridSensi();
+
+	ReduceSensi();
+
+	/*std::cout << _nLineConstraint << std::endl;
+	for (int i = 0; i < _nAgent; i++) {
+		if (i < _nCons) { // le bus correspond directement pour les conso
+			int bus = i;
+			_CoresBusAgent.set(bus, i, 1);
+		}
+		else {
+			int idGen = i - _nCons;
+			int bus = fileBusAgent.get(GenBus.get(idGen, 0), 0);
+			_CoresBusAgent.set(bus, i, 1);
+		}
+	}
+	_SensiPower.multiply(&_SensiBusLine, &_CoresBusAgent);
+	*/
+		
+	
+	//_SensiPower.display();
+	t = clock() - t;
+	//_timeInit = (float)t / CLOCKS_PER_SEC;
+	
+}
+
+
+
 
 void StudyCaseDCGrid::setLineLimitMin(float min)
 {

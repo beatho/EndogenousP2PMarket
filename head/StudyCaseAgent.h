@@ -7,6 +7,7 @@
 #include "Agent.h"
 #include "MatrixCPU.h"
 #include "MatrixCPUD.h"
+#include "StudyCaseInterface.h"
 #include "Utilities.h"
 #include <math.h>
 #include <iostream>
@@ -110,8 +111,9 @@ public:
  
     MatrixCPU SetACFromFile(std::string name, std::string path = "data/ACGrid/");
     MatrixCPU SetACFromFileSimplify(std::string name, std::string path = "data/ACGrid/");
+    MatrixCPU SetFromInterface(StudyCaseInterface interface, bool DC);
     MatrixCPU SetEuropeTestFeeder(std::string path = "data/ACGrid/", int beggining = 0);
-
+    
     // getter 
     MatrixCPU getBeta() const;
     MatrixCPU getC() const;

@@ -7,7 +7,7 @@ CPUPF::~CPUPF(){
  }
 //Fb0: init, Fb1ab 1 2 : Flu, Fb2abc : 3 4 5 Tension, FB3 6 : puissance, Fb4 7 erreur, 8 Fb0 mise � jour
 
-void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ)
+/*void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ)
 {
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
@@ -41,10 +41,6 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ)
     CoresLineBus = cas.getCoresLineBus(true);
     nLines = cas.getNLines();
 
-   
-
-
-   
     W = MatrixCPU(B2, 1);
     dW = MatrixCPU(B2, 1);
     E = MatrixCPU(B2, 1);
@@ -66,10 +62,6 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ)
     for (int i = Nbus; i < B2; i++) {
         E.set(i, 0, V0);
     }
-    /*std::cout << " Bgrid : " << std::endl;
-    BgridLin.display();
-    std::cout << " Ggrid : " << std::endl;
-    GgridLin.display();*/
     W0 = MatrixCPU(B2, 1);
     //PQ->display();
     for (int n = 1; n < Nagent; n++) {
@@ -84,14 +76,6 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ)
     //W.display();
     dW.subtract(&W0, &W);
         
-    /*Ggrid2Bgrid2 = MatrixCPU(Nbus, Nbus);
-    for (int i = 0; i < Nbus; i++) {
-        for (int j = 0; j < Nbus; j++) {
-            Ggrid2Bgrid2.set(i, j, sqrt(Ggrid.get(i, j) * Ggrid.get(i, j) + Bgrid.get(i, j) * Bgrid.get(i, j)));
-        }
-    }*/
-
-
     G = MatrixCPU(Nconstraint, N2);
     Phi = MatrixCPU(Nline, 1);
     Y = MatrixCPU(Nconstraint, 1);
@@ -99,14 +83,6 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ)
     JacPhiE = MatrixCPU(Nline, B2);
     tempB2N2 = MatrixCPU(B2, N2);
     
-
- 
-
-    
-    /*std::cout << " E : " << std::endl;
-    E.display();
-    std::cout << " W : " << std::endl;
-    W.display();*/
    
     // W0[2 * N] : puissance active et r�active au noeud (I*[P Q])
     // W[2 * N] : puissance obtenue par calcul � partir de E
@@ -124,7 +100,7 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ)
 #endif // INSTRUMENTATION
     //std::cout << " fin init" << std::endl;
 
-}
+}*/
 
 
 void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool useDouble)

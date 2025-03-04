@@ -1,13 +1,14 @@
-rm build/script/cuda/*.obj
-rm build/script/cuda/lib/*
+#rm build/script/cuda/*.obj
+#rm build/script/cuda/lib/*
 rm build/script/cpp/*.obj
 foreach ($f in $(ls src/*.cu)){
 	$truc = $f.Name
-	nvcc --device-c  --gpu-architecture=sm_52 src/$truc -o build/script/cuda/$truc.obj
+	#nvcc --device-c  --gpu-architecture=sm_52 src/$truc -o build/script/cuda/$truc.obj "-IC:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\include"
 }
 nvcc -dlink $(ls build/script/cuda/*.obj)  -o build/script/cuda/lib/dlink.obj
 nvcc --lib $(ls build/script/cuda/*.obj) build/script/cuda/lib/dlink.obj -o build/script/cuda/lib/dlink.lib
 $str = @()
+
 foreach ($f in $(ls src/*.cpp)){
 	$truc = $f.Name
 	$bidule = $truc.replace(".cpp", ".obj")

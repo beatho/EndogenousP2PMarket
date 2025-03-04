@@ -28,3 +28,12 @@
 
 #include "OPFADMMGPU2.cuh"
 #include "OPFADMMGPU.cuh"
+
+/* PF */
+#include "GPUPF.cuh"
+#include "GPUPFdistPQ.cuh"
+#include "GPUPFGS.cuh"
+
+
+
+
