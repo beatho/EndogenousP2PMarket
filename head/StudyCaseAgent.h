@@ -52,6 +52,11 @@ class StudyCaseAgent
     MatrixCPU _PobjTemp;
     MatrixCPU _factor; // P = factor * Pobj
     MatrixCPU _PF; // P = PF*S; Q = sqrt(1 - PF) S
+
+    MatrixCPU _Ubmat;
+    MatrixCPU _Lbmat;
+    bool isBoundTradeDifferent = false;
+
     void setMatFromFile(const std::string& path, const std::string& date, MatrixCPU* Pgen, MatrixCPU* P0, MatrixCPU* costGen);
     void setGenFromFile(const std::string& path, MatrixCPU* Pgen, MatrixCPU* costGen, MatrixCPU* BusGen);
     void initCaseFromPobj();

@@ -8,7 +8,7 @@ ADMMGPUConst5::ADMMGPUConst5() : MethodP2P()
 	_name = NAME;
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisï¿½ pendant la simu
 
 }
 
@@ -22,7 +22,7 @@ ADMMGPUConst5::ADMMGPUConst5(float rho) : MethodP2P()
 	_rho = rho;
 	timePerBlock = MatrixCPU(1, 8, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 8, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 8, 0); //nb de fois utilisï¿½ pendant la simu
 
 }
 
@@ -94,8 +94,8 @@ void ADMMGPUConst5::init(const Simparam& sim, const StudyCase& cas)
 	LAMBDA = sim.getLambda();
 	trade = sim.getTrade();
 	
-	//std::cout << "mise sous forme linéaire" << std::endl;
-	// Rem : si matrice déjà existante, elles sont déjà sur GPU donc bug pour les get
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
+	// Rem : si matrice dï¿½jï¿½ existante, elles sont dï¿½jï¿½ sur GPU donc bug pour les get
 	if (CoresMatLin.getPos()) { // une copie en trop mais pour l'instant c'est ok...
 		CoresMatLin.transferCPU();
 
@@ -141,8 +141,13 @@ void ADMMGPUConst5::init(const Simparam& sim, const StudyCase& cas)
 		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			int idVoisin = omega.get(voisin, 0);
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			matUb.set(indice, 0, Ub.get(idAgent, 0));
+			if(Lb.getNCol()==1){
+				matLb.set(indice, 0, Lb.get(idAgent, 0));
+				matUb.set(indice, 0, Ub.get(idAgent, 0));
+			} else {
+				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
+				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
+			}
 			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
 			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
@@ -198,9 +203,9 @@ void ADMMGPUConst5::init(const Simparam& sim, const StudyCase& cas)
 	G2 = GTrans;
 	G2.multiplyT(&GTrans);
 
-	//std::cout << "autres donnée sur GPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur GPU" << std::endl;
 	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	tempL1 = MatrixGPU(_nLine, 1, 0, 1);
 	tempL2 = MatrixGPU(_nLine, 1, 0, 1);
 	//MatrixGPU temp1N(1, _nAgent, 0, 1);
@@ -493,8 +498,8 @@ void ADMMGPUConst5::updateLocalProbGPU(float epsL, int nIterL) {
 
 void ADMMGPUConst5::updateGlobalProbGPU()
 {
-	//Rem : tout calcul qui est de taille N ou M peut être fait par les agents
-		// Si le calcul est de taile L, soit c'est calculé par un/des superviseurs, soit tous les agents le calcul (un peu absurde)
+	//Rem : tout calcul qui est de taille N ou M peut ï¿½tre fait par les agents
+		// Si le calcul est de taile L, soit c'est calculï¿½ par un/des superviseurs, soit tous les agents le calcul (un peu absurde)
 
 #ifdef INSTRUMENTATION
 // FB 3a

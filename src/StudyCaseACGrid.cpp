@@ -1127,52 +1127,53 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface interface) {
 	//Info.display();
 	
 	
-	_Sbase = Info.get(0, 0);
-	_Vbase = Info.get(0, 1);
+	_Sbase = Info.get(0, Sbase_ind);
+	_Vbase = Info.get(0, Vbase_ind);
 	_Zbase = _Vbase * _Vbase / _Sbase;
 
-	_nBus = Info.get(0, 5);
-	_nLine = Info.get(0, 6);
+	_nBus = Info.get(0, nBus_ind);
+	_nLine = Info.get(0, nLine_ind);
 	_nConstraint = _nLine + 2 * _nBus;
-	_V0 = Info.get(0, 7);
-	_theta0 = Info.get(0, 8);
+	_V0 = Info.get(0, V0_ind);
+	_theta0 = Info.get(0, theta0_ind);
 
 	std::cout << "V0 " << _V0 << " theta0 " << _theta0 << std::endl;
 	_zoneBus = MatrixCPU(_nBus, 1);
 	
 
-	MatrixCPUD MatLine(_nLine, 10); // from, to, Ys Real, Ys Im, Yp , tau, theta, Limit=0, zs Real, Zs imag
+	MatrixCPU MatLine = interface.getBranchCase();
+	// from, to, Ys Real, Ys Im, Yp , tau, theta, Limit=0, zs Real, Zs imag
 
 	MatrixCPU inversionLine(_nLine, 1, 0);
 
 	if (_nBus == _nLine + 1) {
 		for (int l = 0; l < _nLine; l++) {
-			if (MatLine.get(l, 0) > MatLine.get(l, 1)) {
-				if (MatLine.get(l, 5) > 0 && MatLine.get(l, 5) != 1) {
+			if (MatLine.get(l, From_ind) > MatLine.get(l, To_ind)) {
+				if (MatLine.get(l, theta_ind) > 0 && MatLine.get(l, tau_ind) != 1) {
 					std::cout << "la presence de transformateur est peut etre mal prise en compte ?" << std::endl;
 					inversionLine.set(l, 0, 1);
 				}
-				int temp = MatLine.get(l, 0);
-				MatLine.set(l, 0, MatLine.get(l, 1));
-				MatLine.set(l, 1, temp);
-				MatLine.set(l, 6, -MatLine.get(l, 6));	// ????
+				int temp = MatLine.get(l, From_ind);
+				MatLine.set(l, From_ind, MatLine.get(l, To_ind));
+				MatLine.set(l, To_ind, temp);
+				MatLine.set(l, theta_ind, -MatLine.get(l, theta_ind));	// ????
 			}
 		}
 		// il faut ordonner pour que Matline(k,1) = k+1;
 		std::cout << "changement de l'ordre" << std::endl;
 		radial = true;
 		for (int l = 0; l < _nLine; l++) {
-			while (MatLine.get(l, 1) != l + 2) {
-				if (MatLine.get(l, 1) == l) {
+			while (MatLine.get(l, To_ind) != l + 2) {
+				if (MatLine.get(l,To_ind) == l) {
 					throw std::invalid_argument("problem with branch for distribution network");
 				}
-				if (MatLine.get(l, 1) - 2 < 0) {
+				if (MatLine.get(l, To_ind) - 2 < 0) {
 					std::cout << "arret du tri des branchs" << std::endl;
 					radial = false;
 					break;
 				}
 				else {
-					MatLine.swapLine(l, MatLine.get(l, 1) - 2);
+					MatLine.swapLine(l, MatLine.get(l, To_ind) - 2);
 				}
 				
 			}
@@ -1182,7 +1183,13 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface interface) {
 		radial = false;
 	}
 	
-	int offsetbus = 0; 
+	int offsetbus = 100; 
+	
+	for(int l =0; l<_nLine;l++){
+		if(MatLine.get(l,From_ind)<offsetbus){
+			offsetbus = MatLine.get(l,From_ind);
+		}
+	}
 
 	//Mat.display();
 	
@@ -1209,20 +1216,20 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface interface) {
 	
 
 	for (int l = 0; l < _nLine; l++) {
-		int i = MatLine.get(l, 0) - offsetbus;
-		int j = MatLine.get(l, 1) - offsetbus;
+		int i = MatLine.get(l, From_ind) - offsetbus;
+		int j = MatLine.get(l, To_ind) - offsetbus;
 		
 		_CoresLineBus.set(l, 0, i);
 		_CoresLineBus.set(l, 1, j);
-		double limit = MatLine.get(l, 7);
-		double ZsRe = MatLine.get(l, 8);
-		double ZsIm = MatLine.get(l, 9);
+		double limit = MatLine.get(l, lim_ind);
+		double ZsRe = MatLine.get(l, ZsRe_ind);
+		double ZsIm = MatLine.get(l, ZsIm_ind);
 		if (impedanceToBeDefined) {
-			double YlsRe = MatLine.get(l, 2); // re(1/Z)
-			double YlsIm = MatLine.get(l, 3); // re(1/Z)
-			double Ylp = MatLine.get(l, 4); // b/2
-			double tau = MatLine.get(l, 5);
-			double theta = MatLine.get(l, 6);
+			double YlsRe = MatLine.get(l, YsRe_ind); // re(1/Z)
+			double YlsIm = MatLine.get(l, YsIm_ind); // re(1/Z)
+			double Ylp = MatLine.get(l, Yp_ind); // b/2
+			double tau = MatLine.get(l, tau_ind);
+			double theta = MatLine.get(l, theta_ind);
 
 			//std::cout << " Ligne numero " << l << " entre bus " << i << " et " << j << " re " << YlsRe << " im " << YlsIm << " b " << Ylp << std::endl;
 			if (tau > 0) {
@@ -1304,26 +1311,26 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface interface) {
 	std::cout << "set bus" <<std::endl;
 
 	for (int i = 0; i < _nBus; i++) { // bound on voltage angle rad
-		_upperBound.set(i, 0, 3);
-		_lowerBound.set(i, 0, -3);
-		_VoltageInit.set(i, 0, MatBus.get(i, 5));
-		_VoltageInit.set(i + _nBus, 0, MatBus.get(i, 4));
-		_VoltageInitD.set(i, 0, MatBus.get(i, 5));
-		_VoltageInitD.set(i + _nBus, 0, MatBus.get(i, 4));
+		_upperBound.set(i, 0, MatBus.get(i,thetamax_ind));
+		_lowerBound.set(i, 0, MatBus.get(i,thetamin_ind)); 
+		_VoltageInit.set(i, 0, MatBus.get(i, thetainit_ind));
+		_VoltageInit.set(i + _nBus, 0, MatBus.get(i, Vinit_ind));
+		_VoltageInitD.set(i, 0, MatBus.get(i, thetainit_ind));
+		_VoltageInitD.set(i + _nBus, 0, MatBus.get(i, Vinit_ind));
 		if (impedanceToBeDefined) {
-			_lineReactance.increment( i, i, MatBus.get(i, 0) / _Sbase);
-			_lineSuceptance.increment(i, i, MatBus.get(i, 1) / _Sbase);
+			_lineReactance.increment( i, i, MatBus.get(i, Gs_ind) / _Sbase);
+			_lineSuceptance.increment(i, i, MatBus.get(i, Bs_ind) / _Sbase);
 
-			_lineReactanceD.increment(i, i, MatBus.get(i, 0) / _Sbase);
-			_lineSuceptanceD.increment(i, i, MatBus.get(i, 1) / _Sbase);
+			_lineReactanceD.increment(i,  i, MatBus.get(i, Gs_ind) / _Sbase);
+			_lineSuceptanceD.increment(i, i, MatBus.get(i, Bs_ind) / _Sbase);
 		}
 		
 
-		_busSuceptance.increment(i, 0, MatBus.get(i, 1) / _Sbase);
+		_busSuceptance.increment(i, 0, MatBus.get(i, Bs_ind) / _Sbase);
 	}
 	for (int i = _nBus; i < 2 * _nBus; i++) { // bound on voltage 
-		_upperBound.set(i, 0, MatBus.get(i - _nBus, 3));
-		_lowerBound.set(i, 0, MatBus.get(i - _nBus, 2));
+		_upperBound.set(i, 0, MatBus.get(i - _nBus, Vmax_ind));
+		_lowerBound.set(i, 0, MatBus.get(i - _nBus, Vmin_ind));
 
 	}
 	

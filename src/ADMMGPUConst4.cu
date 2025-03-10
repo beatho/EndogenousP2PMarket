@@ -96,8 +96,8 @@ void ADMMGPUConst4::init(const Simparam& sim, const StudyCase& cas)
 	LAMBDA = sim.getLambda();
 	trade = sim.getTrade();
 	
-	//std::cout << "mise sous forme linéaire" << std::endl;
-	// Rem : si matrice déjà existante, elles sont déjà sur GPU donc bug pour les get
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
+	// Rem : si matrice dï¿½jï¿½ existante, elles sont dï¿½jï¿½ sur GPU donc bug pour les get
 	if (Ct.getPos()) { // une copie en trop mais pour l'instant c'est ok...
 		CoresMatLin.transferCPU();
 
@@ -146,8 +146,13 @@ void ADMMGPUConst4::init(const Simparam& sim, const StudyCase& cas)
 		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			int idVoisin = omega.get(voisin, 0);
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			matUb.set(indice, 0, Ub.get(idAgent, 0));
+			if(Lb.getNCol()==1){
+				matLb.set(indice, 0, Lb.get(idAgent, 0));
+				matUb.set(indice, 0, Ub.get(idAgent, 0));
+			} else {
+				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
+				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
+			}
 			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
 			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
@@ -209,9 +214,9 @@ void ADMMGPUConst4::init(const Simparam& sim, const StudyCase& cas)
 
 	G2.multiplyT(&GTrans);
 
-	//std::cout << "autres donnée sur GPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur GPU" << std::endl;
 	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	tempL1 = MatrixGPU(_nLine, 1, 0, 1);
 	tempL2 = MatrixGPU(_nLine, 1, 0, 1);
 	//MatrixGPU temp1N(1, _nAgent, 0, 1);
@@ -618,8 +623,8 @@ void ADMMGPUConst4::updateLocalProbGPU(float epsL, int nIterL) {
 
 void ADMMGPUConst4::updateGlobalProbGPU()
 {
-	//Rem : tout calcul qui est de taille N ou M peut être fait par les agents
-		// Si le calcul est de taile L, soit c'est calculé par un/des superviseurs, soit tous les agents le calcul (un peu absurde)
+	//Rem : tout calcul qui est de taille N ou M peut ï¿½tre fait par les agents
+		// Si le calcul est de taile L, soit c'est calculï¿½ par un/des superviseurs, soit tous les agents le calcul (un peu absurde)
 
 #ifdef INSTRUMENTATION
 	// FB 3a
@@ -728,7 +733,7 @@ float ADMMGPUConst4::updateRes(MatrixCPU* res, MatrixGPU* Tlocal, int iter, Matr
 
 	float resXf = _ratioEps * sqrt(tempL1.max2());/**/
 
-	// ma version se basant sur la théorie pour 1 et 2
+	// ma version se basant sur la thï¿½orie pour 1 et 2
 	// r = x-z = l-Qtot -max(0,Kappa1) 
 	// s = -rho (z^k-z^{k-1}) = max(0,Kappa1^k) - max(0,Kappa1^{k-1})
 	/*MatrixGPU KappaPos(Kappa1);

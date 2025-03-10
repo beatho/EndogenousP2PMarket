@@ -356,8 +356,13 @@ void ADMMMarketGPU::init(const Simparam& sim, const StudyCase& cas)
 		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			int idVoisin = omega.get(voisin, 0);
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			matUb.set(indice, 0, Ub.get(idAgent, 0));
+			if(Lb.getNCol()==1){
+				matLb.set(indice, 0, Lb.get(idAgent, 0));
+				matUb.set(indice, 0, Ub.get(idAgent, 0));
+			} else {
+				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
+				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
+			}
 			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
 			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));

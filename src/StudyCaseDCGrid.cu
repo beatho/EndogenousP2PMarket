@@ -747,7 +747,7 @@ void StudyCaseDCGrid::setFromInterface(StudyCaseInterface interface){
 	_name = interface.getName();
 	
 	MatrixCPU infoCase = interface.getInfoCase();
-	_Sbase = infoCase.get(0, 0);
+	_Sbase = infoCase.get(0, Sbase_ind);
 
 	// grid 
 	_nBus = interface.getB(); //_nBus = _nCons;
@@ -767,11 +767,11 @@ void StudyCaseDCGrid::setFromInterface(StudyCaseInterface interface){
 
 	_nLineConstraint = 0;
 	for (int i = 0; i < _nLine; i++) {
-		int nodeFrom = branchCase.get(i, 0);
-		int nodeTo   = branchCase.get(i, 1);
-		float react = branchCase.get(i, 9); 
+		int nodeFrom = branchCase.get(i, From_ind);
+		int nodeTo   = branchCase.get(i, To_ind);
+		float react = branchCase.get(i, ZsIm_ind); 
 		
-		float limit = branchCase.get(i, 7) / _Sbase;
+		float limit = branchCase.get(i, lim_ind) / _Sbase;
 
 		_LineImpedance.set(i, i, react);
 		_CoresBusLine.set(nodeFrom, i, 1);

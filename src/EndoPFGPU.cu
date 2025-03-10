@@ -1,7 +1,7 @@
 #include "../head/EndoPFGPU.cuh"
 #define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
 
-// On prend la transposée de G !!! (ie G(n,i) = G[n*Nvar + i] )
+// On prend la transposï¿½e de G !!! (ie G(n,i) = G[n*Nvar + i] )
 
 
 EndoPFGPU::EndoPFGPU() : MethodP2P()
@@ -12,7 +12,7 @@ EndoPFGPU::EndoPFGPU() : MethodP2P()
 	_name = NAME;
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
 // si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 
@@ -25,7 +25,7 @@ EndoPFGPU::EndoPFGPU(float rho) : MethodP2P()
 	_rho = rho;
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
 // si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisé pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilisï¿½ pendant la simu
 }
 
 EndoPFGPU::~EndoPFGPU()
@@ -356,7 +356,7 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 	MatrixGPU Lb(cas.getLb());
 	
 	 
-	//std::cout << "mise sous forme linéaire" << std::endl;
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
 	
 
 
@@ -382,8 +382,13 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			int idVoisin = omega.get(voisin, 0);
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			matUb.set(indice, 0, Ub.get(idAgent, 0));
+			if(Lb.getNCol()== 1){
+				matLb.set(indice, 0, Lb.get(idAgent, 0));
+				matUb.set(indice, 0, Ub.get(idAgent, 0));
+			} else {
+				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
+				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
+			}
 			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
 			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
@@ -478,10 +483,10 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 
 	
 	//CHECK_LAST_CUDA_ERROR();
-	//std::cout << "autres donnée sur CPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur CPU" << std::endl;
 	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
 	tempNN.preallocateReduction();
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	tempL1 = MatrixGPU(_nVarPF, 1, 0, 1);
 	tempL1.preallocateReduction();
 	//MatrixGPU temp1N(1, _nAgent, 0, 1);
@@ -653,7 +658,7 @@ std::cout << " Sensi " << std::endl;
 void EndoPFGPU::updateLocalProbGPU(float epsL, int nIterL) {
 	// FB 1a
 	int numBlocks = _nAgent;
-	/*std::cout << "problème local" << std::endl;
+	/*std::cout << "problï¿½me local" << std::endl;
 	std::cout << _at1 << " " << _at2 << std::endl;
 	Bt1.display(true);
 	Ct.display(true);
@@ -1052,14 +1057,14 @@ __global__ void updateTradePGPUSharedResidual(float* Tlocal, float* Tlocal_pre, 
 	float sum;
 	float bp, MULOCAL, moy, p;
 	float m, r, ub, lb, t;
-	// le changement doit être partagé par tous les threads du bloc
+	// le changement doit ï¿½tre partagï¿½ par tous les threads du bloc
 
 	__shared__ float MuShared;
 	__shared__ float TMoyShared;
 	__shared__ float PShared;
 
 
-	// constant et commun à tous les thread d'un bloc
+	// constant et commun ï¿½ tous les thread d'un bloc
 	__shared__ float Ap1Shared;
 	__shared__ float CpShared;
 	__shared__ float Ap12Shared;
@@ -1105,11 +1110,11 @@ __global__ void updateTradePGPUSharedResidual(float* Tlocal, float* Tlocal_pre, 
 
 	__shared__ float shArr[blockSize];
 
-	//Calcul des itérations
+	//Calcul des itï¿½rations
 
 	for (int iter = 0; iter < nStepL; iter++) {
 
-		MULOCAL = MuShared; // tous lisent le même : broadcast !
+		MULOCAL = MuShared; // tous lisent le mï¿½me : broadcast !
 		moy = TMoyShared;
 		p = PShared;
 		sum = 0;
@@ -1167,7 +1172,7 @@ __global__ void updateTradePGPUSharedResidual(float* Tlocal, float* Tlocal_pre, 
 			}
 		}
 	}
-	//Ecriture des itérations
+	//Ecriture des itï¿½rations
 	__syncthreads();
 	k = 0;
 	for (int j = beginLocal; j < endLocal; j += step) {

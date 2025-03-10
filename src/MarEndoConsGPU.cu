@@ -459,8 +459,13 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) { // Q
 		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
 			if (idVoisin != (idAgent - _nAgentTrue)) {
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
+				if(Lb.getNCol()==1){
+					matLb.set(indice, 0, Lb.get(idAgent, 0));
+					matUb.set(indice, 0, Ub.get(idAgent, 0));
+				} else {
+					matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
+					matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
+				}
 				tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 				Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
 				LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));

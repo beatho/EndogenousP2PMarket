@@ -3,7 +3,7 @@
 rm build/script/cpp/*.obj
 foreach ($f in $(ls src/*.cu)){
 	$truc = $f.Name
-	#nvcc --device-c  --gpu-architecture=sm_52 src/$truc -o build/script/cuda/$truc.obj "-IC:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\include"
+	#nvcc -O2 --device-c  --gpu-architecture=sm_52 src/$truc -o build/script/cuda/$truc.obj "-IC:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\include"
 }
 nvcc -dlink $(ls build/script/cuda/*.obj)  -o build/script/cuda/lib/dlink.obj
 nvcc --lib $(ls build/script/cuda/*.obj) build/script/cuda/lib/dlink.obj -o build/script/cuda/lib/dlink.lib
@@ -13,7 +13,7 @@ foreach ($f in $(ls src/*.cpp)){
 	$truc = $f.Name
 	$bidule = $truc.replace(".cpp", ".obj")
 	$str += -join("build/script/cpp/",$bidule)
-	cl /c /nologo /O2 /W3 /GL /DNDEBUG  -Isrc\include "-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.7\include" "-IC:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\include" "-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\include" "-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\atlmfc\include" "-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\VS\include" "-IC:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt" "-IC:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\\um" "-IC:\Program Files (x86)\Windows Kits\10\\Include\10.0.19041.0\\shared" "-IC:\Program Files (x86)\Windows Kits\10\\Include\10.0.19041.0\\winrt" "-IC:\Program Files (x86)\Windows Kits\10\\Include\10.0.19041.0\\cppwinrt" /EHsc src/$truc /Fobuild/script/cpp/$($truc.replace('.cpp', '.obj')) /MT /wd4819 /wd4251 /wd4244 /wd4267 /wd4275 /wd4018 /wd4190 /EHsc
+	cl -O2 /c /nologo /O2 /W3 /GL /DNDEBUG  -Isrc\include "-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.7\include" "-IC:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\include" "-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\include" "-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\atlmfc\include" "-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\VS\include" "-IC:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt" "-IC:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\\um" "-IC:\Program Files (x86)\Windows Kits\10\\Include\10.0.19041.0\\shared" "-IC:\Program Files (x86)\Windows Kits\10\\Include\10.0.19041.0\\winrt" "-IC:\Program Files (x86)\Windows Kits\10\\Include\10.0.19041.0\\cppwinrt" /EHsc src/$truc /Fobuild/script/cpp/$($truc.replace('.cpp', '.obj')) /MT /wd4819 /wd4251 /wd4244 /wd4267 /wd4275 /wd4018 /wd4190 /EHsc
 	}
 	$bidule=$truc.replace(".cpp", ".obj")
 	$bidule=-join("build/script/cpp/", $bidule)

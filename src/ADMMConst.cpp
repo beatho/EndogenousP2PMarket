@@ -133,8 +133,13 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	for (int i = 0; i < nAgent; i++) 
 	{
 		for (int j = 0; j < nAgent;j++) {
-			matUb.set(i, j, Ub.get(i, 0));
-			matLb.set(i, j, Lb.get(i, 0));
+			if(Lb.getNCol()==1){
+				matUb.set(i, j, Ub.get(i, 0));
+				matLb.set(i, j, Lb.get(i, 0));
+			} else {
+				matUb.set(i, j, Ub.get(i, j));
+				matLb.set(i, j, Lb.get(i, j));
+			}
 		}
 	}
 	matUb.multiplyT(&connect);

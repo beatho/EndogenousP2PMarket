@@ -20,7 +20,7 @@ sortie python :
 #include <stdlib.h>
 #include <string>
 #include "../head/System.h"
-#include "../head/StudyCaseInterface.h"
+#include "../head/interface.h"
 
 PyObject* setStudyCaseFromFile(PyObject* self, PyObject* args){
 
@@ -139,12 +139,10 @@ PyObject* solvePFFromFile(PyObject* self, PyObject* args){
     return Py_None;
 }
 
-
-
 PyMethodDef MonObject_Methods[] = {
-    {"setSbase", (PyCFunction) StudyCase_setSbase, METH_VARARGS, "StudyCase set Sbase"},
+    {"setSbase", (PyCFunction) Interface_setSbase, METH_VARARGS, " set Sbase"},
+    {"setVbase", (PyCFunction) Interface_setVbase, METH_VARARGS, "sets Vbase"},
     {"setVoltageInit", (PyCFunction) StudyCase_setVoltageInit, METH_VARARGS, "sets Voltage init"},
-    {"setVbase", (PyCFunction) StudyCase_setVbase, METH_VARARGS, "sets Vbase"},
     {"setV0", (PyCFunction) StudyCase_setV0, METH_VARARGS, "sets V0"},
     {"setTheta", (PyCFunction) StudyCase_setTheta, METH_VARARGS, "sets Theta"},
     {"setName", (PyCFunction) StudyCase_setName, METH_VARARGS, "sets Name"},
@@ -162,9 +160,25 @@ PyMethodDef MonObject_Methods[] = {
     {"setConnexion", (PyCFunction) StudyCase_setConnexion, METH_VARARGS, "gets Connexion"},
     {"setTradeLim", (PyCFunction) StudyCase_setTradeLim, METH_VARARGS, "sets TradeLim"},
     {"setMatImpedance", (PyCFunction) StudyCase_setMatImpedance, METH_VARARGS, "sets Impedance Matrix"},
+    {"chekcase", (PyCFunction) StudyCase_checkCase, METH_VARARGS, "compute nCons nGen"},
+    {"display", (PyCFunction) StudyCase_display, METH_VARARGS, "display all data"},
+    {"setIter", (PyCFunction) ParamInterface_setIter, METH_VARARGS, "sets iter"},
+    {"setStep", (PyCFunction) ParamInterface_setStep, METH_VARARGS, "sets step"},
+    {"setEps", (PyCFunction) ParamInterface_setEps, METH_VARARGS, "set eps"},
+    {"setRho", (PyCFunction) ParamInterface_setRho, METH_VARARGS, "set rho"},
+    {"initProblem", (PyCFunction) ParamInterface_initProblem, METH_VARARGS, "set trade, pn"},
+    {"initDual", (PyCFunction) ParamInterface_initDual, METH_VARARGS, "set lambda mu"},
+    {"initDelta", (PyCFunction) ParamInterface_initDelta, METH_VARARGS, "set delta"},
+    {"getResult", (PyCFunction) ResultInterface_getResults, METH_VARARGS, "set eps"},
+    {"getPn", (PyCFunction) ResultInterface_getPn, METH_VARARGS, "get Pn"},
+    {"getLambda", (PyCFunction) ResultInterface_getlambda, METH_VARARGS, "get lambda"},
+    {"getDelta", (PyCFunction) ResultInterface_getdelta, METH_VARARGS, "get delta"},
+    {"getMu", (PyCFunction) ResultInterface_getMu, METH_VARARGS, "get Mu"},
     {NULL, NULL, 0, NULL}
 };
 
+
+/**/
 
 PyMethodDef EndoCudaFunction[] = {
     {
@@ -199,25 +213,25 @@ PyModuleDef EndoCudaModule = {
 PyMODINIT_FUNC PyInit_EndoCuda(){
     
     /* creation de la classe custom */
-    CustomStudyCase.tp_name = "EndoCuda.interfaceStudyCase";
-    CustomStudyCase.tp_basicsize = sizeof(CustomObject);
-    CustomStudyCase.tp_itemsize = 0;
-    CustomStudyCase.tp_dealloc = (destructor)MonObject_dealloc;
-    CustomStudyCase.tp_flags = Py_TPFLAGS_DEFAULT;
-    CustomStudyCase.tp_doc = PyDoc_STR("Custom objects");
-    CustomStudyCase.tp_methods = MonObject_Methods;
-    CustomStudyCase.tp_init = (initproc) MonObject_init;
-    CustomStudyCase.tp_new = PyType_GenericNew;
+    CustomInterface.tp_name = "EndoCuda.interface";
+    CustomInterface.tp_basicsize = sizeof(CustomObject);
+    CustomInterface.tp_itemsize = 0;
+    CustomInterface.tp_dealloc = (destructor)MonObject_dealloc;
+    CustomInterface.tp_flags = Py_TPFLAGS_DEFAULT;
+    CustomInterface.tp_doc = PyDoc_STR("Custom objects");
+    CustomInterface.tp_methods = MonObject_Methods;
+    CustomInterface.tp_init = (initproc) MonObject_init;
+    CustomInterface.tp_new = PyType_GenericNew;
 
     PyObject *m;
-    if (PyType_Ready(&CustomStudyCase) < 0)
+    if (PyType_Ready(&CustomInterface) < 0)
         return NULL;
 
     m = PyModule_Create(&EndoCudaModule);
     if (m == NULL)
         return NULL;
 
-    if (PyModule_AddObjectRef(m, "interfaceStudyCase", (PyObject *) &CustomStudyCase) < 0) {
+    if (PyModule_AddObjectRef(m, "interface", (PyObject *) &CustomInterface) < 0) {
         Py_DECREF(m);
         return NULL;
     }

@@ -330,7 +330,7 @@ void ADMMMarket::init(const Simparam& sim, const StudyCase& cas)
 	LAMBDA = sim.getLambda();
 	trade = sim.getTrade();
 
-	//std::cout << "mise sous forme linéaire" << std::endl;
+	//std::cout << "mise sous forme linï¿½aire" << std::endl;
 	
 	
 	CoresMatLin = MatrixCPU(_nAgent, _nAgentTrue, -1);
@@ -355,8 +355,13 @@ void ADMMMarket::init(const Simparam& sim, const StudyCase& cas)
 		int Nvoisinmax = nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			int idVoisin = omega.get(voisin, 0);
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			matUb.set(indice, 0, Ub.get(idAgent, 0));
+			if(Lb.getNCol()==1){
+				matLb.set(indice, 0, Lb.get(idAgent, 0));
+				matUb.set(indice, 0, Ub.get(idAgent, 0));
+			} else {
+				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
+				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
+			}
 			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
 			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
@@ -404,9 +409,9 @@ void ADMMMarket::init(const Simparam& sim, const StudyCase& cas)
 	//CoresLinTrans.saveCSV("Cores.csv", 11, 1);
 
 
-	//std::cout << "autres donnée sur CPU" << std::endl;
+	//std::cout << "autres donnï¿½e sur CPU" << std::endl;
 	tempNN = MatrixCPU(_nTrade, 1, 0);
-	tempN1 = MatrixCPU(_nAgent, 1, 0); // plutôt que de re-allouer de la mémoire à chaque utilisation
+	tempN1 = MatrixCPU(_nAgent, 1, 0); // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	//MatrixCPU temp1N(1, _nAgent, 0, 1);
 
 	Tlocal = MatrixCPU(_nTrade, 1, 0);
@@ -415,7 +420,7 @@ void ADMMMarket::init(const Simparam& sim, const StudyCase& cas)
 	
 	
 	Pn = sim.getPn(); // somme des trades
-	P = Pn; // moyenne des trades, ici c'est juste pour qu'il ait la même taille sans avoir besoin de se poser de question
+	P = Pn; // moyenne des trades, ici c'est juste pour qu'il ait la mï¿½me taille sans avoir besoin de se poser de question
 
 	a = MatrixCPU(cas.geta());
 	b = MatrixCPU(cas.getb());
@@ -651,7 +656,7 @@ void ADMMMarket::display() {
 	std::cout << "      System Summary                                           |" << std::endl;
 	std::cout << "===============================================================|" << std::endl;
 	std::cout << "Agent            " << _nAgentTrue << std::endl;
-	std::cout << "Nombre d'échange " << _nTrade << std::endl;
+	std::cout << "Nombre d'ï¿½change " << _nTrade << std::endl;
 
 	std::cout << std::endl << std::endl;
 

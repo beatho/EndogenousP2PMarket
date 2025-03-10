@@ -53,7 +53,7 @@ private:
 	float _at2 = 0.0f;
 
 	MatrixGPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempN1; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixGPU tempN1; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	MatrixGPU tempL1; 
 	MatrixGPU tempL2; 
 	
@@ -64,7 +64,7 @@ private:
 
 	MatrixGPU a;
 	MatrixGPU Ap2;
-	MatrixGPU Ap2a; // stocke la première partie de Ap2a qui ne change par avec rho1
+	MatrixGPU Ap2a; // stocke la premiï¿½re partie de Ap2a qui ne change par avec rho1
 	MatrixGPU Ap1;
 	MatrixGPU Ap1Copy;
 	MatrixGPU Ap12;
@@ -101,7 +101,7 @@ private:
 	MatrixGPU Pmin;
 	MatrixGPU Pmax;
 	
-	// Pour le réseau
+	// Pour le rï¿½seau
 	int _nLine = 0;
 	int _nBus = 0;
 	float _rho1 = 0.0f;

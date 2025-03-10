@@ -574,12 +574,17 @@ void PACOpenMP::init(const Simparam& sim, const StudyCase& cas)
 				X[i].set(m + 1, 0, trade.get(i, voisin)); // tnm
 				X[i].set(M + m + 1, 0, trade.get(voisin, i)); //amn
 			}
-			
-			
-			matLb[i].set(m + 1, 0, Lb.get(i, 0));
-			matLb[i].set(M + m + 1, 0, -Ub.get(i, 0)); // est ce que cela g�ne la convergence ou est ce que cela l'aide ?
-			matUb[i].set(m + 1, 0, Ub.get(i, 0)); 
-			matUb[i].set(M + m + 1, 0, -Lb.get(i, 0));
+			if(Lb.getNCol()==1){
+				matLb[i].set(m + 1, 0, Lb.get(i, 0));
+				matLb[i].set(M + m + 1, 0, -Ub.get(i, 0)); // est ce que cela g�ne la convergence ou est ce que cela l'aide ?
+				matUb[i].set(m + 1, 0, Ub.get(i, 0)); 
+				matUb[i].set(M + m + 1, 0, -Lb.get(i, 0));
+			} else {
+				matLb[i].set(m + 1, 0, Lb.get(i, voisin));
+				matLb[i].set(M + m + 1, 0, -Ub.get(i, voisin)); // est ce que cela g�ne la convergence ou est ce que cela l'aide ?
+				matUb[i].set(m + 1, 0, Ub.get(i, voisin)); 
+				matUb[i].set(M + m + 1, 0, -Lb.get(i, voisin));
+			}
 			
 			H[i].set(m + 1, m + 1, _rhoInv); // diag tnm
 			H[i].set(M + m + 1, M + m + 1, _rhoInv); // diag anm

@@ -613,11 +613,18 @@ void PACGPU::init(const Simparam& sim, const StudyCase& cas)
 
 			X.set(indice, 0, trade.get(i, voisin % _nAgentTrue)); // tnm
 			X.set(indice + M , 0, trade.get(voisin, i % _nAgentTrue)); //amn
-			matLb.set(indice, 0, Lb.get(i, 0));
-			matLb.set(indice + M, 0, -Ub.get(i, 0)); // est ce que cela g�ne la convergence ou est ce que cela l'aide ?
-			matUb.set(indice, 0, Ub.get(i, 0));
-			matUb.set(indice + M, 0, -Lb.get(i, 0));
-			
+			if(Lb.getNCol()==1){
+				matLb.set(indice, 0, Lb.get(i, 0));
+				matLb.set(indice + M, 0, -Ub.get(i, 0)); // est ce que cela g�ne la convergence ou est ce que cela l'aide ?
+				matUb.set(indice, 0, Ub.get(i, 0));
+				matUb.set(indice + M, 0, -Lb.get(i, 0));
+			} else {
+				matLb.set(indice, 0, Lb.get(i, voisin));
+				matLb.set(indice + M, 0, -Ub.get(i, voisin)); // est ce que cela g�ne la convergence ou est ce que cela l'aide ?
+				matUb.set(indice, 0, Ub.get(i, voisin));
+				matUb.set(indice + M, 0, -Lb.get(i, voisin));
+			}
+		
 			H.set(m + 1, m + 1, _rhoInv); // diag tnm
 			H.set(M + m + 1, M + m + 1, _rhoInv); // diag anm
 			if (augmente) {
