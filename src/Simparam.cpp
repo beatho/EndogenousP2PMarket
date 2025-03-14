@@ -170,6 +170,7 @@ Simparam::Simparam(int nAgent, int nLine, int nLineConstraint, bool AC)
 	_stepG = STEPG;
 	_rho1 = RHOG;
 	_nLine = nLine;
+	_nLineConst = nLineConstraint;
 
 	_iterIntern = ITERMAXLOCAL;
 	_epsIntern = EPSLOCAL;
@@ -254,10 +255,10 @@ void Simparam::reset(int oldN, int oldL, bool AC)
 		_Pn = MatrixCPU(n, 1);
 		_MU = MatrixCPU(n, 1);
 	}
-	if (_nLine != oldL) {
+	if (_nLineConst != oldL) {
 		//std::cout << "reset delta" << std::endl;
-		_delta1 = MatrixCPU(_nLine, 1);
-		_delta2 = MatrixCPU(_nLine, 1);
+		_delta1 = MatrixCPU(_nLineConst, 1);
+		_delta2 = MatrixCPU(_nLineConst, 1);
 	}
 	timePerBlock = MatrixCPU(1, 11, 0); 
 	occurencePerBlock = MatrixCPU(1, 11, 0); 
@@ -306,6 +307,78 @@ Simparam& Simparam::operator=(const Simparam& sim)
 
 	return *this;
 }
+
+void Simparam::setFromInterface(ParamInterface* param, bool AC){
+	MatrixCPU parameters(param->getParam());
+	if(parameters.get(0, iterG_ind)){_iterMaxGlobal = parameters.get(0, iterG_ind);	}
+	if(parameters.get(0, iterL_ind)){_iterMaxLocal  = parameters.get(0, iterL_ind);	}
+	if(parameters.get(0, iterItern_ind)){_iterIntern    = parameters.get(0, iterItern_ind);}
+
+	if(parameters.get(0, stepG_ind)){_stepG		   = parameters.get(0, stepG_ind);	}
+	if(parameters.get(0, stepL_ind)){_stepL  = parameters.get(0, stepL_ind);	}
+	if(parameters.get(0, stepIntern_ind)){_stepIntern    = parameters.get(0, stepIntern_ind);}
+
+	if(parameters.get(0, epsG_ind)){_epsGlobal = parameters.get(0, epsG_ind);	}
+	if(parameters.get(0, epsX_ind)){_epsGlobalConst = parameters.get(0, epsX_ind);	}
+	if(parameters.get(0, epsL_ind)){_epsLocal  = parameters.get(0, epsL_ind);	}
+	if(parameters.get(0, epsIntern_ind)){_epsIntern    = parameters.get(0, epsIntern_ind);}
+
+	if(parameters.get(0, rho_ind)){_rho = parameters.get(0, rho_ind);	}
+	if(parameters.get(0, rho1_ind)){_rho1  = parameters.get(0, rho1_ind);	}
+	
+	_resF = MatrixCPU(3, (_iterMaxGlobal/_stepG)+1);
+
+	MatrixCPU sizes(param->getSize());
+	_nAgent = sizes.get(0, nAgentP_ind);
+	_nBus	= sizes.get(0, nBusP_ind);
+	_nLine  = sizes.get(0, nLineP_ind);
+	_nLineConst = sizes.get(0, nLineCons_ind);
+	
+	_AC = AC;
+	if(_AC){
+		_LAMBDA = param->getLambda();
+		_trade  = param->getTrade();
+		_Pn		= param->getPn();
+		_MU     = param->getMU();
+	} else{
+		MatrixCPU lambdaBis(param->getLambda());
+		MatrixCPU tradeBis(param->getTrade());
+		MatrixCPU PnBis(param->getPn());
+		MatrixCPU MuBis(param->getMU());
+		_LAMBDA = MatrixCPU(_nAgent, _nAgent);
+		_trade  = MatrixCPU(_nAgent, _nAgent);
+		_Pn		= MatrixCPU(_nAgent, 1);
+		_MU		= MatrixCPU(_nAgent, 1);
+		for(int i = 0; i < _nAgent; i++){
+			for (int j = 0; j < _nAgent; j++)
+			{
+				_LAMBDA.set(i,j, lambdaBis.get(i,j));
+				_trade.set(i,j,tradeBis.get(i,j));
+			}
+			_Pn.set(i, 0, PnBis.get(i,0));
+			_MU.set(i, 0, MuBis.get(i,0));
+		}
+	}
+
+
+	MatrixCPU delta = param->getDelta();
+	for(int i=0; i<_nLineConst;i++){
+		_delta1.set(i, 0, delta.get(i,0));
+		_delta2.set(i, 0, delta.get(i,1));
+	}
+	//std::cout << "fin param" << std::endl;
+}
+void Simparam::convertToResultInterface(ResultInterface* res){
+	//display();
+	//std::cout << "recuperation resultat" << std::endl;
+	
+	res->setResult(_iter, _stepG, _time, _fc, _resF);
+	res->setProbleme(_trade, _Pn);
+	res->setDual(_LAMBDA, _MU);
+	res->setDelta(_delta1, _delta2);
+	//std::cout << "recuperation resultat" << std::endl;
+}
+
 
 Simparam::~Simparam()
 {
@@ -410,15 +483,27 @@ MatrixCPU Simparam::getPn() const
 	return _Pn;
 }
 
-MatrixCPU Simparam::getDelta1()
+MatrixCPU Simparam::getDelta1() const
 {
 	return _delta1;
 }
 
-MatrixCPU Simparam::getDelta2()
+MatrixCPU Simparam::getDelta2() const
 {
 	return _delta2;
 }
+
+MatrixCPU Simparam::getPb() const
+{
+	return _Pb;
+}
+MatrixCPU Simparam::getPhi() const{
+	return _Phi;
+}
+MatrixCPU Simparam::getE() const{
+	return _E;
+}
+
 
 float Simparam::getTime() const
 {
@@ -494,6 +579,15 @@ void Simparam::setDelta2(MatrixCPU* delta2)
 {
 	_delta2 = *delta2;
 }
+void Simparam::setPb(MatrixCPU* Pb){
+	_Pb = *Pb;
+}
+void Simparam::setPhi(MatrixCPU* Phi){
+	_Phi = *Phi;
+}
+void Simparam::setE(MatrixCPU* E){
+	_E = *E;
+}
 
 void Simparam::setIter(int c)
 {
@@ -525,13 +619,13 @@ void Simparam::setNagent(int n)
 {
 	int oldN = _nAgent;
 	_nAgent = n;
-	reset(oldN,_nLine);
+	reset(oldN,_nLineConst);
 }
 
 void Simparam::setNLine(int l)
 {
-	int oldL = _nLine;
-	_nLine = l;
+	int oldL = _nLineConst;
+	_nLineConst = l;
 	reset(_nAgent,oldL);
 }
 
@@ -539,9 +633,9 @@ void Simparam::setNAgentLine(int n, int l, bool AC)
 {
 	//std::cout << "setNAgentLine " << n << " " << l << " " << _nAgent << " " << _nLine << std::endl;
 	int oldN = _nAgent;
-	int oldL = _nLine;
+	int oldL = _nLineConst;
 	_nAgent = n;
-	_nLine = l;
+	_nLineConst = l;
 	reset(oldN, oldL, AC);
 }
 
@@ -729,7 +823,7 @@ void Simparam::displayTime(std::string fileName) const
 		}
 	}
 	else {
-		std::cout << "pas de temps à afficher, ou alors il n'y a pas eut d'initialisation" << std::endl;
+		std::cout << "pas de temps ï¿½ afficher, ou alors il n'y a pas eut d'initialisation" << std::endl;
 	}*/
 
 	occurencePerBlock.saveCSV(fileName, mode);

@@ -205,7 +205,13 @@ void OPFADMMConsGPU::solve(Simparam* result, const Simparam& sim, const StudyCas
 		X[i].display();
 	}
 	*/
-	
+	MatrixCPU Pb(getPb());
+	MatrixCPU Phi(getPhi());
+	MatrixCPU E(getE());
+
+	result->setE(&E);
+	result->setPhi(&Phi);
+	result->setPb(&Pb);
 	
 
 	result->setIter(_iterGlobal);
@@ -2637,11 +2643,56 @@ void OPFADMMConsGPU::ComputePFromAgentToBus()
 	}
 }
 
-
+MatrixCPU OPFADMMConsGPU::getPb(){
+	MatrixCPU PbCPU;
+	Pb.toMatCPU(PbCPU);
+	return PbCPU;
+}
+MatrixCPU OPFADMMConsGPU::getPhi(){
+	bool transferToDo = false;
+	if(Y.getPos()){
+		Y.transferCPU();
+		_indiceBusBegin.transferCPU();
+		transferToDo = true;
+	}
+	MatrixCPU Phi(2*_nLine, 1);
+	
+	for (int i = 0; i <_nLine; i++)
+	{
+		Phi.set(i,0, Y.get(_indiceBusBegin.get(i + 1,0) + 0, 0));
+		Phi.set(i + _nLine,0, Y.get(_indiceBusBegin.get(i + 1,0) + 1, 0));
+	}
+	if(transferToDo){
+		Y.transferGPU();
+		_indiceBusBegin.transferGPU();
+	}
+	return Phi;
+}
+MatrixCPU OPFADMMConsGPU::getE(){
+	bool transferToDo = false;
+	if(Y.getPos()){
+		Y.transferCPU();
+		_indiceBusBegin.transferCPU();
+		transferToDo = true;
+	}
+	MatrixCPU E(2*_nBus, 1);
+	
+	for (int i = 0; i <_nBus; i++)
+	{
+		E.set(i,0, Y.get(_indiceBusBegin.get(i, 0) + 2, 0));
+		E.set(i + _nLine,0, Y.get(_indiceBusBegin.get(i, 0) + 3, 0));
+	}
+	if(transferToDo){
+		Y.transferGPU();
+		_indiceBusBegin.transferGPU();
+	}
+	return E;
+}
 
 
 void OPFADMMConsGPU::display() {
 
+	
 	X.transferCPU();
 	Y.transferCPU();
 	Mu.transferCPU();
@@ -2653,23 +2704,13 @@ void OPFADMMConsGPU::display() {
 	Pmax.transferCPU();
 	Pbmax.transferCPU();
 	Pbmin.transferCPU();
-	Pb.set(0.0);
 	Pb.transferCPU();
 	_CoresAgentBusBegin.transferCPU();
 	_CoresAgentBus.transferCPU();
 	_CoresBusAgent.transferCPU();
 	Cost1.transferCPU();
 	Cost2.transferCPU();
-	for (int i = 0; i < _nBus; i++) {
-		int Nb = _nAgentByBusCPU.get(i, 0);
-		int begin = _CoresAgentBusBegin.get(i, 0);
-		for (int In = 0; In < Nb; In++) {
-			int n = _CoresAgentBus.get(In + begin, 0);
-			Pb.set(i, 0, Pb.get(i, 0) + Pn.get(n, 0));
-			Pb.set(i + _nBus, 0, Pb.get(i + _nBus, 0) + Pn.get(n + _nAgent, 0));
-		}
-	}
-
+	
 
 
 	if (_iterGlobal == 0) {

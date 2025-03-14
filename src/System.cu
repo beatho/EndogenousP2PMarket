@@ -71,6 +71,55 @@ Simparam System::solvePF()
     return *_result;
 }
 
+ResultInterface* System::solve(ResultInterface* res, ParamInterface* param, StudyCaseInterface* caseInter, bool AC){
+	
+	
+	if(AC){
+		_case.SetACStudyCaseFromInterface(caseInter);
+	}else{
+		_case.SetDCStudyCaseFromInterface(caseInter);
+	}
+	_simparam.setFromInterface(param, AC);
+	*_result = _simparam;
+	
+	_methode->solve(_result, _simparam, _case);
+ 	
+	_result->convertToResultInterface(res);
+
+	return res;
+}
+ResultInterface* System::solvePF(ResultInterface* res, ParamInterface* param, StudyCaseInterface* caseInter){
+	
+	MatrixCPU sizes(param->getSize());
+	_case.SetACStudyCaseFromInterface(caseInter);
+	if(usePFGPU){
+		MatrixGPU PQ = MatrixGPU(_case.getPobj(), 1);
+		MatrixGPUD PQD = MatrixGPUD(_case.getPobjD(), 1);
+
+		_methodePFGPU->init(_case, &PQ, &PQD, useDoublePF);
+		_methodePFGPU->solve();
+		_methodePFGPU->display2(true);
+		
+		res->setvarPhysic(_methodePFGPU->getW(), MatrixCPU(2*sizes.get(0, nLineP_ind), 1), _methodePFGPU->getE());
+		res->setResult(_methodePFGPU->getIter(), 1, _methodePFGPU->getTime(), _methodePFGPU->getRes(), MatrixCPU(0,0));
+
+	} else{
+		MatrixCPU PQ = _case.getPobj();
+		MatrixCPUD PQD = _case.getPobjD();
+
+		_methodePF->init(_case, &PQ, &PQD, useDoublePF);
+		_methodePF->solve();
+		_methodePF->display2(true);
+
+		res->setvarPhysic(_methodePF->getW(), MatrixCPU(2*sizes.get(0, 2), 1), _methodePF->getE());
+		res->setResult(_methodePF->getIter(), 1, _methodePF->getTime(), _methodePF->getRes(), MatrixCPU(0,0));
+	}
+
+
+    return res;
+}
+
+
 void System::solveIntervalle(std::string path, MatrixCPU* interval, int nCons, int nGen)
 {
 	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;

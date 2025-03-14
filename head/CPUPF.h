@@ -43,6 +43,7 @@ public:
 	float getTime();
 	int getConv();
 	MatrixCPU getE();
+	MatrixCPU getW();
 	virtual MatrixCPU getY(); // (angle, amplitude, flow)
 
 	void display();

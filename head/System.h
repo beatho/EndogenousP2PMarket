@@ -4,8 +4,6 @@
 #include "StudyCase.h"
 
 
-
-
 /* Market */
 #include "ADMMMarket.h"
 #include "ADMMMarketOpenMP.h"
@@ -79,11 +77,13 @@ public:
 	const std::string sOPFPDIPM = "OPFPDIPM";
 	Simparam solve();
 	Simparam solvePF(); // on pourra rajouter des paramètres
+	ResultInterface* solve(ResultInterface* res, ParamInterface* param, StudyCaseInterface* caseInter, bool AC);
+	ResultInterface* solvePF(ResultInterface* res, ParamInterface* param, StudyCaseInterface* caseInter);
 	void solveIntervalle(std::string path, MatrixCPU* interval, int nCons, int nGen); 
 	void solveIntervalle(std::string path, std::string name, MatrixCPU* interval);
 	void solveIntervalle(std::string path, int begin, int end, int chosenAgentGen);
 	void UpdateP0();
-	void resetMethod(); // permet de forcer l'initialisation, m�me si ce n'est pas la premi�re it�ration
+	void resetMethod(); // permet de forcer l'initialisation, meme si ce n'est pas la premiere iteration
 	void resetParam();
 	void removeLink(int i, int j);
 	void addLink(int i, int j);

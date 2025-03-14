@@ -34,7 +34,7 @@ PyObject* setStudyCaseFromFile(PyObject* self, PyObject* args){
     System sys;
     sys.setStudyCase(filename);
 
-
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
@@ -83,7 +83,7 @@ PyObject* solveACFromFile(PyObject* self, PyObject* args){
         std::cout << "problème lors de la selection du cas" <<std::endl;
         std::cerr << e.what() << '\n';
     }
-    
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
@@ -136,12 +136,165 @@ PyObject* solvePFFromFile(PyObject* self, PyObject* args){
         std::cerr << e.what() << '\n';
     }
     
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+PyObject* testAffichage(PyObject* self, PyObject* args){
+    CustomObject* interface;
+
+    if (!PyArg_ParseTuple(args, "O!", &CustomInterface, &interface)) {
+        PyErr_SetString(PyExc_TypeError, "must be the interface");
+        return NULL;
+    } 
+    interface->interfaceCase->display();
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+PyObject* solveMarketFromInterface(PyObject* self, PyObject* args){
+
+    CustomObject* interface;
+    std::string MethodName;
+    char* bufferMethod = nullptr;
+    if (!PyArg_ParseTuple(args, "O!|s", &CustomInterface, &interface, &bufferMethod)) {
+        PyErr_SetString(PyExc_TypeError, "must be the interface and the methode Name");
+        return NULL;
+    } 
+
+    if(bufferMethod){
+        MethodName= bufferMethod;
+    } else {
+        MethodName = "ADMM";
+    }
+    
+    //std::cout << "Resolution avec la methode " << MethodName << std::endl;
+
+    System sys;
+    try
+    {
+        
+        sys.setMethod(MethodName);
+        try
+        {
+            interface->resultInterface = sys.solve(interface->resultInterface, interface->paramInterface, interface->interfaceCase, false);
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << "problème lors de la resolution" <<std::endl;
+            std::cerr << e.what() << '\n';
+        }
+        
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << "problème lors de la selection de la methode" <<std::endl;
+        std::cerr << e.what() << '\n';
+    }
+        
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+PyObject* solveACFromInterface(PyObject* self, PyObject* args){
+
+    CustomObject* interface;
+    std::string MethodName;
+    char* bufferMethod = nullptr;
+    if (!PyArg_ParseTuple(args, "O!|s", &CustomInterface, &interface, &bufferMethod)) {
+        PyErr_SetString(PyExc_TypeError, "must be the interface and the methode Name");
+        return NULL;
+    } 
+
+    if(bufferMethod){
+        MethodName= bufferMethod;
+    } else {
+        MethodName = "ADMM";
+    }
+    
+    std::cout << "Resolution avec la methode" << MethodName << std::endl;
+
+    System sys;
+    try
+    {
+        
+        sys.setMethod(MethodName);
+        try
+        {
+            interface->resultInterface = sys.solve(interface->resultInterface, interface->paramInterface, interface->interfaceCase, true);
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << "problème lors de la resolution" <<std::endl;
+            std::cerr << e.what() << '\n';
+        }
+        
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << "problème lors de la selection de la methode" <<std::endl;
+        std::cerr << e.what() << '\n';
+    }
+        
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+PyObject* solvePFFromInterface(PyObject* self, PyObject* args){
+
+    CustomObject* interface;
+    std::string MethodName;
+    char* bufferMethod = nullptr;
+    if (!PyArg_ParseTuple(args, "O!|s", &CustomInterface, &interface, &bufferMethod)) {
+        PyErr_SetString(PyExc_TypeError, "must be the interface and the methode Name");
+        return NULL;
+    } 
+
+    if(bufferMethod){
+        MethodName= bufferMethod;
+    } else {
+        MethodName = "NR";
+    }
+    
+    std::cout << "Resolution avec la methode" << MethodName << std::endl;
+
+    System sys;
+    try
+    {
+        
+        sys.setMethod(MethodName);
+        try
+        {
+            interface->resultInterface = sys.solvePF(interface->resultInterface, interface->paramInterface, interface->interfaceCase);
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << "problème lors de la resolution" <<std::endl;
+            std::cerr << e.what() << '\n';
+        }
+        
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << "problème lors de la selection de la methode" <<std::endl;
+        std::cerr << e.what() << '\n';
+    }
+        
+    
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
 PyMethodDef MonObject_Methods[] = {
     {"setSbase", (PyCFunction) Interface_setSbase, METH_VARARGS, " set Sbase"},
     {"setVbase", (PyCFunction) Interface_setVbase, METH_VARARGS, "sets Vbase"},
+    {"display", (PyCFunction) Interface_display, METH_VARARGS, "display all data, >12 for help"},
+    {"initProblem", (PyCFunction) Interface_initProblem, METH_VARARGS, "set trade, pn"},
+    {"initDual", (PyCFunction) Interface_initDual, METH_VARARGS, "set lambda mu"},
+    {"initDelta", (PyCFunction) Interface_initDelta, METH_VARARGS, "set delta"},
     {"setVoltageInit", (PyCFunction) StudyCase_setVoltageInit, METH_VARARGS, "sets Voltage init"},
     {"setV0", (PyCFunction) StudyCase_setV0, METH_VARARGS, "sets V0"},
     {"setTheta", (PyCFunction) StudyCase_setTheta, METH_VARARGS, "sets Theta"},
@@ -157,47 +310,75 @@ PyMethodDef MonObject_Methods[] = {
     {"setImpedance", (PyCFunction) StudyCase_setImpedance, METH_VARARGS, "sets Impedance"},
     {"setTransfo", (PyCFunction) StudyCase_setTransfo, METH_VARARGS, "sets Transfo"},
     {"setLineLimit", (PyCFunction) StudyCase_setLineLimit, METH_VARARGS, "sets LineLimit"},
-    {"setConnexion", (PyCFunction) StudyCase_setConnexion, METH_VARARGS, "gets Connexion"},
+    {"setConnexion", (PyCFunction) StudyCase_setConnexion, METH_VARARGS, "sets Connexion"},
+    {"setBeta", (PyCFunction) StudyCase_setBeta, METH_VARARGS, "sets Beta"},
     {"setTradeLim", (PyCFunction) StudyCase_setTradeLim, METH_VARARGS, "sets TradeLim"},
     {"setMatImpedance", (PyCFunction) StudyCase_setMatImpedance, METH_VARARGS, "sets Impedance Matrix"},
+    {"getInfo", (PyCFunction) StudyCase_getInfo, METH_VARARGS, "get Info"},
+    {"getAgent", (PyCFunction) StudyCase_getAgent, METH_VARARGS, "gets Agent"},
+    {"getBus", (PyCFunction) StudyCase_getBus, METH_VARARGS, "gets Bus"},
+    {"getBranch", (PyCFunction) StudyCase_getBranch, METH_VARARGS, "gets Branch"},
     {"chekcase", (PyCFunction) StudyCase_checkCase, METH_VARARGS, "compute nCons nGen"},
-    {"display", (PyCFunction) StudyCase_display, METH_VARARGS, "display all data"},
     {"setIter", (PyCFunction) ParamInterface_setIter, METH_VARARGS, "sets iter"},
     {"setStep", (PyCFunction) ParamInterface_setStep, METH_VARARGS, "sets step"},
     {"setEps", (PyCFunction) ParamInterface_setEps, METH_VARARGS, "set eps"},
     {"setRho", (PyCFunction) ParamInterface_setRho, METH_VARARGS, "set rho"},
-    {"initProblem", (PyCFunction) ParamInterface_initProblem, METH_VARARGS, "set trade, pn"},
-    {"initDual", (PyCFunction) ParamInterface_initDual, METH_VARARGS, "set lambda mu"},
-    {"initDelta", (PyCFunction) ParamInterface_initDelta, METH_VARARGS, "set delta"},
-    {"getResult", (PyCFunction) ResultInterface_getResults, METH_VARARGS, "set eps"},
+    {"getResults", (PyCFunction) ResultInterface_getResults, METH_VARARGS, "set eps"},
     {"getPn", (PyCFunction) ResultInterface_getPn, METH_VARARGS, "get Pn"},
-    {"getLambda", (PyCFunction) ResultInterface_getlambda, METH_VARARGS, "get lambda"},
-    {"getDelta", (PyCFunction) ResultInterface_getdelta, METH_VARARGS, "get delta"},
+    {"getLambda", (PyCFunction) ResultInterface_getLambda, METH_VARARGS, "get lambda"},
+    {"getTrade", (PyCFunction) ResultInterface_getTrade, METH_VARARGS, "get trade"},
+    {"getDelta", (PyCFunction) ResultInterface_getDelta, METH_VARARGS, "get delta"},
     {"getMu", (PyCFunction) ResultInterface_getMu, METH_VARARGS, "get Mu"},
+    {"getPb", (PyCFunction) ResultInterface_getPb, METH_VARARGS, "get Pb"},
+    {"getPhi", (PyCFunction) ResultInterface_getPhi, METH_VARARGS, "get Phi"},
+    {"getE", (PyCFunction) ResultInterface_getE, METH_VARARGS, "get E"},
     {NULL, NULL, 0, NULL}
 };
-
 
 /**/
 
 PyMethodDef EndoCudaFunction[] = {
     {
-    "setStudyCaseByFile",
-    setStudyCaseFromFile,
-    METH_VARARGS,
-    "this function create a study case"
-    },
-     {
-    "solveACFromFile",
-    solveACFromFile,
-    METH_VARARGS,
-    "this function solve a study case"
+        "setStudyCaseByFile",
+        setStudyCaseFromFile,
+        METH_VARARGS,
+        "this function create a study case"
     },
     {
-    "solvePFFromFile",
-    solvePFFromFile,
-    METH_VARARGS,
-    "this function solve a Power flow on a study case"
+        "solveACFromFile",
+        solveACFromFile,
+        METH_VARARGS,
+        "this function solve a study case"
+    },
+    {
+        "solvePFFromFile",
+        solvePFFromFile,
+        METH_VARARGS,
+        "this function solve a Power flow on a study case"
+    },
+    {
+        "solveMarketFromInterface",
+        solveMarketFromInterface,
+        METH_VARARGS,
+        "this function test the interaction with custom Python object in c"
+    },
+    {
+        "solveACFromInterface",
+        solveACFromInterface,
+        METH_VARARGS,
+        "this function test the interaction with custom Python object in c"
+    },
+    {
+        "solvePFFromInterface",
+        solvePFFromInterface,
+        METH_VARARGS,
+        "this function test the interaction with custom Python object in c"
+    },
+    {
+        "testAffichage",
+        testAffichage,
+        METH_VARARGS,
+        "this function test the interaction with custom Python object in c"
     },
     {NULL, NULL, 0, NULL}
 };

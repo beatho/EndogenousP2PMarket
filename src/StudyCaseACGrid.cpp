@@ -1118,10 +1118,10 @@ void StudyCaseACGrid::setLineLimit(int line, float limit)
 	}
 }
 
-void StudyCaseACGrid::setFromInterface(StudyCaseInterface interface) {
+void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 	
 
-	MatrixCPU Info = interface.getInfoCase();
+	MatrixCPU Info = interface->getInfoCase();
 	 // Sbase, Vbase, nAgent, nCons, nGenSup, nBus, nLine, V0, theta0
 	
 	//Info.display();
@@ -1141,7 +1141,7 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface interface) {
 	_zoneBus = MatrixCPU(_nBus, 1);
 	
 
-	MatrixCPU MatLine = interface.getBranchCase();
+	MatrixCPU MatLine = interface->getBranchCase();
 	// from, to, Ys Real, Ys Im, Yp , tau, theta, Limit=0, zs Real, Zs imag
 
 	MatrixCPU inversionLine(_nLine, 1, 0);
@@ -1194,7 +1194,7 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface interface) {
 	//Mat.display();
 	
 	
-	MatrixCPU MatBus = interface.getBusCase();
+	MatrixCPU MatBus = interface->getBusCase();
 	 // Gs, Bs, min, max, V0, theta0, zone � rajouter ici ?
 		
 	initMat();
@@ -1203,11 +1203,11 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface interface) {
 	bool impedanceToBeDefined = false;
 	std::cout << "set Line" << std::endl;
 	
-	if(interface.isImpedanceDefined()){
+	if(interface->isImpedanceDefined()){
 		//_lineReactanceD.setFromFile(fileName7);
 		//_lineSuceptanceD.setFromFile(fileName6);
-		_lineReactance = interface.getGmat();
-		_lineSuceptance = interface.getBmat();
+		_lineReactance = interface->getGmat();
+		_lineSuceptance = interface->getBmat();
 		_lineReactance.toMatCPUD(_lineReactanceD);
 		_lineSuceptance.toMatCPUD(_lineSuceptanceD);
 	} else{

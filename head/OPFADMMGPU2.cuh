@@ -45,7 +45,12 @@ public:
 
 	virtual int feasiblePoint();
 
-	virtual void display();
+    virtual MatrixCPU getPb();
+    virtual MatrixCPU getPhi();
+    virtual MatrixCPU getE();
+
+    virtual void display();
+
 private:
 	// ne change pas avec P0
 	int _numBlocksB = 1;

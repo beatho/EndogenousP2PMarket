@@ -41,6 +41,9 @@ public:
 
 	virtual int feasiblePoint();
 
+	virtual MatrixCPU getPb();
+	virtual MatrixCPU getPhi();
+	virtual MatrixCPU getE();
 
 	void display();
 private:

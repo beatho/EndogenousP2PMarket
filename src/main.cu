@@ -3227,7 +3227,7 @@ void SimuStatOPF() {
 	std::vector<int> indices = { 0, 1, 2, 3, 4 };
 	std::string methodesName[nMethode] = { "PDIPM", "OPFADMM", "OPFADMM2","OPFADMMGPU", "OPFADMMGPU2" };
 	Method* methodes[nMethode];
-	methodes[0] = new OPFPDIPM;
+	//methodes[0] = new OPFPDIPM;
 	methodes[1] = new OPFADMM;
 	methodes[2] = new OPFADMM2;
 	methodes[3] = new OPFADMMGPU;
@@ -3411,7 +3411,7 @@ void SimuStatOPFCompare() {
 	std::vector<int> indices = { 0, 1, 2 };
 	std::string methodesName[nMethode] = { "PDIPM", "OPFADMM", "OPFADMM2" };
 	MethodOPF* methodes[nMethode];
-	methodes[0] = new OPFPDIPM;
+	//methodes[0] = new OPFPDIPM;
 	methodes[1] = new OPFADMM;
 	methodes[2] = new OPFADMM2;
 	//methodes[3] = new OPFADMMGPU;

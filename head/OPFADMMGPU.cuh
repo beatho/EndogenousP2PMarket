@@ -36,6 +36,10 @@ public:
 	float getPLoss();
 	float getQLoss();
 	void ComputePFromAgentToBus();
+	virtual MatrixCPU getPb();
+	virtual MatrixCPU getPhi();
+	virtual MatrixCPU getE();
+
 
 	void updateChat();
 	void CommunicationX();

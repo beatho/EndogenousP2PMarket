@@ -2286,9 +2286,9 @@ MatrixCPU StudyCaseAgent::SetACFromFileSimplify(std::string name, std::string pa
 	return coresBusAgentLin;
 }
 
-MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface interface, bool DC)
+MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface* interface, bool DC)
 {
-    MatrixCPU Info = interface.getInfoCase();
+    MatrixCPU Info = interface->getInfoCase();
 	// Sbase, Vbase, nAgent, nCons, nGenSup, nBus, nLine, V0, theta0
 
 	_Sbase = Info.get(0, Sbase_ind);
@@ -2297,9 +2297,9 @@ MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface interface, bool DC
 
 	_nAgent = Info.get(0, nAgent_ind) + offset; // + the loss agent
 	_nCons  = Info.get(0, nCons_ind)  + offset; // + the loss agent
-	if(_nCons<offset+1){
-		interface.checkCase();
-		Info = interface.getInfoCase();
+	if(_nCons < offset+1){
+		interface->checkCase();
+		Info = interface->getInfoCase();
 		_nCons = Info.get(0, nCons_ind) + offset;
 	}
 
@@ -2313,31 +2313,43 @@ MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface interface, bool DC
 	}
 
 	
-	if(interface.isConnexionDefined()){
-		MatrixCPU connect_temp = interface.getConnexion(); // taille (2*(N-1)) * (N-1)
-		_connect = MatrixCPU( ( 1 + offset)*_nAgent, _nAgent);
+	if(interface->isConnexionDefined()){
+		MatrixCPU connect_temp = interface->getConnexion(); // taille ((N-offset)) * (N-offset)
+		_connect = MatrixCPU(_nAgent, _nAgent);
 		if(_AC){
-			for(int i=_nCons; i<_nAgent;i++){ // P
+			for(int i=_nCons; i<_nAgent; i++){ // P
 				_connect.set(0, i, 1);
 				_connect.set(i, 0, 1);
 			}
-			for(int i=1; i<_nAgent;i++){ // Q
+			/*for(int i=1; i<_nAgent; i++){ // Q
 				_connect.set(_nAgent, i, 1);
 				_connect.set(_nAgent + i, _nAgent, 1);
-			}
+			}*/
 		}
 		
 		for(int i=offset; i<_nAgent;i++){
 			for(int j=offset; j<_nAgent; j++){
-				_connect.set(i, j, connect_temp.get(i - offset,j - offset));
-				if(_AC){
+				_connect.set(i, j, connect_temp.get(i - offset, j - offset));
+				/*if(_AC){
 					_connect.set(_nAgent + i, j, connect_temp.get(_nAgent + i - 2, j - 1));
-				}
+				}*/
 			}
 		}
 	}
 
-	MatrixCPU Mat = interface.getAgentCase();
+	if(interface->isBetaDefined()){
+		MatrixCPU Beta_temp = interface->getBeta(); // taille N*N (without loss agent)
+		_BETA = MatrixCPU(_nAgent, _nAgent);
+		
+		for(int i=offset; i<_nAgent;i++){
+			for(int j=offset; j<_nAgent; j++){
+				_BETA.set(i, j, Beta_temp.get(i - offset, j - offset));
+			}
+		}
+	}
+
+
+	MatrixCPU Mat = interface->getAgentCase();
 	// bus, a, b, P, Pmin, Pmax, Qobj, Qmin, Qmax, zone
 	
 	double pLim1, pLim2, cost1, cost2, qLim1, qLim2, costQ1, costQ2, Qobj;
@@ -2376,8 +2388,8 @@ MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface interface, bool DC
 		pLim2 = Mat.get(i - offset, Pmax_ind) / _Sbase;
 		Qobj  = Mat.get(i - offset, Qobj_ind) / _Sbase;
 
-		qLim1 = Mat.get(i - 1, Qmin_ind) / _Sbase;
-		qLim2 = Mat.get(i - 1, Qmax_ind) / _Sbase;
+		qLim1 = Mat.get(i - offset, Qmin_ind) / _Sbase;
+		qLim2 = Mat.get(i - offset, Qmax_ind) / _Sbase;
 		
 		
 		if (i < _nCons) {
@@ -2414,12 +2426,13 @@ MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface interface, bool DC
 	}
 
 
-	if(interface.isTradeBoundDefined()){
-		_Lbmat = interface.getLbMat();
-		_Ubmat = interface.getUbMat();
+	if(interface->isTradeBoundDefined()){
+		_Lbmat = interface->getLbMat();
+		_Ubmat = interface->getUbMat();
 		isBoundTradeDifferent = true;
-		throw std::invalid_argument("WIP : special tradeBound not yet implemented in solver");
+		//throw std::invalid_argument("WIP : special tradeBound not yet implemented in solver");
 	}
+	//display(1);
 
 	return coresBusAgentLin;
 }

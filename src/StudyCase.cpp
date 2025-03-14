@@ -610,10 +610,12 @@ void StudyCase::SetStudyCase(std::string path, std::string name, MatrixCPU* P0, 
 	_timeInit = (float)t / CLOCKS_PER_SEC;
 }
 
-void StudyCase::SetACStudyCaseFromInterface(StudyCaseInterface interface){
+void StudyCase::SetACStudyCaseFromInterface(StudyCaseInterface* interface){
 	_CoresBusAgentLin = SCAg.SetFromInterface(interface, false);
 	createGrid(false);
-	SCGrid->setFromInterface(interface);
+	if(interface->getL()>= 1){
+		SCGrid->setFromInterface(interface);
+	}
 	_nBus = SCGrid->getNBus();
 	_nAgent = SCAg.getNagent();
 	_nLine = SCGrid->getNLine(true);
@@ -621,15 +623,21 @@ void StudyCase::SetACStudyCaseFromInterface(StudyCaseInterface interface){
 	genCoresBusAgent();
 }
 
-void StudyCase::SetDCStudyCaseFromInterface(StudyCaseInterface interface){
+void StudyCase::SetDCStudyCaseFromInterface(StudyCaseInterface* interface){
+	//std::cout << "creation agent" << std::endl;
 	_CoresBusAgentLin = SCAg.SetFromInterface(interface, true);
 	createGrid(true);
-	(SCGrid)->setFromInterface(interface);
+	if(interface->getL()>= 1){
+		//std::cout << "creation grid" << std::endl;
+		(SCGrid)->setFromInterface(interface);
+	}
 	_nBus = SCGrid->getNBus();
 	_nAgent = SCAg.getNagent();
 	_nLine = SCGrid->getNLine(true);
 	
 	genCoresBusAgent();
+	//display(0);
+	//std::cout << "Fin creation cas" << std::endl;
 }
 
 

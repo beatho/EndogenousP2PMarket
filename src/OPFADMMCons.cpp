@@ -221,7 +221,13 @@ void OPFADMMCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 	
 
 	result->setIter(_iterGlobal);
+	MatrixCPU Pb(getPb());
+	MatrixCPU Phi(getPhi());
+	MatrixCPU E(getE());
 	
+	result->setE(&E);
+	result->setPhi(&Phi);
+	result->setPb(&Pb);
 
 	result->setPn(&Pn);
 	
@@ -1210,7 +1216,8 @@ void OPFADMMCons::updateGlobalProb() {
 
 void OPFADMMCons::updateX()
 {
-	double x1, x2, x3, x4, c1, c2, c3, c4, lambdaLo, lambdaUp, delta, x3min, x3max, x4max, gamma, k2;
+	double x1, x2, x3, x4, c1, c2, c3, c4, lambdaLo, lambdaUp, x3min, x3max, x4max, gamma, k2;
+	// double delta;
 	double c1122;
 	int nSol = 0;
 	int typeSol = 0;
@@ -2255,6 +2262,20 @@ float OPFADMMCons::updateResRhoFixe(int indice)
 	return MAX(MAX(resV, resS), resR);
 }
 
+void OPFADMMCons::computePb(){
+	Pb.set(0.0);
+	for (int i = 0; i < _nBus; i++) {
+		int Nb = _nAgentByBus.get(i, 0);
+		int begin = _CoresAgentBusBegin.get(i, 0);
+		for (int In = 0; In < Nb; In++) {
+			int n = _CoresAgentBus.get(In + begin, 0);
+			PosAgent.set(n, 0, In);
+			Pb.increment(i, 0, Pn.get(n, 0));
+			Pb.increment(i + _nBus, 0, Pn.get(n + _nAgent, 0));
+		}
+	}
+}
+
 int OPFADMMCons::feasiblePoint()
 {
 	MatrixCPU test(_nBus, 1, -1);
@@ -2277,23 +2298,36 @@ int OPFADMMCons::feasiblePoint()
 	return counter;
 }
 
-
+// (Pi,Qi,vi,li,pi,qi,vai,pji,qji,lji)
+MatrixCPU OPFADMMCons::getPb(){
+	computePb();
+	return Pb;
+	
+}
+MatrixCPU OPFADMMCons::getPhi(){
+	MatrixCPU Phi(2*_nLine, 1);
+	for (int i = 0; i < _nLine; i++)
+	{
+		Phi.set(i, 0, Y[i + 1].get(0,0));
+		Phi.set(i + _nLine, 0, Y[i + 1].get(1,0));
+	}
+	return Phi;
+}
+MatrixCPU OPFADMMCons::getE(){
+	MatrixCPU E(2*_nBus, 1);
+	for (int i = 0; i < _nBus; i++)
+	{
+		E.set(i, 0, Y[i].get(2,0));
+		E.set(i + _nBus, 0, Y[i].get(3,0));
+	}
+	return E;
+}
 
 
 void OPFADMMCons::display() {
 
 	std::cout.precision(3);
-	Pb.set(0.0);
-	for (int i = 0; i < _nBus; i++) {
-		int Nb = _nAgentByBus.get(i, 0);
-		int begin = _CoresAgentBusBegin.get(i, 0);
-		for (int In = 0; In < Nb; In++) {
-			int n = _CoresAgentBus.get(In + begin, 0);
-			Pb.increment(i, 0, Pn.get(n, 0));
-			Pb.increment(i + _nBus, 0, Pn.get(n + _nAgent, 0));
-		}
-	}
-
+	computePb();
 
 
 	if (_iterGlobal == 0) {

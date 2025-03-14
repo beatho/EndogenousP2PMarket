@@ -516,12 +516,13 @@ void MatrixGPU::toMatCPU(MatrixCPU& m) const // passer m en paramètre
         cudaMemcpy(m._matrixCPU, _matrixGPU, sizeof(float) * _row * _column, cudaMemcpyDeviceToHost);
     }
     else {
-        for (int i = 0; i < _row; i++) {
+        memcpy(m._matrixCPU, _matrixCPU, sizeof(float) * _row * _column );
+        /*for (int i = 0; i < _row; i++) {
             for (int j = 0; j < _column; j++) 
             {
                 m.set(i, j, get(i, j));
             }
-        }
+        }*/
     }
 }
 

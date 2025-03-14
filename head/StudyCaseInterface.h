@@ -19,6 +19,9 @@ enum indInfo   { Sbase_ind, Vbase_ind, nAgent_ind, nCons_ind, nGen_ind, nBus_ind
 enum indAgent  { PosBus_ind, a_ind, b_ind, aq_ind, bq_ind, Pobj_ind, Pmin_ind, Pmax_ind, Qobj_ind, Qmin_ind, Qmax_ind, zone_ind, finAgent_ind };
 enum indBuses  { Gs_ind, Bs_ind, Vmin_ind, Vmax_ind, thetamin_ind, thetamax_ind, Vinit_ind, thetainit_ind, finBuses_ind};
 enum indBranch { From_ind, To_ind, YsRe_ind, YsIm_ind, Yp_ind, tau_ind, theta_ind, lim_ind, ZsRe_ind, ZsIm_ind, finBranch_ind};
+const char* const indInfoStr[] = {"Sbase_ind","Vbase_ind","nAgent_ind","nCons_ind","nGen_ind","nBus_ind","nLine_ind","V0_ind","theta0_ind", "finInfo_ind"};
+
+
 
 class StudyCaseInterface{
     private :
@@ -31,6 +34,7 @@ class StudyCaseInterface{
         MatrixCPU Ubmat;
         MatrixCPU Gmat;
         MatrixCPU Bmat;
+        MatrixCPU Beta;
 
         std::string _name = "default";
 
@@ -40,6 +44,7 @@ class StudyCaseInterface{
         bool connexionDefined  = false;
         bool tradeBoundDefined = false;
         bool impendanceDefined = false;
+        bool betaDefined       = false;
     public:
         StudyCaseInterface(int N, int B, int L);
         // taille 1 : Sbase, Vbase, nAgent, nCons, nGenSup, nBus, nLine, V0, theta0 
@@ -63,12 +68,14 @@ class StudyCaseInterface{
         void setImpedance(MatrixCPU zsRe, MatrixCPU zsIm);
         void setTransfo(MatrixCPU tau, MatrixCPU theta);
         void setLineLimit(MatrixCPU limit);
-        // taille N*N (ou reduit) : matrice de connexion
+        // taille N*N : matrice de connexion
         void setConnexion(MatrixCPU connexion);
-        // taille N*N (ou reduit) : matrices trade min et max
+        // taille N*N : matrices trade min et max
         void setTradeLim(MatrixCPU min, MatrixCPU max);
-        // taille B*B (ou reduit) : matrices impedance
+        // taille B*B : matrices impedance
         void setMatImpedance(MatrixCPU Gs, MatrixCPU Bs);
+        // taille N*N : matrix heterogenous preferences
+        void setBeta(MatrixCPU beta);
 
         // getter 
         int getN();
@@ -77,6 +84,7 @@ class StudyCaseInterface{
         bool isConnexionDefined();
         bool isTradeBoundDefined();
         bool isImpedanceDefined();
+        bool isBetaDefined();
         
         MatrixCPU getInfoCase();
         MatrixCPU getAgentCase();
@@ -87,6 +95,7 @@ class StudyCaseInterface{
         MatrixCPU getUbMat();
         MatrixCPU getGmat();
         MatrixCPU getBmat();
+        MatrixCPU getBeta();
         std::string getName();
 
         void display(int type=0);

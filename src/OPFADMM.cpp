@@ -254,13 +254,17 @@ void OPFADMM::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	std::cout << " PnTilde " << std::endl;
 	PnTilde.display();*/
 	
+	MatrixCPU Pb(getPb());
+	MatrixCPU Phi(getPhi());
+	MatrixCPU E(getE());
 	
+	result->setE(&E);
+	result->setPhi(&Phi);
+	result->setPb(&Pb);
+
 
 	result->setIter(_iterGlobal);
-	
-
 	result->setPn(&Pn);
-	
 	result->setFc(fc);
 
 #ifdef INSTRUMENTATION
@@ -1635,8 +1639,35 @@ int OPFADMM::feasiblePoint()
 	return counter;
 }
 
-
-
+// (Pi,Qi,vi,li,pi,qi,vai,pji,qji,lji)
+ MatrixCPU OPFADMM::getPb(){
+	MatrixCPU Pb(2*_nBus, 1);
+	for (int i = 0; i < _nBus; i++)
+	{
+		Pb.set(i, 0, Y[i].get(4,0));
+		Pb.set(i + _nBus, 0, Y[i].get(5,0));
+	}
+	return Pb;
+	
+}
+ MatrixCPU OPFADMM::getPhi(){
+	MatrixCPU Phi(2*_nLine, 1);
+	for (int i = 0; i < _nLine; i++)
+	{
+		Phi.set(i, 0, Y[i + 1].get(0,0));
+		Phi.set(i + _nLine, 0, Y[i + 1].get(1,0));
+	}
+	return Phi;
+}
+ MatrixCPU OPFADMM::getE(){
+	MatrixCPU E(2*_nBus, 1);
+	for (int i = 0; i < _nBus; i++)
+	{
+		E.set(i, 0, Y[i].get(2,0));
+		E.set(i + _nBus, 0, Y[i].get(3,0));
+	}
+	return E;
+}
 
 void OPFADMM::display() {
 

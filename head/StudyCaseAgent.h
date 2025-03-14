@@ -116,7 +116,7 @@ public:
  
     MatrixCPU SetACFromFile(std::string name, std::string path = "data/ACGrid/");
     MatrixCPU SetACFromFileSimplify(std::string name, std::string path = "data/ACGrid/");
-    MatrixCPU SetFromInterface(StudyCaseInterface interface, bool DC);
+    MatrixCPU SetFromInterface(StudyCaseInterface* interface, bool DC);
     MatrixCPU SetEuropeTestFeeder(std::string path = "data/ACGrid/", int beggining = 0);
     
     // getter 

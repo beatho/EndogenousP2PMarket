@@ -14,6 +14,9 @@ public:
 
 	virtual float getPLoss() = 0;
 	virtual float getQLoss() = 0;
+	virtual MatrixCPU getPb() = 0;
+	virtual MatrixCPU getPhi() = 0;
+	virtual MatrixCPU getE() = 0;
 	virtual int feasiblePoint() {
 		return 0;
 	};

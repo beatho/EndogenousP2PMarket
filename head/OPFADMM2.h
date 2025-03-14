@@ -37,8 +37,12 @@ public:
 	void CommunicationX();
 	float updateRes(int indice);
 	float updateResRhoFixe(int indice);
-
+	void computePb();
 	virtual int feasiblePoint();
+
+	virtual MatrixCPU getPb();
+	virtual MatrixCPU getPhi();
+	virtual MatrixCPU getE();
 
 	void display();
 private:

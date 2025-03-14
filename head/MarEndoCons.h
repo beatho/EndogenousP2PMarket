@@ -5,7 +5,8 @@
 #include <chrono>
 
 #include "OPFADMMCons.h"
-#include "OPFPDIPM.h"
+#include "ADMMMarket.h"
+
 
 
 class MarEndoCons : public MethodP2P
@@ -64,7 +65,7 @@ private:
 	clock_t timeMarketEndo;
 
 	MatrixCPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixCPU tempN1; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixCPU tempN1; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 
 
 	MatrixCPU Tlocal;
@@ -109,7 +110,7 @@ private:
 	MatrixCPU Pmin;
 	MatrixCPU Pmax;
 
-	// Pour le réseau
+	// Pour le rï¿½seau
 
 	float _rhoSO = 0;
 	MatrixCPU Ap3;

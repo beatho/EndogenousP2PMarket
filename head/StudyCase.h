@@ -118,8 +118,8 @@ public:
     void SetAC3Bus(std::string path = "data/");
     void SetAC2node();
     void SetACFromFile(std::string name, std::string path = "data/ACGrid/");
-    void SetDCStudyCaseFromInterface(StudyCaseInterface interface);
-    void SetACStudyCaseFromInterface(StudyCaseInterface interface);
+    void SetDCStudyCaseFromInterface(StudyCaseInterface* interface);
+    void SetACStudyCaseFromInterface(StudyCaseInterface* interface);
     void SetACFromFileSimplify(std::string name, std::string path = "data/ACGrid/");
     void SetEuropeTestFeeder(std::string path = "data/ACGrid/", int typeOfAgentGen = 0, int beggining = 0);
    

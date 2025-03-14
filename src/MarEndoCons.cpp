@@ -3,7 +3,6 @@
 
 
 
-
 MarEndoCons::MarEndoCons() : MethodP2P()
 {
 #if DEBUG_CONSTRUCTOR
@@ -446,7 +445,7 @@ void MarEndoCons::init(const Simparam& sim, const StudyCase& cas)
 		OPF = new OPFADMMCons;
 	}
 	else {
-		OPF = new OPFPDIPM;
+		throw std::invalid_argument("WIP : must be a radial grid");
 	}
 	
 

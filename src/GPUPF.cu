@@ -10,9 +10,9 @@ void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ)
 {
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
-    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise à jour
+    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise ï¿½ jour
 
-    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
+    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisï¿½ pendant la simu
 #endif // INSTRUMENTATION
     
    // std::cout << "init PF NR GPU simple" << std::endl;
@@ -21,7 +21,7 @@ void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ)
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
     N2 = 2 * Nagent;
-    Nline = cas.getNLine(true); // ne doit pas être réduit ici !!!
+    Nline = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
     BL2 = Nbus + 2 * Nline;
     Nconstraint = B2 + Nline;
     iterM = 20;
@@ -127,9 +127,9 @@ void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD* PQD, bool useD
 {
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
-    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise à jour
+    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise ï¿½ jour
 
-    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
+    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisï¿½ pendant la simu
 #endif // INSTRUMENTATION
    // std::cout << "init PF NR GPU" << std::endl;
     std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
@@ -137,7 +137,7 @@ void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD* PQD, bool useD
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
     N2 = 2 * Nagent;
-    Nline = cas.getNLine(true); // ne doit pas être réduit ici !!!
+    Nline = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
     BL2 = Nbus + 2 * Nline;
     Nconstraint = B2 + Nline;
     iterM = 20;
@@ -575,7 +575,7 @@ void GPUPF::calcW(bool end)
         
         calcWinterD << <numBlock, _blockSize, B2 * sizeof(double) >> > (_PintermediateD._matrixGPU, _QintermediateD._matrixGPU, ED._matrixGPU, _GlinD._matrixGPU, _BlinD._matrixGPU, _CoresVoiLin._matrixGPU, _CoresBusLin._matrixGPU, _nLines._matrixGPU, Nbus);
         
-        if (!end) { // pendant simu, la puissance à ce noeud est libre
+        if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
             switch (_blockSize) {
             case 512:
                 calcWGPUD<512> << <numBlock, _blockSize >> > (WD._matrixGPU, W0D._matrixGPU, _PintermediateD._matrixGPU, _QintermediateD._matrixGPU, _CoresBusLin._matrixGPU, _nLines._matrixGPU, Nbus);
@@ -659,7 +659,7 @@ void GPUPF::calcW(bool end)
 
         /*_Pintermediate.display(true);
         _Qintermediate.display(true);*/
-        if (!end) { // pendant simu, la puissance à ce noeud est libre
+        if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
             switch (_blockSize) {
             case 512:
                 calcWGPU<512> << <numBlock, _blockSize >> > (W._matrixGPU, W0._matrixGPU, _Pintermediate._matrixGPU, _Qintermediate._matrixGPU, _CoresBusLin._matrixGPU, _nLines._matrixGPU, Nbus);
@@ -1069,6 +1069,42 @@ int GPUPF::getConv()
     return status;
 }
 
+MatrixCPU GPUPF::getE()
+{
+    if (_useDouble) {
+        if(ED.max2()==0){
+            calcE();
+        }
+        E = ED;
+    }
+    if(E.max2()==0){
+        calcE();
+    }
+    MatrixCPU ECPU;
+    E.toMatCPU(ECPU);
+
+    return ECPU;
+}
+MatrixCPU GPUPF::getW()
+{
+    if (_useDouble) {
+        if (WD.get(0,0)== 0)
+        {
+           calcW(true);
+        }
+        W = WD;
+    }
+    if(W.get(0,0)== 0){
+        calcW(true);
+    }
+
+    MatrixCPU WCPU;
+    W.toMatCPU(WCPU);
+
+    return WCPU;
+}
+
+
 
 void GPUPF::display()
 {
@@ -1285,7 +1321,7 @@ void GPUPF::saveTimeBlock(std::string fileName)
         }
     }
     else {
-        std::cout << "pas de temps à afficher, ou alors il n'y a pas eut d'initialisation" << std::endl;
+        std::cout << "pas de temps ï¿½ afficher, ou alors il n'y a pas eut d'initialisation" << std::endl;
     }
 
     occurencePerBlock.saveCSV(fileName, mode);
@@ -1311,13 +1347,13 @@ __global__ void calcW0GPU(float* W0, float* PQ, float* Cores, int N, int B) {
     float sum2 = 0;
    
     for (int k = thIdx; k < N; k += blockSize) {
-        if (Cores[k] == i) // c'est très divergent, c'est nul
+        if (Cores[k] == i) // c'est trï¿½s divergent, c'est nul
         {
             sum += PQ[k + 1];
             sum2 += PQ[k + 1 + N];
             mustCompute = true;
         } 
-        /* ce n'est plus divergent, mais beaucoup plus d'accès mémoire...
+        /* ce n'est plus divergent, mais beaucoup plus d'accï¿½s mï¿½moire...
          sum += Pinter[k] * (Cores[k] == i);
          sum2 += Qinter[k]* (Cores[k] == i);
         
@@ -1367,13 +1403,13 @@ __global__ void calcW0GPUD(double* W0D, double* PQD, float* Cores, int N, int B)
     double sum2 = 0;
 
     for (int k = thIdx; k < N-1; k += blockSize) {
-        if ((int) Cores[k] == i) // c'est très divergent, c'est nul
+        if ((int) Cores[k] == i) // c'est trï¿½s divergent, c'est nul
         {
             sum += PQD[k + 1];
             sum2 += PQD[k + 1 + N];
             mustCompute = true;
         }
-        /* ce n'est plus divergent, mais beaucoup plus d'accès mémoire...
+        /* ce n'est plus divergent, mais beaucoup plus d'accï¿½s mï¿½moire...
          sum += PQD[k] * (Cores[k] == i);
          sum2 += PQD[k + N]* (Cores[k] == i);
 

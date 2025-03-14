@@ -114,7 +114,7 @@ public:
     void Set2nodeConstraint(float lim = 0.8);
     void SetEuropeP0(const std::string& path, bool alreadyDefine=0);
     void SetStudyCaseDCGrid(std::string path, std::string name, int nBus, bool alreadyDefine);
-    virtual void setFromInterface(StudyCaseInterface interface);
+    virtual void setFromInterface(StudyCaseInterface* interface);
     
     // set Parametters
     void setLineLimitMin(float lineMin);

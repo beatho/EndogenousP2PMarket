@@ -247,7 +247,7 @@ void MatrixCPU::setSize(int l, int c)
 inline void MatrixCPU::set(int i, int j, float value)
 {
     if ((i >= _row) || (j >= _column) || (i < 0) || (j < 0)) {
-        std::cout << "err " << _row << " " << _column << " " << i << " " << j << std::endl;
+        std::cout << "err set" << _row << " " << _column << " " << i << " " << j << std::endl;
         throw std::out_of_range("index out of bounds, (set)");
     }
     _matrixCPU[i * _column + j] = value;

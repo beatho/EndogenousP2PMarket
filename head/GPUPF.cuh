@@ -54,6 +54,8 @@ public:
 	float getQ0();
 	float getTime();
 	int getConv();
+	MatrixCPU getE();
+	MatrixCPU getW();
 
 	void display();
 	virtual void display2(bool all);

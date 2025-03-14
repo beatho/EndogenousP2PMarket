@@ -49,6 +49,10 @@ public:
 	virtual int feasiblePoint();
 
 	void ComputePFromAgentToBus();
+	virtual MatrixCPU getPb();
+	virtual MatrixCPU getPhi();
+	virtual MatrixCPU getE();
+
 
 	void display();
 private:

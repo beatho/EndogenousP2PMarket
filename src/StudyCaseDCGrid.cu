@@ -741,17 +741,17 @@ void StudyCaseDCGrid::SetStudyCaseDCGrid(std::string path, std::string name, int
 	//_timeInit = (float)t / CLOCKS_PER_SEC;
 }
 
-void StudyCaseDCGrid::setFromInterface(StudyCaseInterface interface){
+void StudyCaseDCGrid::setFromInterface(StudyCaseInterface* interface){
 	clock_t t = clock();
 
-	_name = interface.getName();
+	_name = interface->getName();
 	
-	MatrixCPU infoCase = interface.getInfoCase();
+	MatrixCPU infoCase = interface->getInfoCase();
 	_Sbase = infoCase.get(0, Sbase_ind);
 
 	// grid 
-	_nBus = interface.getB(); //_nBus = _nCons;
-	_nLine = interface.getL();
+	_nBus = interface->getB(); //_nBus = _nCons;
+	_nLine = interface->getL();
 	//std::cout << "nb de ligne " <<  _nLine << std::endl;
 	_LineImpedance = MatrixCPU(_nLine, _nLine); // B
 	_CoresBusLine = MatrixCPU(_nBus, _nLine); // C
@@ -762,8 +762,8 @@ void StudyCaseDCGrid::setFromInterface(StudyCaseInterface interface){
 	
 	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	
-	MatrixCPU branchCase = interface.getBranchCase();
-	MatrixCPU busCase    = interface.getBusCase();
+	MatrixCPU branchCase = interface->getBranchCase();
+	MatrixCPU busCase    = interface->getBusCase();
 
 	_nLineConstraint = 0;
 	for (int i = 0; i < _nLine; i++) {

@@ -133,7 +133,9 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
+			
 			resG = updateResBis(&resF, (_iterGlobal / _stepG), &tempNN);
+			
 			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, _iterGlobal / _stepG) << " " << resF.get(1, _iterGlobal / _stepG) << std::endl;
 #ifdef INSTRUMENTATION
 			t2 = std::chrono::high_resolution_clock::now();
@@ -498,7 +500,7 @@ void ADMMMarket::updateLocalProb() {
 		}
 		Tmoy.set(i, 0, m / nVoisinLocal);
 	}
-
+	
 	
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
@@ -510,6 +512,7 @@ void ADMMMarket::updateLocalProb() {
 	updateBp1();
 	updateP();
 	updateMU();
+	
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
 	timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());

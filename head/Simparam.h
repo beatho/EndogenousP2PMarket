@@ -1,5 +1,6 @@
 #pragma once
 #include "MatrixCPU.h"
+#include "ParamInterface.h"
 #include <iostream>
 #include <string>
 
@@ -29,6 +30,8 @@ public:
 	void reset(int oldN=0, int oldL=0, bool AC = false);
 
 	Simparam& operator= (const Simparam& sim);
+	void setFromInterface(ParamInterface* param, bool AC);
+	void convertToResultInterface(ResultInterface* res);
 	~Simparam();
 	
 	// getter
@@ -59,8 +62,11 @@ public:
 	MatrixCPU getLambda() const;
 	MatrixCPU getRes() const;
 	MatrixCPU getPn() const;
-	MatrixCPU getDelta1();
-	MatrixCPU getDelta2();
+	MatrixCPU getDelta1() const;
+	MatrixCPU getDelta2() const;
+	MatrixCPU getPb() const;
+	MatrixCPU getPhi() const;
+	MatrixCPU getE() const;
 
 	float getTime() const;
 	MatrixCPU getMU() const;
@@ -80,6 +86,9 @@ public:
 	void setPn(MatrixCPU* m);
 	void setDelta1(MatrixCPU* delta1);
 	void setDelta2(MatrixCPU* delta2);
+	void setPb(MatrixCPU* Pb);
+	void setPhi(MatrixCPU* Phi);
+	void setE(MatrixCPU* E);
 	void setIter(int c);
 	void setTime(float f);
 	void setTimeBloc(MatrixCPU* time, MatrixCPU* occurrence);
@@ -105,6 +114,7 @@ public:
 	void displayTime(std::string fileName = "SimulationFB.csv") const;
 
 private:
+	/* Param */
 	float _rho;
 	float _rho1;
 	int _iterMaxGlobal;
@@ -119,22 +129,35 @@ private:
 	float _epsIntern;
 	int _nAgent;
 	int _nLine;
+	int _nLineConst = 0;
+	int _nBus;
+	/* Result Market*/
 	MatrixCPU _LAMBDA;
 	MatrixCPU _trade;
 	MatrixCPU _tradeSym;
-	MatrixCPU _Pn;
-	MatrixCPU _resF;
+	MatrixCPU _MU;
+	float _fcSym;
+	/*Result DC-Endo*/
 	MatrixCPU _delta1;
 	MatrixCPU _delta2;
+
+	/*Result OPF and PF*/
+	MatrixCPU _Pb;
+	MatrixCPU _Phi;
+	MatrixCPU _E;
+
+	/* Result All */
 	int _iter;
 	int _iterLocalTotal;
 	float _time;
-	MatrixCPU _MU;
+	MatrixCPU _Pn;
+	MatrixCPU _resF;
+	
 	float _fc;
-	float _fcSym;
+	
 	MatrixCPU timePerBlock; // Fb0, Fb1abc, Fb2, Fb3, Fb4, Fb5, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	MatrixCPU occurencePerBlock; //nb de fois utilisé pendant la simu
+	MatrixCPU occurencePerBlock; //nb de fois utilisï¿½ pendant la simu
 
 };
 

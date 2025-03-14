@@ -971,9 +971,30 @@ int CPUPF::getConv()
 MatrixCPU CPUPF::getE()
 {
     if (_useDouble) {
+        if(ED.max2()==0){
+            calcE();
+        }
         E = ED;
     }
+    if(E.max2()==0){
+        calcE();
+    }
+    
     return E;
+}
+MatrixCPU CPUPF::getW()
+{
+    if (_useDouble) {
+        if (WD.get(0,0)== 0)
+        {
+           calcW(true);
+        }
+        W = WD;
+    }
+    if(W.get(0,0)== 0){
+        calcW(true);
+    }
+    return W;
 }
 
 MatrixCPU CPUPF::getY()

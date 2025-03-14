@@ -31,7 +31,7 @@ StudyCaseInterface::StudyCaseInterface(int N, int B, int L){
         busCase.set(i, Vinit_ind, 1);
         busCase.set(i, thetainit_ind, 0);
     }
-
+    
 }
 
 void StudyCaseInterface::setSbase(float Sbase){
@@ -166,6 +166,11 @@ void StudyCaseInterface::setMatImpedance(MatrixCPU Gs, MatrixCPU Bs){
     Bmat = Bs;
 }
 
+void StudyCaseInterface::setBeta(MatrixCPU beta){
+    betaDefined = true;
+    Beta = beta;
+}
+
 int StudyCaseInterface::getN(){return _N;}
 int StudyCaseInterface::getB(){return _B;}
 int StudyCaseInterface::getL(){return _L;};
@@ -173,6 +178,7 @@ int StudyCaseInterface::getL(){return _L;};
 bool StudyCaseInterface::isConnexionDefined(){return connexionDefined;}
 bool StudyCaseInterface::isTradeBoundDefined(){return tradeBoundDefined;}
 bool StudyCaseInterface::isImpedanceDefined(){return impendanceDefined;}
+bool StudyCaseInterface::isBetaDefined(){return betaDefined;}  
 
 MatrixCPU StudyCaseInterface::getInfoCase()
 {
@@ -210,6 +216,8 @@ MatrixCPU StudyCaseInterface::getBmat()
 {
     return Bmat;
 }
+MatrixCPU StudyCaseInterface::getBeta(){return Beta;}
+
 std::string StudyCaseInterface::getName() { return _name; }
 void StudyCaseInterface::display(int type)
 {
@@ -262,28 +270,30 @@ void StudyCaseInterface::checkCase()
     int nGen  = 0; 
 
     int n=0;
-    indAgent indPmax = Pmax_ind;
-    indAgent indPmin = Pmin_ind;
+    
     indInfo indnCons = nCons_ind;
     indInfo indnGen = nGen_ind;
     
-    while(agentCase.get(n, indPmax) < 0){ // consumers
+    while(n< _N && agentCase.get(n, Pmax_ind) <= 0 ){ // consumers
         nCons++;
         n++;
+        
     }
-   
-    while(agentCase.get(n,indPmin) > 0){ // generators
+    
+    while(n <_N && agentCase.get(n,Pmin_ind) >= 0){ // generators
         nGen++;
         n++;
+        
     }
-    infoCase.set(0, indnCons, nCons);
-    infoCase.set(0, indnGen, nGen);
-    if(n!=(_N-1)){ // error or prosumers
+    //std::cout << "Checkcase nCons " << nCons << " nGen " << nGen <<std::endl;
+    infoCase.set(0, nCons_ind, nCons);
+    infoCase.set(0, nGen_ind, nGen);
+    if(n!=_N){ // error or prosumers
         // prosumers => Pmin<0, Pmax >0
         // community => Pmin=Pmax=0
         // else erreur
         for(int i=n; i<_N; i++){
-            if(agentCase.get(i,indPmin)>0 || agentCase.get(i,indPmax)<0){ // consumer or generator
+            if(agentCase.get(i,Pmin_ind)>0 || agentCase.get(i, Pmax_ind)<0){ // consumer or generator
                 std::cout << "[WARNING] : the agents doest not respect a valide order, unexpected result can occur" << std::endl;
                 std::cout << "Order must be consumers, generator, other" << std::endl;
                 return;

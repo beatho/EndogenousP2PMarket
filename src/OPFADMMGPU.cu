@@ -282,8 +282,16 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	result->setIter(_iterGlobal);
 	MatrixCPU PnCPU;
 	Pn.toMatCPU(PnCPU);
-
 	result->setPn(&PnCPU);
+	
+	MatrixCPU Pb(getPb());
+	MatrixCPU Phi(getPhi());
+	MatrixCPU E(getE());
+	
+	result->setE(&E);
+	result->setPhi(&Phi);
+	result->setPb(&Pb);
+	
 
 	result->setFc(fc);
 
@@ -1033,6 +1041,67 @@ int OPFADMMGPU::feasiblePoint()
 	return counter;
 }
 
+MatrixCPU OPFADMMGPU::getPb(){
+	bool transferToDo = false;
+	if(Y.getPos()){
+		Y.transferCPU();
+		_indiceBusBegin.transferCPU();
+		transferToDo = true;
+	}
+	MatrixCPU Pb(2*_nBus, 1);
+	
+	for (int i = 0; i <_nBus; i++)
+	{
+		Pb.set(i,0, Y.get(_indiceBusBegin.get(i, 0) + 4, 0));
+		Pb.set(i + _nLine, 0, Y.get(_indiceBusBegin.get(i, 0) + 5, 0));
+	}
+	if(transferToDo){
+		Y.transferGPU();
+		_indiceBusBegin.transferGPU();
+	}
+	return Pb;
+}
+MatrixCPU OPFADMMGPU::getPhi(){
+	bool transferToDo = false;
+	if(Y.getPos()){
+		Y.transferCPU();
+		_indiceBusBegin.transferCPU();
+		transferToDo = true;
+	}
+	MatrixCPU Phi(2*_nLine, 1);
+	
+	for (int i = 0; i <_nLine; i++)
+	{
+		Phi.set(i,0, Y.get(_indiceBusBegin.get(i + 1,0) + 0, 0));
+		Phi.set(i + _nLine,0, Y.get(_indiceBusBegin.get(i + 1,0) + 1, 0));
+	}
+	if(transferToDo){
+		Y.transferGPU();
+		_indiceBusBegin.transferGPU();
+	}
+	return Phi;
+	
+}
+MatrixCPU OPFADMMGPU::getE(){
+	bool transferToDo = false;
+	if(Y.getPos()){
+		Y.transferCPU();
+		_indiceBusBegin.transferCPU();
+		transferToDo = true;
+	}
+	MatrixCPU E(2*_nBus, 1);
+	
+	for (int i = 0; i <_nBus; i++)
+	{
+		E.set(i,0, Y.get(_indiceBusBegin.get(i, 0) + 2, 0));
+		E.set(i + _nLine,0, Y.get(_indiceBusBegin.get(i, 0) + 3, 0));
+	}
+	if(transferToDo){
+		Y.transferGPU();
+		_indiceBusBegin.transferGPU();
+	}
+	return E;
+}
 
 
 
