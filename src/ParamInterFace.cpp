@@ -26,10 +26,10 @@ ParamInterface::ParamInterface(int N, int B, int L, int Lconst)
     _param.set(0, SbaseP_ind, 1);
     _param.set(0, VbaseP_ind, 1);
 
-    _lambda = MatrixCPU(2*N, N);
-    _trade  = MatrixCPU(2*N, N);
-    _Pn     = MatrixCPU(2*N, 1);
-    _MU     = MatrixCPU(2*N, 1);
+    _lambda = MatrixCPU(2*(N + 1), N + 1);
+    _trade  = MatrixCPU(2*(N + 1), N + 1);
+    _Pn     = MatrixCPU(2*(N + 1), 1);
+    _MU     = MatrixCPU(2*(N + 1), 1);
     _delta  = MatrixCPU(Lconst, 2);
 
 
@@ -198,8 +198,6 @@ void ResultInterface::setDual(MatrixCPU lambda, MatrixCPU MU){
     if(M == N){ // cas DC
         offset = 1;
     }
-
-
     for(int i = 0; i <M ; i++){
         _MU.set(i + offset, 0, MU.get(i,0));
         for(int j=0; j<N; j++){

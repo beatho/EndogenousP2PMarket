@@ -352,13 +352,17 @@ void Simparam::setFromInterface(ParamInterface* param, bool AC){
 		for(int i = 0; i < _nAgent; i++){
 			for (int j = 0; j < _nAgent; j++)
 			{
-				_LAMBDA.set(i,j, lambdaBis.get(i,j));
-				_trade.set(i,j,tradeBis.get(i,j));
+				_LAMBDA.set(i, j, lambdaBis.get(i + 1, j + 1));
+				_trade.set(i, j, tradeBis.get(i + 1, j + 1));
 			}
-			_Pn.set(i, 0, PnBis.get(i,0));
-			_MU.set(i, 0, MuBis.get(i,0));
+			_Pn.set(i, 0, PnBis.get(i + 1,0));
+			_MU.set(i, 0, MuBis.get(i + 1,0));
 		}
 	}
+	/*std::cout << "Pn , Lambda Trade" << std::endl;
+	_Pn.display();
+	_LAMBDA.display();
+	_trade.display();*/
 
 
 	MatrixCPU delta = param->getDelta();

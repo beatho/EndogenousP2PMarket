@@ -193,6 +193,7 @@ extern "C"{
         int offsetParam = 6;
         int offsetRes = 9;
         int offsetAll = 13;
+        std::cout << std::endl;
         if(type==0){
             self->interfaceCase->display(type);
             self->paramInterface->display(type);
@@ -234,8 +235,6 @@ extern "C"{
             PyErr_SetString(PyExc_TypeError, "parameter must be two lists.");
             return NULL;
         }
-
-        
         n2 = PyList_Size(pList);
         int N = self->interfaceCase->getN();
         int N2 = N*N;
@@ -249,15 +248,15 @@ extern "C"{
             return NULL;
         }
         if(n2==N2){
-            MatrixCPU trade_mat = MatrixCPU(2*(N + 1), N);
-            MatrixCPU pn_mat = MatrixCPU(2*(N+1), 1);
+            MatrixCPU trade_mat = MatrixCPU(2*(N + 1), N + 1);
+            MatrixCPU pn_mat = MatrixCPU(2*(N + 1), 1);
             MatrixCPU trade_temp = convertListToMatrixCPUf(pList, N, N);
             MatrixCPU pn_temp = convertListToVectorCPUf(pList2);
             for(int i=0; i <N; i++){
                 for(int j=0; j<N; j++){
-                    trade_mat.set(i,j,trade_temp.get(i,j));
+                    trade_mat.set(i + 1, j + 1, trade_temp.get(i,j));
                 }
-                pn_mat.set(i,0, pn_temp.get(i,0));
+                pn_mat.set(i + 1, 0, pn_temp.get(i,0));
             }
 
             self->paramInterface->initProbleme(trade_mat, pn_mat);
@@ -291,8 +290,6 @@ extern "C"{
             PyErr_SetString(PyExc_TypeError, "parameter must be two lists.");
             return NULL;
         }
-
-        
         n2 = PyList_Size(pList);
         int N = self->interfaceCase->getN();
         int N2 = N*N;
