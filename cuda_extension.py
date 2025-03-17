@@ -17,22 +17,35 @@ class BuildCudaFiles(Command):
 	def run(self):
 		from pathlib import Path
 		Path("./build/cuda/obj").mkdir(exist_ok=True, parents=True)
-		out_ext = ".o"
+		extra_compiler_options = []
+		extra_linker_options = []
+		out_ext_o = ".o"
+		out_ext_lib = ".a"
 		print(sys.platform)
 		if sys.platform == "win32":
-			out_ext = ".obj"
+			out_ext_o = ".obj"
+			out_ext_lib = ".lib"
+		else:
+			extra_compiler_options += ["-std=c++14", "--compiler-options" , "-fPIC", "-rdc=true"]
+			extra_linker_options = ["-rdc=true"]
 		print("building CUDA files")
 		built = []
 		for root, _, files in os.walk("src"):
 			for file in files:
 				if file.endswith(".cu"):
 					in_path = os.path.join(root, file)
-					out_path = os.path.join("./build/cuda/obj", file.split(".cu")[0] + out_ext)
-					subprocess.run(["nvcc", in_path, "-o", out_path, "--device-c", "-I", get_paths()["include"]])
+					out_path = os.path.join("./build/cuda/obj", file.split(".cu")[0] + out_ext_o)
+					subprocess.run(["nvcc", "-O2", ] + extra_compiler_options + [ in_path, "-o", out_path, "--device-c", "-I", get_paths()["include"] ])
 					built.append(out_path)
-		print("performing dlink step")
-		subprocess.run(["nvcc","-dlink"] + built + [ "-o", "./build/cuda/dlink.obj" ])
-		subprocess.run(["nvcc","--lib" ] + built + [ "./build/cuda/dlink.obj" , "-o", "./build/cuda/dlink.lib" ])		
+		if sys.platform == "win32":
+			print("performing dlink step")
+			subprocess.run(["nvcc","-dlink"] + extra_linker_options + built + [ "-o", "./build/cuda/dlink" + out_ext_o ])
+			print("making a library")
+			subprocess.run(["nvcc","--lib" ] + extra_linker_options + built + [ "./build/cuda/dlink" + out_ext_o , "-o", "./build/cuda/dlink" + out_ext_lib ])
+		else:
+			print("making a shared library")
+			subprocess.run(["nvcc", "--shared", "-o", "./build/cuda/libdlink.so"] + built)
+
 		
 
 class CustomCUDABuild(build):
