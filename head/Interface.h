@@ -1036,7 +1036,9 @@ extern "C"{
 
     
     static PyObject* StudyCase_checkCase(CustomObject* self, PyObject* args){
-        self->interfaceCase->checkCase();
+        MatrixCPU sizes = self->paramInterface->getSize();
+        int nLinecons = sizes.get(0, nLineCons_ind);
+        self->interfaceCase->checkCase(nLinecons);
         Py_IncRef(Py_None);
         return Py_None;
     }

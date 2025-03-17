@@ -331,11 +331,7 @@ void StudyCaseDCGrid::genGridFromFile(std::string path, bool alreadyDefine)
 	else {
 
 		std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
-
-
 		std::string pathGrid = path + "Network.txt";
-
-		
 		std::string pathBus = path + "BusAgent.txt"; // corespondance entre les "idBus" du fichier et celui du code (exemple commence � 0 ou � 1)
 
 
@@ -773,7 +769,7 @@ void StudyCaseDCGrid::setFromInterface(StudyCaseInterface* interface){
 		
 		float limit = branchCase.get(i, lim_ind) / _Sbase;
 
-		_LineImpedance.set(i, i, react);
+		_LineImpedance.set(i, i, -react);
 		_CoresBusLine.set(nodeFrom, i, 1);
 		_CoresBusLine.set(nodeTo, i, -1);
 		_CoresLineBus.set(i, 0, nodeFrom);

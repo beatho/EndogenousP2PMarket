@@ -222,7 +222,7 @@ std::string StudyCaseInterface::getName() { return _name; }
 void StudyCaseInterface::display(int type)
 {
     std::cout << "Study Case of " << _N << " agent " << _B << " buses and " << _L << " lines" << std::endl;
-    checkCase();
+    checkCase(_L);
     std::cout << "**************************************************"<<std::endl << std::endl; 
     if(type == 0 || type == 1){
         std::cout << " Info StudyCase : Sbase, Vbase, nAgent, nCons, nGen, nBus, nLine, V0, theta0 " << std::endl;
@@ -264,7 +264,7 @@ void StudyCaseInterface::display(int type)
 
 }
 
-void StudyCaseInterface::checkCase()
+void StudyCaseInterface::checkCase(int nLineCons)
 {
     int nCons = 0;
     int nGen  = 0; 
@@ -300,6 +300,21 @@ void StudyCaseInterface::checkCase()
             }
         }
     }
+
+
+    if(nLineCons != _L){
+        int counter = 0;
+        for(int i=0; i<_L; i++){
+            float lim = branchCase.get(i, lim_ind);
+            if(lim>0){
+                counter++;
+            }
+        }
+        if(counter != nLineCons){
+            std::cout << "[WARNING] : the number of line constraint gived is not coherent with the line data" <<std::endl;
+        }
+    }
+
 }
 
 //  - taille 1 : Sbase, Vbase, nAgent, nCons, nGen, nBus, nLine, V0, theta0

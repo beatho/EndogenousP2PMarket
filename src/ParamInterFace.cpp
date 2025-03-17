@@ -74,9 +74,9 @@ void ParamInterface::initDual(MatrixCPU lambda, MatrixCPU MU){
     _MU = MU;
 }
 void ParamInterface::initDelta(MatrixCPU delta1, MatrixCPU delta2){
-    for(int i=0; i<_sizes.get(0,2); i++){
+    for(int i=0; i<_sizes.get(0, nLineCons_ind); i++){
         _delta.set(i, 0, delta1.get(i,0));
-        _delta.set(i, 0, delta2.get(i,0));
+        _delta.set(i, 1, delta2.get(i,0));
     }
 }
 
@@ -208,9 +208,9 @@ void ResultInterface::setDual(MatrixCPU lambda, MatrixCPU MU){
     //_lambda.display();
 }
 void ResultInterface::setDelta(MatrixCPU delta1, MatrixCPU delta2){
-    for(int i=0; i<_sizes.get(0,nLineP_ind); i++){
+    for(int i=0; i<_sizes.get(0,nLineCons_ind); i++){
         _delta.set(i, 0, delta1.get(i,0));
-        _delta.set(i, 0, delta2.get(i,0));
+        _delta.set(i, 1, delta2.get(i,0));
     }
 }
 void ResultInterface::changeIterStep(int iter, int step){
@@ -297,7 +297,7 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
         std::cout << "Agents' count : " << _sizes.get(0, nAgentP_ind) << std::endl;
         std::cout << "f_c : " << _results.get(0, fc_ind) << std::endl;
         std::cout << "iter : " << _results.get(0, iterF_ind) << std::endl;
-        std::cout << "Residuals : symetrie" << _results.get(0, resR_ind) << " convergence " << _results.get(0, resS_ind) << " grid " << _results.get(0, resX_ind) << std::endl;
+        std::cout << "Residuals : symetrie " << _results.get(0, resR_ind) << " convergence " << _results.get(0, resS_ind) << " grid " << _results.get(0, resX_ind) << std::endl;
         std::cout << "Computation time : " << _results.get(0, temps_ind) << std::endl;
         std::cout << std::endl << std::endl;
         std::cout << std::endl << std::endl;
@@ -383,7 +383,7 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
         std::cout << "Branches         " << _sizes.get(0, nLineP_ind) << std::endl;
         std::cout << "f_c : " << _results.get(0, fc_ind) << std::endl;
         std::cout << "iter : " << _results.get(0, iterF_ind) << std::endl;
-        std::cout << "Residuals : symetrie" << _results.get(0, resR_ind) << " convergence " << _results.get(0, resS_ind) << " grid " << _results.get(0, resX_ind) << std::endl;
+        std::cout << "Residuals : symetrie " << _results.get(0, resR_ind) << " convergence " << _results.get(0, resS_ind) << " grid " << _results.get(0, resX_ind) << std::endl;
         std::cout << "Computation time : " << _results.get(0, temps_ind) << std::endl;
         std::cout << std::endl << std::endl;
         std::cout << std::endl << std::endl;

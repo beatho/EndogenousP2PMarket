@@ -57,21 +57,24 @@ public:
 	const std::string sADMMMarketGPU = "ADMMGPU";
 
 	const std::string sADMMConst = "ADMMConst";
-	const std::string sADMMConst1 = "ADMMConst1";
+	const std::string sADMMConst1 = "DCEndoMarket"; //ADMMConst1
 	const std::string sADMMGPUConst1 = "ADMMGPUConst1";
 	const std::string sADMMGPUConst1T = "ADMMGPUConst1T";
 	const std::string sADMMGPUConst2 = "ADMMGPUConst2";
 	const std::string sADMMGPUConst3 = "ADMMGPUConst3";
-	const std::string sADMMGPUConst4 = "ADMMGPUConst4";
+	const std::string sADMMGPUConst4 = "DCEndoMarketGPU"; //ADMMGPUConst4
 	const std::string sADMMGPUConst5 = "ADMMGPUConst5";
+
 	const std::string sADMMGPUConstCons = "ADMMGPUConstCons";
 	const std::string sADMMGPUConstCons2 = "ADMMGPUConstCons2";
 	const std::string sADMMGPUConstCons3 = "ADMMGPUConstCons3";
 	const std::string sDCOPFOSQP = "DCOPFOSQP";
 	const std::string sADMMACConst1 = "ADMMACConst1";
+
 	const std::string sPAC = "PAC";
 	const std::string sPACConst = "PACConst";
 	const std::string sOSQPConst = "OSQPConst";
+
 	const std::string sOPFADMM = "OPFADMM";
 	const std::string sOPFADMMGPU = "OPFADMMGPU";
 	const std::string sOPFPDIPM = "OPFPDIPM";

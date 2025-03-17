@@ -99,7 +99,7 @@ class StudyCaseInterface{
         std::string getName();
 
         void display(int type=0);
-        void checkCase();
+        void checkCase(int nLineCons);
 
 };
 

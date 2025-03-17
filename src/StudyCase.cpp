@@ -635,7 +635,8 @@ void StudyCase::SetDCStudyCaseFromInterface(StudyCaseInterface* interface){
 	_nAgent = SCAg.getNagent();
 	_nLine = SCGrid->getNLine(true);
 	
-	genCoresBusAgent();
+	genCoresBusAgent(true);
+	computeSensiPower();
 	//display(0);
 	//std::cout << "Fin creation cas" << std::endl;
 }
@@ -662,7 +663,7 @@ void StudyCase::SetEuropeTestFeeder(std::string path, int typeOfAgentGen, int be
 
 
 	genCoresBusAgent();
-
+	computeSensiPower();
 
 }
 

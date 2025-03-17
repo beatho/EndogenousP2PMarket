@@ -2294,11 +2294,12 @@ MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface* interface, bool D
 	_Sbase = Info.get(0, Sbase_ind);
 	_AC = !DC;
 	int offset = 1 * (_AC);
+	int nLine = interface->getL();
 
 	_nAgent = Info.get(0, nAgent_ind) + offset; // + the loss agent
 	_nCons  = Info.get(0, nCons_ind)  + offset; // + the loss agent
 	if(_nCons < offset+1){
-		interface->checkCase();
+		interface->checkCase(nLine);
 		Info = interface->getInfoCase();
 		_nCons = Info.get(0, nCons_ind) + offset;
 	}

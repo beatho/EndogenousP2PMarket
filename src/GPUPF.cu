@@ -1734,9 +1734,9 @@ __global__ void calcWGPUD(double* W, double* W0, double* Pinter, double* Qinter,
         }
     }
     else {
-        for (int i = begin + thIdx; i < end; i += blockSize) {
-            sum += Pinter[i];
-            sum2 += Qinter[i];
+        for (int j = begin + thIdx; j < end; j += blockSize) {
+            sum += Pinter[j];
+            sum2 += Qinter[j];
         }
 
 
