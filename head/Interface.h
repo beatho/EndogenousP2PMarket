@@ -619,6 +619,11 @@ extern "C"{
 
             if(Vmin>Vmax){
                 PyErr_SetString(PyExc_ValueError, "Vmax must be greater than Vmin");
+                return NULL;
+            }
+            if(Vmin < 0){
+                PyErr_SetString(PyExc_ValueError, "Vmin must be positive");
+                return NULL;
             }
 
         }
