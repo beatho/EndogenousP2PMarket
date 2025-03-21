@@ -56,6 +56,9 @@ public:
 	
 	bool initWithMarketClear = true; //false
 	void display();
+	virtual MatrixCPU getPb();
+	virtual MatrixCPU getPhi();
+	virtual MatrixCPU getE();
 private:
 
 	// ne change pas avec P0

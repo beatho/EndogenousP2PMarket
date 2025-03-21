@@ -314,11 +314,15 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 	Bt1.display();
 	Ct.display();*/
 	result->setIter(_iterGlobal);
-	
-
 	result->setPn(&Pn);
-	
 	result->setFc(fc);
+	MatrixCPU Pb(getPb());
+	MatrixCPU Phi(getPhi());
+	MatrixCPU E(getE());
+	
+	result->setE(&E);
+	result->setPhi(&Phi);
+	result->setPb(&Pb);
 
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
@@ -2381,19 +2385,53 @@ void MarketEndoDirect::updateMU()
 
 // autre
 
-void MarketEndoDirect::display() {
-
-	std::cout.precision(3);
+void MarketEndoDirect::computePb(){
 	Pb.set(0.0);
 	for (int i = 0; i < _nBus; i++) {
 		int Nb = _nAgentByBus.get(i, 0);
 		int begin = _CoresAgentBusBegin.get(i, 0);
 		for (int In = 0; In < Nb; In++) {
 			int n = _CoresAgentBus.get(In + begin, 0);
+			PosAgent.set(n, 0, In);
 			Pb.increment(i, 0, Pn.get(n, 0));
 			Pb.increment(i + _nBus, 0, Pn.get(n + _nAgentTrue, 0));
 		}
 	}
+
+}
+
+
+MatrixCPU MarketEndoDirect::getPb(){
+	computePb();
+	return Pb;
+	
+}
+MatrixCPU MarketEndoDirect::getPhi(){
+	MatrixCPU Phi(2*_nLine, 1);
+	for (int i = 0; i < _nLine; i++)
+	{
+		Phi.set(i, 0, Y[i + 1].get(0,0));
+		Phi.set(i + _nLine, 0, Y[i + 1].get(1,0));
+	}
+	return Phi;
+}
+MatrixCPU MarketEndoDirect::getE(){
+	MatrixCPU E(2*_nBus, 1);
+	for (int i = 0; i < _nBus; i++)
+	{
+		E.set(i, 0, Y[i].get(3,0)); // li
+		E.set(i + _nBus, 0, Y[i].get(2,0)); //vi
+	}
+	return E;
+}
+
+
+
+
+void MarketEndoDirect::display() {
+
+	std::cout.precision(3);
+	computePb();
 
 
 

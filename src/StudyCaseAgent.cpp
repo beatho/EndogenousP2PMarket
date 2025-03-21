@@ -2621,6 +2621,20 @@ MatrixCPUD StudyCaseAgent::getPobjD()
 	return _PobjD;
 }
 
+MatrixCPU StudyCaseAgent::getPobjConst() const
+{
+	MatrixCPU Pobj = _Pobj;
+	MatrixCPU Pmax = _Pmax;
+	if (Pobj.getNCol() == 0 || Pobj.max2() == 0) {
+		Pobj = _Pmin;
+		Pobj.add(&Pmax);
+		Pobj.multiply(0.5);
+	}
+	
+	return Pobj;
+}
+
+
 MatrixCPU StudyCaseAgent::getGenBus() const
 {
 	return GenBus;
@@ -2844,7 +2858,7 @@ void StudyCaseAgent::saveCSV(const std::string& fileName, bool all)
 
 }
 
-void StudyCaseAgent::display(int type) 
+void StudyCaseAgent::display(int type) const
 {
 	
 	std::cout << "Study Case : " << _nAgent << " agents and modelisation is " << (_AC ? "AC":"DC") << std::endl;
@@ -2863,7 +2877,7 @@ void StudyCaseAgent::display(int type)
 	std::cout << " Peers count :" << std::endl;
 	_nVoisin.display();
 	std::cout << "Pobj" << std::endl;
-	(getPobj()).display();
+	(getPobjConst()).display();
 	if (type == 1) {
 		std::cout << " connection :" << std::endl;
 		_connect.display();

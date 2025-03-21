@@ -220,7 +220,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 	
 
 	//setPnFromX << < _nBus, _blockSizeSmall >> > (Pn._matrixGPU, X._matrixGPU, _indiceBusBegin._matrixGPU, _CoresAgentBus._matrixGPU, _nAgentByBus._matrixGPU, _CoresAgentBusBegin._matrixGPU, _nAgent);
-
+	ComputePFromAgentToBus();
 
 	MatrixCPU tradeLinCPU;
 	TradeLin.toMatCPU(tradeLinCPU);
@@ -2099,6 +2099,55 @@ void MarketEndoDirectGPU::updateBp2()
 }
 
 // autre
+MatrixCPU MarketEndoDirectGPU::getPb(){
+	MatrixCPU PbCPU;
+	Pb.toMatCPU(PbCPU);
+	return PbCPU;
+}
+MatrixCPU MarketEndoDirectGPU::getPhi(){
+	bool transferToDo = false;
+	if(Y.getPos()){
+		Y.transferCPU();
+		_indiceBusBegin.transferCPU();
+		transferToDo = true;
+	}
+	MatrixCPU Phi(2*_nLine, 1);
+	
+	for (int i = 0; i <_nLine; i++)
+	{
+		Phi.set(i,0, Y.get(_indiceBusBegin.get(i + 1,0) + 0, 0));
+		Phi.set(i + _nLine,0, Y.get(_indiceBusBegin.get(i + 1,0) + 1, 0));
+	}
+	if(transferToDo){
+		Y.transferGPU();
+		_indiceBusBegin.transferGPU();
+	}
+	return Phi;
+}
+MatrixCPU MarketEndoDirectGPU::getE(){
+	bool transferToDo = false;
+	if(Y.getPos()){
+		Y.transferCPU();
+		_indiceBusBegin.transferCPU();
+		transferToDo = true;
+	}
+	MatrixCPU E(2*_nBus, 1);
+	
+	for (int i = 0; i <_nBus; i++)
+	{
+		E.set(i,0, Y.get(_indiceBusBegin.get(i, 0) + 2, 0));
+		E.set(i + _nLine,0, Y.get(_indiceBusBegin.get(i, 0) + 3, 0));
+	}
+	if(transferToDo){
+		Y.transferGPU();
+		_indiceBusBegin.transferGPU();
+	}
+	return E;
+}
+
+
+
+
 
 void MarketEndoDirectGPU::display() {
 

@@ -56,7 +56,14 @@ public:
 	void updatePMarket(); // suite de updateX
 	float calcRes();
 	bool initWithMarketClear = true;
+
+
 	void display();
+	void computePb();
+	virtual MatrixCPU getPb();
+	virtual MatrixCPU getPhi();
+	virtual MatrixCPU getE();
+
 private:
 	float DFSP(int j); // recursive fonction to initialize
 	float DFSQ(int j); // P and Q flows

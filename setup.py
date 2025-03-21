@@ -37,7 +37,7 @@ cuda_ext = Extension(
 	library_dirs=[os.environ["CUDA_PATH"] + "/lib/x64", "./build/cuda/"] + optional_library_dirs,
 	sources=list(map(lambda x: str(cuda_ext_path / x), os.listdir("src"))),
 	libraries=["cudart_static"] + optional_libraries,  # Use fix_dll() only for Windows compatibility (check documentation for more info).
-	extra_compile_args=["O2"] + extra_compiler_options, #
+	extra_compile_args=["-O2"] + extra_compiler_options, #
 	 extra_link_args=[] + extra_linker_options,
 )
 

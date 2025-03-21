@@ -38,39 +38,55 @@ Simparam::Simparam()
 Simparam::Simparam(const Simparam& sim)
 {
 	_rho = sim._rho;
+	_rho1 = sim._rho1;
+
+	_iter = sim._iter;
 	_iterMaxGlobal = sim._iterMaxGlobal;
 	_iterMaxLocal = sim._iterMaxLocal;
+	_iterLocalTotal = sim._iterLocalTotal;
+	_iterIntern = sim._iterIntern;
+
 	_epsGlobal = sim._epsGlobal;
 	_epsGlobalConst = sim._epsGlobalConst;
 	_epsLocal = sim._epsLocal;
+	_epsIntern = sim._epsIntern;
+
+	_stepIntern = sim._stepIntern;
+	_stepG = sim._stepG;
+	_stepL = sim._stepL;
+
 	_nAgent = sim._nAgent;
 	_nLine = sim._nLine;
-	_stepL = sim._stepL;
-	_stepG = sim._stepG;
-	_iter = sim._iter;
+	_nLineConst = sim._nLineConst;
+	_nBus = sim._nBus;
+
+	_AC = sim._AC;
+	
+
 	_time = sim._time;
 	_fc = sim._fc;
 	_fcSym = sim._fcSym;
-	_iterLocalTotal = sim._iterLocalTotal;
-	_rho1 = sim._rho1;
+
 	_lineLimitMin = sim._lineLimitMin;
 	_warmstart = sim._warmstart;
-	_AC = sim._AC;
+	offsetConstraint = sim.offsetConstraint;
 
-	_iterIntern = sim._iterIntern;
-	_epsIntern = sim._epsIntern;
-	_stepIntern = sim._stepIntern;
+	_LAMBDA = sim._LAMBDA;
+	_MU = sim._MU;
+	_delta1 = sim._delta1;
+	_delta2 = sim._delta2;
 
-
-	_LAMBDA = MatrixCPU(sim._LAMBDA);
-	_trade = MatrixCPU(sim._trade);
-	_tradeSym = MatrixCPU(sim._tradeSym);
-	_Pn = MatrixCPU(sim._Pn);
-	_resF = MatrixCPU(sim._resF);
-	_MU = MatrixCPU(sim._MU);
-	_delta1 = MatrixCPU(sim._delta1);
-	_delta2 = MatrixCPU(sim._delta2);
-
+	_trade = sim._trade;
+	_tradeSym = sim._tradeSym;
+	_Pn = sim._Pn;
+	_resF = sim._resF;
+	
+	_Pb = sim._Pb;
+	_Phi = sim._Phi;
+	_E = sim._E;
+	
+	timePerBlock = sim.timePerBlock; 
+	occurencePerBlock = sim.occurencePerBlock; 
 }
 
 
@@ -270,39 +286,57 @@ Simparam& Simparam::operator=(const Simparam& sim)
 #if DEBUG_CONSTRUCTOR
 	std::cout << "operateur =" << std::endl;
 #endif // DEBUG_CONSTRUCTOR
+
 	_rho = sim._rho;
+	_rho1 = sim._rho1;
+
+	_iter = sim._iter;
 	_iterMaxGlobal = sim._iterMaxGlobal;
 	_iterMaxLocal = sim._iterMaxLocal;
+	_iterLocalTotal = sim._iterLocalTotal;
+	_iterIntern = sim._iterIntern;
+
 	_epsGlobal = sim._epsGlobal;
 	_epsGlobalConst = sim._epsGlobalConst;
 	_epsLocal = sim._epsLocal;
+	_epsIntern = sim._epsIntern;
+
+	_stepIntern = sim._stepIntern;
+	_stepG = sim._stepG;
+	_stepL = sim._stepL;
+
 	_nAgent = sim._nAgent;
 	_nLine = sim._nLine;
+	_nLineConst = sim._nLineConst;
+	_nBus = sim._nBus;
+
 	_AC = sim._AC;
 
 
-	_iterIntern = sim._iterIntern;
-	_epsIntern = sim._epsIntern;
-	_stepIntern = sim._stepIntern;
-
-    _iter = sim._iter;
-	_iterLocalTotal = sim._iterLocalTotal;
 	_time = sim._time;
 	_fc = sim._fc;
 	_fcSym = sim._fcSym;
 
 	_lineLimitMin = sim._lineLimitMin;
 	_warmstart = sim._warmstart;
+	offsetConstraint = sim.offsetConstraint;
 
-	_LAMBDA = MatrixCPU(sim._LAMBDA);
-	_trade = MatrixCPU(sim._trade);
-	_tradeSym = MatrixCPU(sim._tradeSym);
-	_Pn = MatrixCPU(sim._Pn);
-	_resF = MatrixCPU(sim._resF);
-	_MU = MatrixCPU(sim._MU);
-	_delta1 = MatrixCPU(sim._delta1);
-	_delta2 = MatrixCPU(sim._delta2);
+	_LAMBDA = sim._LAMBDA;
+	_MU = sim._MU;
+	_delta1 = sim._delta1;
+	_delta2 = sim._delta2;
+
+	_trade = sim._trade;
+	_tradeSym = sim._tradeSym;
+	_Pn = sim._Pn;
+	_resF = sim._resF;
 	
+	_Pb = sim._Pb;
+	_Phi = sim._Phi;
+	_E = sim._E;
+	
+	timePerBlock = sim.timePerBlock; 
+	occurencePerBlock = sim.occurencePerBlock; 
 
 
 	return *this;
@@ -329,7 +363,7 @@ void Simparam::setFromInterface(ParamInterface* param, bool AC){
 	_resF = MatrixCPU(3, (_iterMaxGlobal/_stepG)+1);
 
 	MatrixCPU sizes(param->getSize());
-	_nAgent = sizes.get(0, nAgentP_ind);
+	_nAgent = sizes.get(0, nAgentP_ind) + 1 *(AC);
 	_nBus	= sizes.get(0, nBusP_ind);
 	_nLine  = sizes.get(0, nLineP_ind);
 	_nLineConst = sizes.get(0, nLineCons_ind);
@@ -364,6 +398,8 @@ void Simparam::setFromInterface(ParamInterface* param, bool AC){
 	_LAMBDA.display();
 	_trade.display();*/
 
+	_delta1 = MatrixCPU(_nLineConst, 1);
+	_delta2 = MatrixCPU(_nLineConst, 1);
 
 	MatrixCPU delta = param->getDelta();
 	for(int i=0; i<_nLineConst;i++){
@@ -380,6 +416,8 @@ void Simparam::convertToResultInterface(ResultInterface* res){
 	res->setProbleme(_trade, _Pn);
 	res->setDual(_LAMBDA, _MU);
 	res->setDelta(_delta1, _delta2);
+	
+	res->setvarPhysic(_Pb, _Phi, _E);
 	//std::cout << "recuperation resultat" << std::endl;
 }
 
@@ -772,10 +810,14 @@ void Simparam::display(int type) const
 		std::cout << "Residuals : " << _resF.get(0, (_iter - 1)/_stepG) << " " << _resF.get(1, (_iter - 1) / _stepG) << " " << _resF.get(2, (_iter - 1) / _stepG) << std::endl;
 		std::cout << "computation time " << _time << std::endl;
 		
-		std::cout << "Trades : " << std::endl;
-		_trade.display();
-		std::cout << "LAMBDA : " << std::endl;
-		_LAMBDA.display();
+		if(_nAgent<10)
+		{
+			std::cout << "Trades : " << std::endl;
+			_trade.display();
+			std::cout << "LAMBDA : " << std::endl;
+			_LAMBDA.display();
+		}
+		
 		std::cout << "delta1 : " << std::endl;
 		_delta1.display();
 		std::cout << "delta2 : " << std::endl;

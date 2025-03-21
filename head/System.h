@@ -8,6 +8,9 @@
 #include "ADMMMarket.h"
 #include "ADMMMarketOpenMP.h"
 
+/* Endogenous Market*/
+#include "MarEndoCons.h"
+#include "MarketEndoDirect.h"
 
 /* OPF */
 #include "MethodOPF.h"
@@ -44,7 +47,7 @@ public:
 	System();
 	System(float rho, int iterMaxGlobal, int iterMaxLocal, float epsGlobal, float epsLocal, std::string nameMethode, int nAgent, float P = 0, float dP = 0, float a = 0, float da = 0, float b = 0, float db = 0);
 	~System();
-	
+	// PF
 	const std::string sNR 	     = "NR";
 	const std::string sGS        = "GS";
 	const std::string sDistPQ    = "DistPQ";
@@ -52,9 +55,11 @@ public:
 	const std::string sGSGPU     = "GSGPU";
 	const std::string sDistPQGPU = "DistPQGPU";
 
+	// Market
 	const std::string sADMMMarket 	 = "ADMM";
 	const std::string sADMMMarketMP  = "ADMMMP";
 	const std::string sADMMMarketGPU = "ADMMGPU";
+	const std::string sPAC = "PAC";
 
 	const std::string sADMMConst = "ADMMConst";
 	const std::string sADMMConst1 = "DCEndoMarket"; //ADMMConst1
@@ -71,13 +76,21 @@ public:
 	const std::string sDCOPFOSQP = "DCOPFOSQP";
 	const std::string sADMMACConst1 = "ADMMACConst1";
 
-	const std::string sPAC = "PAC";
 	const std::string sPACConst = "PACConst";
 	const std::string sOSQPConst = "OSQPConst";
 
+	// OPF
 	const std::string sOPFADMM = "OPFADMM";
 	const std::string sOPFADMMGPU = "OPFADMMGPU";
-	const std::string sOPFPDIPM = "OPFPDIPM";
+	const std::string sOPFADMM2 = "OPFADMM2";
+	const std::string sOPFADMMGPU2 = "OPFADMMGPU2";
+
+	// EndoMarket
+	const std::string sEndoMarketDirect = "EndoMarketDirect";
+	const std::string sEndoMarketDirectGPU = "EndoMarketDirectGPU";
+	const std::string sEndoMarketCons = "EndoMarketCons";
+	const std::string sEndoMarketConsGPU = "EndoMarketConsGPU";
+
 	Simparam solve();
 	Simparam solvePF(); // on pourra rajouter des paramètres
 	ResultInterface* solve(ResultInterface* res, ParamInterface* param, StudyCaseInterface* caseInter, bool AC);

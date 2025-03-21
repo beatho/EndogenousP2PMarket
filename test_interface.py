@@ -466,6 +466,106 @@ class TestInterfaceMethod(unittest.TestCase):
             for i in range(2*(2+1)*(2+1)):
                 self.assertAlmostEqual(Trade[i], TradeExpected[i], 4)
 
+    def test_solveOPF(self):
+        N = 11
+        test = EndoCuda.interface(N, 10, 9)
+        self.setAgentCase10ba(test)
+        self.setGridCase10ba(test)
+        test.setSbase(10)
+        test.setVbase(23)
+        #test.display(1)
+        test.setIter(1000,1000)
+        test.setStep(1, 5)
+        test.setEps(0.001, 0.0001)
+        test.setRho(1)
+        PnExpected = [0, -0.177087, -0.0911295, -0.172175, -0.153039, -0.154113, -0.0711774, -0.108034, -0.0906724, -0.156386, 1.24373, 0, 0, -0.0470297, -0.0350324, -0.0456224, -0.185028, 
+-0.0609725, -0.01155, -0.0063, -0.01365, -0.0208353, 0.417576, 0.102623]
+        #test.display(7)
+        methodes = ["OPFADMM", "OPFADMM2", "OPFADMMGPU", "OPFADMMGPU2"]
+        for methode in methodes :
+            EndoCuda.solveACFromInterface(test, methode)
+            #test.display(13)
+            res = test.getResults()
+            Pn = test.getPn()
+            for i in range(len(Pn)):
+                self.assertAlmostEqual(Pn[i], PnExpected[i], 2)
+                print("{0:g} ".format(Pn[i]), end="")
+            print("\n", res)
+            print("***************************************")
+       
+        #EndoCuda.solveACFromFile("case10ba","OPFADMM")
+
+    def test_solveACEndoMarket(self):
+        N = 11
+        test = EndoCuda.interface(N, 10, 9)
+        self.setAgentCase10ba(test)
+        self.setGridCase10ba(test)
+        test.setSbase(10)
+        test.setVbase(23)
+        #test.display(1)
+        test.setIter(10000,5000, 5000)
+        test.setStep(1, 1, 1)
+        test.setEps(0.001, 0.0001, 0.001, 0.0001)
+        #test.setRho(10)
+        PnExpected = [-0.0682349, -0.178785, -0.0926228, -0.172995, -0.153318, -0.153767, -0.0704824, -0.107069, -0.089416, -0.15496,
+             1.24178, 0, -0.0913371, -0.0479741, -0.0357, -0.0460836, -0.185217, -0.0609629, -0.01155, -0.0063, -0.0136173, -0.0205507, 0.4165, 0.101547]
+        test.display(7)
+        methodes = ["EndoMarketCons", "EndoMarketDirect", "EndoMarketConsGPU", "EndoMarketDirectGPU"]
+        for methode in methodes :
+            EndoCuda.solveACFromInterface(test, methode)
+            #test.display(13)
+            res = test.getResults()
+            Pn = test.getPn()
+            for i in range(len(Pn)):
+                self.assertAlmostEqual(Pn[i], PnExpected[i], 2)
+                print("{0:g} ".format(Pn[i]), end="")
+            print("\n", res)
+            print("***************************************")
+       
+        #EndoCuda.solveACFromFile("case10ba","OPFADMM")
+        
+    def setAgentCase10ba(self, interface):
+        N = 11
+        PosBus = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0]
+        Cost_a = [0.1 for i in range(2*N)]
+        Cost_b = [0.184, 0.098, 0.179, 0.1598, 0.161, 0.078, 0.115, 0.098, 0.164, -1.2368, 20]
+        Pobj   = [-1.84, -0.98, -1.79, -1.598, -1.61, -0.78, -1.15, -0.98, -1.64, 12.368, 0]
+        Pmin   = [-2.208, -1.176, -2.148, -1.9176, -1.932, -0.936, -1.38, -1.176, -1.968, 9.8944, 0]
+        Pmax   = [-1.472, -0.784, -1.432, -1.2784, -1.288, -0.624, -0.92, -0.784, -1.312, 14.84, 10]
+        Qobj   = [-0.46, -0.34, -0.446, -1.84, -0.6, -0.11, -0.06, -0.13, -0.2, 4.186, 1.03647441139584]
+        Qmin   = [-0.483, -0.357, -0.4683, -1.932, -0.63, -0.1155, -0.063, -0.1365, -0.21, 3.9767, -10]
+        Qmax   = [-0.437, -0.323, -0.4237, -1.748, -0.57, -0.1045, -0.057, -0.1235, -0.19, 4.3953, 10]
+        for i in range(N):
+            Cost_b.append(-0.1*Qobj[i])
+            Pobj.append(Qobj[i])
+            Pmin.append(Qmin[i])
+            Pmax.append(Qmax[i])
+        interface.setPosBus(PosBus)
+        interface.setCostFunction(Cost_a, Cost_b)
+        interface.setPower(Pmin, Pmax, Pobj)
+    def setGridCase10ba(self, interface):
+        B = 10
+        Vmin = [1, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.8, 0.8, 0.8]
+        Vmax = [1.1 for i in range(B)]
+        Vmax[0] = 1
+
+        From = [ i for i in range(B-1)]
+        To   = [ (i+1) for i in range(B-1)]
+        YRe = [35.1575196289778, 2.02160816882563, 19.651315209743, 43.0642207686485, 15.1657701044738, 33.2235613793964, 19.488275265677, 8.35226725110039, 7.49557705154355 ]
+        Yim = [-117.6764667549, -87.3767930683134, -31.7296460240401, -37.5147077829979, -13.2118321983202, -28.940793663749, -11.0375400979214, -4.73062328821735,  -4.24535209581753]
+        Yp  = [0 for i in range(B-1)]
+        ZRe = [ 0.00233081285444234, 0.000264650283553875,  0.0141077504725898, 0.0132022684310019, 0.0374877126654064, 0.0171134215500945, 0.0388506616257089,  0.090648393194707, 0.101009451795841 ]
+        ZsIm = [0.00780151228733459, 0.0114385633270321, 0.0227788279773157, 0.0115009451795841, 0.0326578449905482, 0.0149073724007561, 0.0220037807183365, 0.0513421550094518, 0.0572098298676749]
+        interface.setLink(From, To)
+        interface.setVoltageBound(Vmin, Vmax)
+        interface.setAdmitance(YRe, Yim, Yp)
+        interface.setImpedance(ZRe, ZsIm)
+
+
+
+
+
+
 
 if __name__ == '__main__':
     print("[WARNING] : index are defined statically, may be cause of error on the test")

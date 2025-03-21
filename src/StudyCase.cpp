@@ -611,16 +611,20 @@ void StudyCase::SetStudyCase(std::string path, std::string name, MatrixCPU* P0, 
 }
 
 void StudyCase::SetACStudyCaseFromInterface(StudyCaseInterface* interface){
+	//std::cout << "creation agent" << std::endl;
 	_CoresBusAgentLin = SCAg.SetFromInterface(interface, false);
 	createGrid(false);
 	if(interface->getL()>= 1){
+		//std::cout << "creation grid" << std::endl;
 		SCGrid->setFromInterface(interface);
 	}
 	_nBus = SCGrid->getNBus();
 	_nAgent = SCAg.getNagent();
 	_nLine = SCGrid->getNLine(true);
-	
+
 	genCoresBusAgent();
+	//display(1);
+	//std::cout << "Fin creation cas" << std::endl;
 }
 
 void StudyCase::SetDCStudyCaseFromInterface(StudyCaseInterface* interface){
@@ -1649,7 +1653,7 @@ void StudyCase::nextStepPobj()
 }
 
 
-void StudyCase::display(int type) 
+void StudyCase::display(int type) const
 {
 	if (type == 0) {
 		SCAg.display();

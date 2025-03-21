@@ -953,7 +953,7 @@ void StudyCaseDCGrid::saveCSV(const std::string& fileName)
 
 }
 
-void StudyCaseDCGrid::display(int type) 
+void StudyCaseDCGrid::display(int type) const
 {
 	std::cout << "Study Case : " << _nBus << " bus and " << _nLine << " lines " << std::endl;
 	std::cout << "and " << _nLineConstraint << " and reduced " << toReduce << std::endl;
@@ -986,8 +986,11 @@ void StudyCaseDCGrid::display(int type)
 		MatrixCPU temp33(_nBus - 1, _nBus - 1); //(CBC ^ T) ^ -1 sans la ligne et colonne du noued de ref
 		MatrixCPU temp22(_nBus - 1, _nBus - 1); // on enl�ve la ligne du noeud de ref�rence
 
-		temp1.multiplyTrans(&_LineImpedance, &_CoresBusLine);
-		temp2.multiply(&_CoresBusLine, &temp1);
+		MatrixCPU LineImpedance(_LineImpedance);
+		MatrixCPU CoresBusLine(_CoresBusLine);
+
+		temp1.multiplyTrans(&LineImpedance, &CoresBusLine);
+		temp2.multiply(&CoresBusLine, &temp1);
 		temp2.getBloc(&temp22, 1, _nBus, 1, _nBus);
 		temp33.invertGaussJordan(&temp22);
 		std::cout << " BC^T :" << std::endl;

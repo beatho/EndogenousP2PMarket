@@ -31,8 +31,8 @@
 - an interface (*here named resolution*) that store all data for N agents, B buses, L branches, and Lconst csontrainted branches (optional) : study case, computation's parameters and solver is created by **resolution = EndoCuda.interface(N, B, L, Lconst)**
 - each data must be set by methods (ex : setPower, setCostFunction ....)
 - solve by using :
-    - **solveMarketFromInterface(interface resolution, string MethodName)** : for a DC market
-    - **solveACFromInterface(interface resolution, string MethodName)** : for a AC market
+    - **solveMarketFromInterface(interface resolution, string MethodName)** : for a DC market, DC Endogenous Market
+    - **solveACFromInterface(interface resolution, string MethodName)** : for a AC market, AC-OPF, AC Endogenous Market
     - **solvePFFromInterface(interface resolution, string MethodName)** : for a Power Flow
 - display informations by using **interface.display(Id)**, (Id = 0 shows all, Id > 12 shows effect for each Id)
 - get result by using methods (ex : getPn, getTrade)

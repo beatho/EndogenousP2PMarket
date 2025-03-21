@@ -69,7 +69,7 @@ private:
     MatrixCPU _Phi; // L * 2
     // Special
     MatrixCPU _E;   // B * 2
-    // E : (v_i, l_i)   for OPF and AC-EndoMarket
+    // E : (l_i, v_i)   for OPF and AC-EndoMarket
     // E : (v_re, v_im) for radial PF
     // E : (theta, V)   for meshed PF
     // nothing for DC-EndoMarket 

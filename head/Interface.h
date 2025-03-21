@@ -192,7 +192,7 @@ extern "C"{
         int offsetCase  = 1;
         int offsetParam = 6;
         int offsetRes = 9;
-        int offsetAll = 13;
+        int offsetAll = 14;
         std::cout << std::endl;
         if(type==0){
             self->interfaceCase->display(type);
@@ -218,8 +218,9 @@ extern "C"{
             std::cout << " 9  : Results, using matrix" << std::endl;
             std::cout << " 10 : Results, for market" << std::endl;
             std::cout << " 11 : Results, for Power Flow " << std::endl;
-            std::cout << " 12 : Results, for EndoMarket or OPF" << std::endl;
-            std::cout << ">12 : This print" << std::endl;
+            std::cout << " 12 : Results, for EndoMarket " << std::endl;
+            std::cout << " 13 : Results, for OPF" << std::endl;
+            std::cout << ">13 : This print" << std::endl;
         }
         
         Py_IncRef(Py_None);
@@ -445,7 +446,7 @@ extern "C"{
         } 
         for (int i=0; i<n; i++) {
             int bus = PosBus.get(i,0);
-            if(bus<-1 || bus >self->interfaceCase->getB()){
+            if(bus<-1 || bus >=self->interfaceCase->getB()){
                 PyErr_SetString(PyExc_ValueError, "Position must be a int between -1 (not on the grid) and B (exclude)");
                 return NULL;
             }
@@ -751,7 +752,7 @@ extern "C"{
                 PyErr_SetString(PyExc_ValueError, "From must be a bus id, between 0 and B (exclude)");
                 return NULL;
             }
-            if(from < 0 || from > (B-1)){
+            if(to < 0 || to > (B-1)){
                 PyErr_SetString(PyExc_ValueError, "To must be a bus id, between 0 and B (exclude)");
                 return NULL;
             }
@@ -1115,7 +1116,7 @@ Pour créer les paramètres :
             PyErr_SetString(PyExc_TypeError, "parameter must be two, three, four float.");
             return NULL;
         }
-        if(epsG<0 || epsL < 0 || epsX < 0 || epsIntern){
+        if(epsG<0 || epsL < 0 || epsX < 0 || epsIntern<0){
             PyErr_SetString(PyExc_ValueError, "eps must be positive or null for default value");
             return NULL;
         }
@@ -1129,8 +1130,8 @@ Pour créer les paramètres :
         float rhoL = 0;
         float rhoX = 0;
         
-        if(!PyArg_ParseTuple(args, "ff|f", &rhoG, &rhoL, &rhoX)){
-            PyErr_SetString(PyExc_TypeError, "parameter must be two, three, four float.");
+        if(!PyArg_ParseTuple(args, "f|ff", &rhoG, &rhoL, &rhoX)){
+            PyErr_SetString(PyExc_TypeError, "parameter must be one, two, or three float.");
             return NULL;
         }
         if(rhoG < 0 || rhoL < 0 || rhoX < 0){

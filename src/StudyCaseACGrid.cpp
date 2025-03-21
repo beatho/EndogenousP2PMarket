@@ -759,7 +759,7 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 	_V0 = Info.get(0, 7);
 	_theta0 = Info.get(0, 8);
 
-	std::cout << "V0 " << _V0 << " theta0 " << _theta0 << std::endl;
+	//std::cout << "V0 " << _V0 << " theta0 " << _theta0 << std::endl;
 	_zoneBus = MatrixCPU(_nBus, 1);
 	
 
@@ -769,11 +769,10 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 
 	MatrixCPU inversionLine(_nLine, 1, 0);
 	if (_nBus == _nLine + 1) {
-
 		for (int l = 0; l < _nLine; l++) {
 			if (MatLine.get(l, 0) > MatLine.get(l, 1)) {
 				if (MatLine.get(l, 5) > 0 && MatLine.get(l, 5) != 1) {
-					std::cout << "la presence de transformateur est peut �tre mal prise en compte ?" << std::endl;
+					std::cout << "la presence de transformateur est peut etre mal prise en compte ?" << std::endl;
 					inversionLine.set(l, 0, 1);
 				}
 				int temp = MatLine.get(l, 0);
@@ -783,10 +782,10 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 			}
 		}
 		// il faut ordonner pour que Matline(k,1) = k+1;
-		std::cout << "changement de l'ordre" << std::endl;
 		radial = true;
 		for (int l = 0; l < _nLine; l++) {
 			while (MatLine.get(l, 1) != l + 2) {
+				std::cout << "changement de l'ordre" << std::endl;
 				if (MatLine.get(l, 1) == l) {
 					throw std::invalid_argument("problem with branch for distribution network");
 				}
@@ -797,8 +796,7 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 				}
 				else {
 					MatLine.swapLine(l, MatLine.get(l, 1) - 2);
-				}
-				
+				}	
 			}
 		}
 	}
@@ -1137,7 +1135,7 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 	_V0 = Info.get(0, V0_ind);
 	_theta0 = Info.get(0, theta0_ind);
 
-	std::cout << "V0 " << _V0 << " theta0 " << _theta0 << std::endl;
+	//std::cout << "V0 " << _V0 << " theta0 " << _theta0 << std::endl;
 	_zoneBus = MatrixCPU(_nBus, 1);
 	
 
@@ -1160,22 +1158,22 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 			}
 		}
 		// il faut ordonner pour que Matline(k,1) = k+1;
-		std::cout << "changement de l'ordre" << std::endl;
+		
 		radial = true;
 		for (int l = 0; l < _nLine; l++) {
-			while (MatLine.get(l, To_ind) != l + 2) {
-				if (MatLine.get(l,To_ind) == l) {
+			while (MatLine.get(l, To_ind) != l + 1) {
+				std::cout << "changement de l'ordre" << std::endl;
+				if (MatLine.get(l, To_ind) == l) {
 					throw std::invalid_argument("problem with branch for distribution network");
 				}
-				if (MatLine.get(l, To_ind) - 2 < 0) {
+				if (MatLine.get(l, To_ind) - 1 < 0) {
 					std::cout << "arret du tri des branchs" << std::endl;
 					radial = false;
 					break;
 				}
 				else {
-					MatLine.swapLine(l, MatLine.get(l, To_ind) - 2);
+					MatLine.swapLine(l, MatLine.get(l, To_ind) - 1);
 				}
-				
 			}
 		}
 	}
@@ -1201,7 +1199,7 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 	
 	
 	bool impedanceToBeDefined = false;
-	std::cout << "set Line" << std::endl;
+	//std::cout << "set Line" << std::endl;
 	
 	if(interface->isImpedanceDefined()){
 		//_lineReactanceD.setFromFile(fileName7);
@@ -1308,7 +1306,7 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 	}
 	
 	
-	std::cout << "set bus" <<std::endl;
+	//std::cout << "set bus" <<std::endl;
 
 	for (int i = 0; i < _nBus; i++) { // bound on voltage angle rad
 		_upperBound.set(i, 0, MatBus.get(i,thetamax_ind));

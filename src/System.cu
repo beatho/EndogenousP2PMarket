@@ -846,10 +846,31 @@ void System::setMethod(std::string nameMethode) {
 	}
 	else if ((!nameMethode.compare(sOPFADMM))) {
 		_methode = new OPFADMM;
+		useOPF = true;
 	}
 	else if ((!nameMethode.compare(sOPFADMMGPU))) {
 		_methode = new OPFADMMGPU;
+		useOPF = true;
+	}else if ((!nameMethode.compare(sOPFADMM2))) {
+		_methode = new OPFADMM2;
+		useOPF = true;
 	}
+	else if ((!nameMethode.compare(sOPFADMMGPU2))) {
+		_methode = new OPFADMMGPU2;
+		useOPF = true;
+	}
+	else if ((!nameMethode.compare(sEndoMarketCons))){
+		_methode = new MarEndoCons;
+	}
+	else if ((!nameMethode.compare(sEndoMarketConsGPU))){
+		_methode = new MarEndoConsGPU;
+	}
+	else if ((!nameMethode.compare(sEndoMarketDirect))){
+		_methode = new MarketEndoDirect;
+	}
+	else if ((!nameMethode.compare(sEndoMarketDirectGPU))){
+		_methode = new MarketEndoDirectGPU;
+	}	
 	else {
 		std::cout << "unknonwn method " << nameMethode << " !" << std::endl;
 	}
@@ -863,20 +884,20 @@ void System::setMethodPF(std::string nameMethode, bool isDouble)
 	}
 	else if ((!nameMethode.compare(sNRGPU))) {
 		_methodePFGPU = new GPUPF;
-		usePFGPU = false;
+		usePFGPU = true;
 	}else if ((!nameMethode.compare(sGS))) {
 		_methodePF = new CPUPFGS;
 	}
 	else if ((!nameMethode.compare(sNRGPU))) {
 		_methodePFGPU = new GPUPFGS;
-		usePFGPU = false;
+		usePFGPU = true;
 	}
 	else if ((!nameMethode.compare(sDistPQ))) {
 		_methodePF = new CPUPFdistPQ;
 	}
 	else if ((!nameMethode.compare(sDistPQGPU))) {
 		_methodePFGPU = new GPUPFdistPQ;
-		usePFGPU = false;
+		usePFGPU = true;
 	}else {
 		std::cout << "unknonwn method " << nameMethode << " !" << std::endl;
 	}

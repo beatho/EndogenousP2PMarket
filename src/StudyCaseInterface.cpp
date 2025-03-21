@@ -60,8 +60,8 @@ void StudyCaseInterface::setPosBus(MatrixCPU PosBus, MatrixCPU zone){
 void StudyCaseInterface::setCostFunction(MatrixCPU a, MatrixCPU b){
     for (int i = 0; i < _N; i++)
     {
-        agentCase.set(i, a_ind, a.get(i,0));
-        agentCase.set(i, b_ind, b.get(i,0));
+        agentCase.set(i, a_ind, a.get(i, 0));
+        agentCase.set(i, b_ind, b.get(i, 0));
         agentCase.set(i, aq_ind, a.get(i + _N,0));
         agentCase.set(i, bq_ind, b.get(i + _N,0));
     }  
@@ -280,7 +280,7 @@ void StudyCaseInterface::checkCase(int nLineCons)
         
     }
     
-    while(n <_N && agentCase.get(n,Pmin_ind) >= 0){ // generators
+    while(n <_N && agentCase.get(n, Pmin_ind) >= 0){ // generators
         nGen++;
         n++;
         

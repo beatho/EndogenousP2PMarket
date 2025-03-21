@@ -1497,7 +1497,7 @@ __global__ void updatePnPGPUSharedResidual(float* Pn, float* PnPre, float* PnMoy
 					warpReduce<_blockSizeSmall>(shArrP, thIdx);
 					warpReduce<_blockSizeSmall>(shArrQ, thIdx);
 				}
-				__syncthreads;
+				__syncthreads();
 
 				if (thIdx == 0) {
 					// P

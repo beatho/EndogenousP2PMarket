@@ -34,6 +34,8 @@
 #include "GPUPFdistPQ.cuh"
 #include "GPUPFGS.cuh"
 
-
+/* Endogenous Market*/
+#include "MarEndoConsGPU.cuh"
+#include "MarketEndoDirectGPU.cuh"
 
 

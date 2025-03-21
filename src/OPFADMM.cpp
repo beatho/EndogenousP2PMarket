@@ -348,7 +348,8 @@ void OPFADMM::updateP0(const StudyCase& cas)
 void OPFADMM::init(const Simparam& sim, const StudyCase& cas)
 {
 	// intitilisation des matrixs et variables 
-	
+	//cas.display();
+	//sim.display(1);
 	clock_t t = clock();
 	
 	_rho = sim.getRho();
@@ -364,7 +365,7 @@ void OPFADMM::init(const Simparam& sim, const StudyCase& cas)
 	_nAgent = cas.getNagent();
 	
 	_nBus = cas.getNBus();
-	_nLine = cas.getNLine(true); // ne doit pas �tre r�duit ici !!!
+	_nLine = cas.getNLine(true); // ne doit pas etre reduit ici !!!
 
 	//std::cout << _nAgent << " " << _nBus << " " << _nLine << std::endl;
 	_nAgentByBus = cas.getNagentByBus();
@@ -385,13 +386,17 @@ void OPFADMM::init(const Simparam& sim, const StudyCase& cas)
 	for (int lold = 0; lold < _nLine; lold++) {
 		int l = lold + 1;
 		int busTo = l ;
+		if(busTo != CoresLineBus.get(lold, 1)){
+			throw std::invalid_argument(" Problem on the link between buses, line l must go to bus l+1");
+		}
 		int busFrom = CoresLineBus.get(lold, 0);
 		Ancestor.set(busTo, 0, busFrom);
 		nChild.increment(busFrom, 0, 1);
 		ZsNorm.set(lold, 0, ZsRe.get(lold, 0) * ZsRe.get(lold, 0) + ZsIm.get(lold, 0) * ZsIm.get(lold, 0));
 	}
-	
-
+	//ZsNorm.display();
+	//Ancestor.display();
+	//nChild.display();
 
 	_rhoInv = 1 / _rho;
 	resF = MatrixCPU(3, (iterG / stepG) + 1);
@@ -400,6 +405,8 @@ void OPFADMM::init(const Simparam& sim, const StudyCase& cas)
 	MatrixCPU lowerBound(cas.getLowerBound()); //voltage angle, voltage, line...
 	MatrixCPU upperBound(cas.getUpperBound()); //voltage angle, voltage, line...
 	
+	//lowerBound.display();
+	//upperBound.display();
 
 	//std::cout << " local resolution " << std::endl;
 	// local resolution
@@ -411,7 +418,7 @@ void OPFADMM::init(const Simparam& sim, const StudyCase& cas)
 	Pmin = cas.getPmin();
 	Pmax = cas.getPmax();
 	//Pmin.display();
-	//Pn.display();
+	//Pmax.display();
 
 	PnTmin = MatrixCPU(2 * _nBus, 1);
 	PnTmax = MatrixCPU(2 * _nBus, 1);
@@ -419,6 +426,8 @@ void OPFADMM::init(const Simparam& sim, const StudyCase& cas)
 	Cost1 = MatrixCPU(cas.geta());
 	Cost2 = MatrixCPU(cas.getb());
 
+	//Cost1.display();
+	//Cost2.display();
 
 	PnMoy = MatrixCPU(2 * _nBus, 1);
 	PnPre = sim.getPn();
@@ -1663,8 +1672,8 @@ int OPFADMM::feasiblePoint()
 	MatrixCPU E(2*_nBus, 1);
 	for (int i = 0; i < _nBus; i++)
 	{
-		E.set(i, 0, Y[i].get(2,0));
-		E.set(i + _nBus, 0, Y[i].get(3,0));
+		E.set(i, 0, Y[i].get(3,0)); //l_i
+		E.set(i + _nBus, 0, Y[i].get(2,0)); // v_i
 	}
 	return E;
 }

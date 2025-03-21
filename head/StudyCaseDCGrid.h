@@ -145,7 +145,7 @@ public:
     // modification
  
     void saveCSV(const std::string& fileName);
-    void display(int type=0);
+    void display(int type=0) const;
     void displayLineCores(MatrixCPU* g, bool all = true);
  
 

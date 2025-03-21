@@ -2317,8 +2317,8 @@ MatrixCPU OPFADMMCons::getE(){
 	MatrixCPU E(2*_nBus, 1);
 	for (int i = 0; i < _nBus; i++)
 	{
-		E.set(i, 0, Y[i].get(2,0));
-		E.set(i + _nBus, 0, Y[i].get(3,0));
+		E.set(i, 0, Y[i].get(3,0));
+		E.set(i + _nBus, 0, Y[i].get(2,0));
 	}
 	return E;
 }

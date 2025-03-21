@@ -195,16 +195,20 @@ void MarEndoCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 
 	fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
 	// FB 5
+	MatrixCPU Pb(OPF->getPb());
+	MatrixCPU Phi(OPF->getPhi());
+	MatrixCPU E(OPF->getE());
 	
+	result->setE(&E);
+	result->setPhi(&Phi);
+	result->setPb(&Pb);
+
+
 	result->setResF(&resF);
-	
 	result->setLAMBDA(&LAMBDA);
-	
 	result->setTrade(&trade);
 	result->setIter(_iterGlobal);
-	
 	result->setMU(&MU);
-	
 	result->setPn(&Pn);
 	
 	result->setFc(fc);
@@ -293,7 +297,7 @@ void MarEndoCons::init(const Simparam& sim, const StudyCase& cas)
 	
 	_ratioEps = epsG / epsGC;
 
-	std::cout << "precision demandee " << epsG << " " << epsGC << " ratio " << _ratioEps << std::endl;
+	//std::cout << "precision demandee " << epsG << " " << epsGC << " ratio " << _ratioEps << std::endl;
 
 	_nAgentTrue = sim.getNAgent();
 	_nAgent = 2 * _nAgentTrue;
@@ -322,7 +326,7 @@ void MarEndoCons::init(const Simparam& sim, const StudyCase& cas)
 		std::cout << "err ADMM : " << _nAgent << " " << _nAgentTrue << " " << _nTrade << " " << _nTradeP << " " << _nTradeQ << std::endl;
 		throw std::invalid_argument("Agent must be fully conected for the Q echanges, WIP");
 	}
-	std::cout << "Market" << std::endl;
+	//std::cout << "Market" << std::endl;
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	if (initWithMarketClear) {
 		ADMMMarket market;
@@ -340,7 +344,7 @@ void MarEndoCons::init(const Simparam& sim, const StudyCase& cas)
 	}
 
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	std::cout << "time : " << (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / 1000000000 << std::endl;
+	//std::cout << "time : " << (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / 1000000000 << std::endl;
 	
 	
 	//Pn.display();

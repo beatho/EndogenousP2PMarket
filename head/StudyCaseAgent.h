@@ -132,6 +132,7 @@ public:
     
     MatrixCPU getPobj();
     MatrixCPUD getPobjD();
+    MatrixCPU getPobjConst() const;
 
     MatrixCPU getGenBus() const;
    
@@ -152,7 +153,7 @@ public:
     void addLink(int i, int j);
     
     void saveCSV(const std::string& fileName, bool all = true);
-    void display(int type=0);
+    void display(int type=0) const;
   
     ~StudyCaseAgent();
 

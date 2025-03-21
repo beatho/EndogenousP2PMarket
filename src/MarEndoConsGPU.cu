@@ -204,6 +204,14 @@ void MarEndoConsGPU::solve(Simparam* result, const Simparam& sim, const StudyCas
 
 	// FB 5
 	
+	MatrixCPU Pb(OPF->getPb());
+	MatrixCPU Phi(OPF->getPhi());
+	MatrixCPU E(OPF->getE());
+	
+	result->setE(&E);
+	result->setPhi(&Phi);
+	result->setPb(&Pb);
+
 	result->setResF(&resF);
 	
 	result->setLAMBDA(&LAMBDA);
@@ -377,7 +385,7 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 
 	/*cudaDeviceSynchronize();
 	//CHECK_LAST_CUDA_ERROR();*/
-	std::cout << "Market" << std::endl;
+	//std::cout << "Market" << std::endl;
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	
 	MatrixCPU PnCPU(2 * _nAgent, 1);
@@ -397,7 +405,7 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	}
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 	
-	std::cout << "time : " <<  (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / 1000000000 << std::endl;
+	//std::cout << "time : " <<  (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / 1000000000 << std::endl;
 	//PnCPU.display();
 	Pn = MatrixGPU(PnCPU, 1);
 	//Pn.display(true);

@@ -325,7 +325,7 @@ void MatrixCPUD::setRand1(double eps)
 void MatrixCPUD::setFromFile(std::string filename, int entete) // aucune s�curit�, l'utilisateur doit v�rifier d'utiliser le bon fichier avec le bon nombre d'entr�e...
 {
     std::ifstream myfile(filename, std::ios::in);
-    std::cout << filename << "or  " << "../../" + filename << std::endl;
+    //std::cout << filename << "or  " << "../../" + filename << std::endl;
     // si taille fichier < matrix : reste de la matrix sera remplis par le dernier terme
     // si taille fichier > matrix : seule les N premiers termes du fichier seront lus
     

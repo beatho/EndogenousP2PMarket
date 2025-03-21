@@ -951,8 +951,8 @@ MatrixCPU OPFADMMGPU2::getE(){
 	
 	for (int i = 0; i <_nBus; i++)
 	{
-		E.set(i,0, Y.get(_indiceBusBegin.get(i, 0) + 2, 0));
-		E.set(i + _nLine,0, Y.get(_indiceBusBegin.get(i, 0) + 3, 0));
+		E.set(i,0, Y.get(_indiceBusBegin.get(i, 0) + 2, 0)); //li
+		E.set(i + _nLine,0, Y.get(_indiceBusBegin.get(i, 0) + 3, 0)); //vi
 	}
 	if(transferToDo){
 		Y.transferGPU();

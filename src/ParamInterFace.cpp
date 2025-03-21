@@ -99,10 +99,10 @@ void ParamInterface::display(int type){
         std::cout << "Agents' count : " << _sizes.get(0, nAgentP_ind) << std::endl;
         std::cout << "rho / rho1 / rhol : " << _param.get(0, rho_ind) << " / " << _param.get(0, rho1_ind) << " / " 
         << _param.get(0, rhoL_ind) << std::endl;
-        std::cout << "k_max / j_max / j_intern : " << _param.get(0, iterMax_ind) << " / " << _param.get(0,iterL_ind) 
+        std::cout << "k_max / j_max / j_intern : " << _param.get(0, iterG_ind) << " / " << _param.get(0, iterL_ind) 
         << " / " << _param.get(0, iterItern_ind) << std::endl;
         std::cout << "eps_g / eps_x / eps_l / eps_intern: " << _param.get(0, epsG_ind) << " / " << _param.get(0, epsX_ind) 
-        << " / " << _param.get(0,epsL_ind) << " / " << _param.get(0, epsIntern_ind) << std::endl;
+        << " / " << _param.get(0, epsL_ind) << " / " << _param.get(0, epsIntern_ind) << std::endl;
         
         std::cout << "StepG / StepL / StepIntern : " << _param.get(0, stepG_ind) << " / " << _param.get(0, stepL_ind) 
         << " / " << _param.get(0, stepIntern_ind) << std::endl;
@@ -215,13 +215,13 @@ void ResultInterface::setDelta(MatrixCPU delta1, MatrixCPU delta2){
 }
 void ResultInterface::changeIterStep(int iter, int step){
     if(iter){
-        _sizes.set(0, iterMax_ind, iter);
+        _results.set(0, iterMax_ind, iter);
     }
     if(step){
-        _sizes.set(0, stepG2_ind, step);
+        _results.set(0, stepG2_ind, step);
     }
-    int _iter = _sizes.get(0, iterMax_ind);
-    int _step = _sizes.get(0, stepG2_ind);
+    int _iter = _results.get(0, iterMax_ind);
+    int _step = _results.get(0, stepG2_ind);
     if(_step){
         _resF = MatrixCPU(3, _iter/_step + 1);
     }
@@ -250,7 +250,7 @@ void ResultInterface::setResult(int iterF, int stepG, float temps, float fc, Mat
 
 void ResultInterface::setvarPhysic(MatrixCPU Pb, MatrixCPU Phi, MatrixCPU E){
     _Pb = Pb;
-    _Phi = _Phi;
+    _Phi = Phi;
     _E = E;
 }
 
@@ -273,6 +273,9 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
    MatrixCPU b(nAgent + 1, 1);
    MatrixCPU Pmax(2*(nAgent + 1), 1);
    MatrixCPU Pmin(2*(nAgent + 1), 1);
+
+   MatrixCPU Branch = _case->getBranchCase();
+
    for(int n=0; n<nAgent; n++){
        a.set(n + 1, 0, Agents.get(n, a_ind));
        b.set(n + 1, 0, Agents.get(n, b_ind));
@@ -375,6 +378,7 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
         std::cout << "===============================================================================================|" << std::endl;
     } else if (type == 3){ // EndoMarket
         int Nbus =  _sizes.get(0, nBusP_ind);
+        int Nline = _sizes.get(0, nLineP_ind);
         std::cout << "===============================================================|" << std::endl;
         std::cout << "        Market Simulation result :  System Summary             |" << std::endl;
         std::cout << "===============================================================|" << std::endl;
@@ -400,48 +404,103 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
         std::cout << std::setw(8) << 0 << "|" << std::setw(9) <<  0 << " |" << std::setw(10)
                 << 0 << "|" << std::setw(10) << _Pn.get(0, 0) << "|" << std::setw(12)
                 << Pmin.get(0, 0) << "|" << std::setw(12) << Pmax.get(0, 0)
-                << "|" << std::setw(11) << _Pn.get(nAgent, 0) << "|" << std::setw(12) << "-inf"
+                << "|" << std::setw(11) << _Pn.get((nAgent+1), 0) << "|" << std::setw(12) << "-inf"
                 << "|" << std::setw(11) << 0 << "|" << std::endl;
-        for (int n = 1; n <  _sizes.get(0, nAgentP_ind) + 1; n++) {
-            
+        for (int n = 1; n < nAgent + 1; n++) {
             std::cout << std::setw(8) << n << "|" << std::setw(9) << a.get(n, 0) << " |" << std::setw(10)
                 << b.get(n, 0) << "|" << std::setw(10) << _Pn.get(n, 0) << "|" << std::setw(12)
                 << Pmin.get(n, 0) << "|" << std::setw(12) << Pmax.get(n, 0)
-                << "|" << std::setw(11) << _Pn.get(n + nAgent, 0) << "|" << std::setw(12) << Pmin.get(n + nAgent, 0)
-                << "|" << std::setw(11) << Pmax.get(n + nAgent, 0) << "|" << std::endl;
+                << "|" << std::setw(11) << _Pn.get(n + (nAgent+1), 0) << "|" << std::setw(12) << Pmin.get(n + (nAgent+1), 0)
+                << "|" << std::setw(11) << Pmax.get(n + (nAgent+1), 0) << "|" << std::endl;
         }
-        std::cout << "===============================================================|" << std::endl;
-        std::cout << "      Bus Data                                                 |" << std::endl;
-        std::cout << "===============================================================|" << std::endl;
-        std::cout << " Bus |          Voltage        |  Power = Generation  + Load   |" << std::endl;
-        std::cout << "  #  |    Mag(pu) |  Ang(deg)  |    P (pu)     |     Q (pu)    |" << std::endl;
-        std::cout << "-----|------------|------------|---------------|---------------|" << std::endl;
+        std::cout << "============================================================================================|" << std::endl;
+        std::cout << "      Line Data                                                                             |" << std::endl;
+        std::cout << "============================================================================================|" << std::endl;
+        std::cout << "    Bus    |    Voltage     |      Power injected       |          Flow on the line         |" << std::endl;
+        std::cout << "From |  To |    Mag(pu)     |    P (pu)   |     Q (pu)  |   l (pu)  |   P (pu)  |   Q (pu)  |" << std::endl;
+        std::cout << "-----|-----|----------------|-------------|-------------|-----------|-----------|-----------|" << std::endl;
 
         //std::cout << 0 << "      " << E.get(Nbus, 0) << "             " << E.get(0, 0) * (abs(E.get(0, 0)) > 0.0001) * 180 / 3.1415 << "              " << (abs(W.get(0, 0)) > 0.0001) * W.get(0, 0) << "         " << (abs(W.get(Nbus, 0)) > 0.0001) * W.get(Nbus, 0) << std::endl;
 
         float seuil = 0.0001;
-        
-        std::cout << std::setw(5) << 0 << "|" << std::setw(11) << _E.get(Nbus, 0) << "*|" << std::setw(11) << _E.get(0, 0) * (abs(_E.get(0, 0)) > seuil) * 180 / 3.1415
-            << "*|" << std::setw(15) << (abs(_Pb.get(0, 0)) > seuil) * _Pb.get(0, 0) << "|" << std::setw(15) << (abs(_Pb.get(Nbus, 0)) > seuil) * _Pb.get(Nbus, 0)
-            << "|" << std::endl;
-        for (int b = 1; b < Nbus; b++) {
-            //std::cout.width(10);
-            //std::cout << b << "      " << E.get(b + Nbus, 0) << "        " << E.get(b, 0) * (abs(E.get(b, 0)) > 0.0001) * 180 / 3.1415 << "          " << (abs(W.get(b, 0)) > 0.0001) * W.get(b, 0) << "         " << (abs(W.get(b + Nbus, 0)) > 0.0001) * W.get(b + Nbus, 0) << std::endl;
-            std::cout << std::setw(5) << b << "|" << std::setw(11) << _E.get(b + Nbus, 0) << " |" << std::setw(11)
-                << _E.get(b, 0) * (abs(_E.get(b, 0)) > seuil) * 180 / 3.1415 << " |" << std::setw(15)
-                << (abs(_Pb.get(b, 0)) > seuil) * _Pb.get(b, 0) << "|" << std::setw(15) << (abs(_Pb.get(b + Nbus, 0)) > seuil) * _Pb.get(b + Nbus, 0)
-                << "|" << std::endl;
+
+        std::cout << std::setw(5) << "**" << "|" << std::setw(5) << 0 << "|" << std::setw(14) << sqrt(_E.get(Nbus, 0)) << "* |"
+            << std::setw(13) << _Pb.get(0, 0) << "|" << std::setw(13) << _Pb.get(Nbus, 0)
+            << "|" << std::setw(9) << sqrt(_E.get(0, 0))<< "* |" << std::setw(11) << 0 << "|" << std::setw(11) << 0  << "|"<< std::endl;
+
+        for (int l = 0; l < Nline; l++) {
+            int b = l + 1;
+            std::cout << std::setw(5) << Branch.get(l,From_ind) << "|" << std::setw(5) << Branch.get(l, To_ind) << "|" << std::setw(15) << sqrt(_E.get(b + Nbus, 0)) << " |"
+             << std::setw(13) << (abs(_Pb.get(b, 0)) > seuil) * _Pb.get(b, 0) << "|" << std::setw(13) << (abs(_Pb.get(b + Nbus, 0)) > seuil) * _Pb.get(b + Nbus, 0)
+             << "|" << std::setw(11) << sqrt(_E.get(b, 0))<< "|" << std::setw(11) << _Phi.get(l, 0)<< "|" << std::setw(11) << _Phi.get(l + Nline, 0)   << "|"<< std::endl;
 
         }
         std::cout << std::endl << std::endl;
-        std::cout << " Phi " << std::endl;
-        _Phi.display();
 
 	std::cout << "========================================================================================================|" << std::endl;
 	std::cout << "                      END PRINT                                                                         |" << std::endl;
-	std::cout << "========================================================================================================|" << std::endl;
-
-   
+	std::cout << "========================================================================================================|" << std::endl;   
     }
+    else if (type == 4){ // OPF
+        // E = [l_i v_i]
+        int Nbus =  _sizes.get(0, nBusP_ind);
+        int Nline = _sizes.get(0, nLineP_ind);
+        std::cout << "===============================================================|" << std::endl;
+        std::cout << "        OPF Simulation result :  System Summary             |" << std::endl;
+        std::cout << "===============================================================|" << std::endl;
+        std::cout << "Agents' count :  " << _sizes.get(0, nAgentP_ind) << std::endl;
+        std::cout << "Buses            " <<  Nbus << std::endl;
+        std::cout << "Branches         " << _sizes.get(0, nLineP_ind) << std::endl;
+        std::cout << "f_c : " << _results.get(0, fc_ind) << std::endl;
+        std::cout << "iter : " << _results.get(0, iterF_ind) << std::endl;
+        std::cout << "Residuals : constraint " << _results.get(0, resR_ind) << " convergence " << _results.get(0, resS_ind) << std::endl;
+        std::cout << "Computation time : " << _results.get(0, temps_ind) << std::endl;
+        std::cout << std::endl << std::endl;
+        std::cout << std::endl << std::endl;
+	
+        std::cout << std::endl << std::endl;
+        std::cout << std::endl << std::endl;
+        std::cout << "========================================================================================================|" << std::endl;
+        std::cout << "      Agent Data                                                                                        |" << std::endl;
+        std::cout << "========================================================================================================|" << std::endl;
+        std::cout << " Agent  |  Cost    |  Cost    |          Power Injection           |           Power Injection          |" << std::endl;
+        std::cout << "  #     |   a (pu) |   b (pu) |  P (pu)  | Pmin (pu)  | Pmax (pu)  |  Q (pu)   | Qmin (pu)  | Qmax (pu) |" << std::endl;
+        std::cout << "--------|----------|----------|----------|------------|------------|-----------|------------|-----------|" << std::endl;
 
+        std::cout << std::setw(8) << 0 << "|" << std::setw(9) <<  0 << " |" << std::setw(10)
+                << 0 << "|" << std::setw(10) << _Pn.get(0, 0) << "|" << std::setw(12)
+                << Pmin.get(0, 0) << "|" << std::setw(12) << Pmax.get(0, 0)
+                << "|" << std::setw(11) << _Pn.get((nAgent+1), 0) << "|" << std::setw(12) << "-inf"
+                << "|" << std::setw(11) << 0 << "|" << std::endl;
+        for (int n = 1; n < nAgent + 1; n++) {
+            std::cout << std::setw(8) << n << "|" << std::setw(9) << a.get(n, 0) << " |" << std::setw(10)
+                << b.get(n, 0) << "|" << std::setw(10) << _Pn.get(n, 0) << "|" << std::setw(12)
+                << Pmin.get(n, 0) << "|" << std::setw(12) << Pmax.get(n, 0)
+                << "|" << std::setw(11) << _Pn.get(n + (nAgent+1), 0) << "|" << std::setw(12) << Pmin.get(n + (nAgent+1), 0)
+                << "|" << std::setw(11) << Pmax.get(n + (nAgent+1), 0) << "|" << std::endl;
+        }
+        std::cout << "============================================================================================|" << std::endl;
+        std::cout << "      Line Data                                                                             |" << std::endl;
+        std::cout << "============================================================================================|" << std::endl;
+        std::cout << "    Bus    |    Voltage     |      Power injected       |          Flow on the line         |" << std::endl;
+        std::cout << "From |  To |    Mag(pu)     |    P (pu)   |     Q (pu)  |   l (pu)  |   P (pu)  |   Q (pu)  |" << std::endl;
+        std::cout << "-----|-----|----------------|-------------|-------------|-----------|-----------|-----------|" << std::endl;
+
+        //std::cout << 0 << "      " << E.get(Nbus, 0) << "             " << E.get(0, 0) * (abs(E.get(0, 0)) > 0.0001) * 180 / 3.1415 << "              " << (abs(W.get(0, 0)) > 0.0001) * W.get(0, 0) << "         " << (abs(W.get(Nbus, 0)) > 0.0001) * W.get(Nbus, 0) << std::endl;
+
+        float seuil = 0.0001;
+
+        std::cout << std::setw(5) << "**" << "|" << std::setw(5) << 0 << "|" << std::setw(14) << sqrt(_E.get(Nbus, 0)) << "* |"
+            << std::setw(13) << _Pb.get(0, 0) << "|" << std::setw(13) << _Pb.get(Nbus, 0)
+            << "|" << std::setw(9) << sqrt(_E.get(0, 0))<< "* |" << std::setw(11) << 0 << "|" << std::setw(11) << 0  << "|"<< std::endl;
+
+        for (int l = 0; l < Nline; l++) {
+            int b = l + 1;
+            std::cout << std::setw(5) << Branch.get(l,From_ind) << "|" << std::setw(5) << Branch.get(l, To_ind) << "|" << std::setw(15) << sqrt(_E.get(b + Nbus, 0)) << " |"
+             << std::setw(13) << (abs(_Pb.get(b, 0)) > seuil) * _Pb.get(b, 0) << "|" << std::setw(13) << (abs(_Pb.get(b + Nbus, 0)) > seuil) * _Pb.get(b + Nbus, 0)
+             << "|" << std::setw(11) << sqrt(_E.get(b, 0))<< "|" << std::setw(11) << _Phi.get(l, 0)<< "|" << std::setw(11) << _Phi.get(l + Nline, 0)   << "|"<< std::endl;
+
+        }
+        std::cout << std::endl << std::endl;
+    }
 }
