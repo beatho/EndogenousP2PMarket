@@ -1,4 +1,5 @@
 #pragma once
+#include <device_launch_parameters.h>
 #include "ADMMGPUConst1T.cuh"
 #include "TestKernel.cuh"
 #include <math.h>

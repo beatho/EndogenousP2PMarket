@@ -1,4 +1,5 @@
 #pragma once
+#include <device_launch_parameters.h>
 #include "ADMMGPUConst2.cuh"
 #include <math.h>
 #include <chrono>

@@ -17,6 +17,7 @@ extra_linker_options = []
 extra_compiler_options = []
 optional_libraries = []
 optional_library_dirs = []
+data_files = []
 if sys.platform == "win32":
 	out_ext_lib = ".lib"
 	extra_linker_options += ["build\\cuda\\dlink" + out_ext_lib, "/EXPORT:PyInit_EndoCuda"]
@@ -31,6 +32,7 @@ else:
 	#extra_linker_options = list(map(lambda x: "build/cuda/obj/" + x.replace(".cu", ".o"), filter(lambda x : x.endswith(".cu"),os.listdir("src"))))  + ["build/cuda/dlink.o"]
 	extra_linker_options += ["-Wl,-rpath=$ORIGIN", "-Lbuild/cuda","-ldlink", ]
 	extra_compiler_options = ["-fpermissive", "-fpic"]
+	data_files = ["build/cuda/libdlink.so"]
 cuda_ext = Extension(
 	name='EndoCuda',
 	include_dirs=[cuda_ext_path / 'include', os.environ["CUDA_PATH"] + "/include", get_paths()["include"]],
@@ -54,7 +56,6 @@ setup(
 		"build_cu" : BuildCudaFiles,
 		"build_ext" : CudaBuildExt
 	},
-	data_files=["build/cuda/libdlink.so"]
-
+	data_files=data_files
 
 )

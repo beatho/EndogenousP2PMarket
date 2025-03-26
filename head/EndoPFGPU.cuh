@@ -1,5 +1,6 @@
 #pragma once
 
+#include <device_launch_parameters.h>
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -59,7 +60,7 @@ private:
 	clock_t timeEndoPF = 0;
 
 	MatrixGPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempN1; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixGPU tempN1; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 
 
 	MatrixGPU Tlocal;
@@ -107,7 +108,7 @@ private:
 	MatrixGPU Pmin;
 	MatrixGPU Pmax;
 
-	// Pour le réseau
+	// Pour le rï¿½seau
 	int _nLine;
 	int _nBus;
 	int _nVarPF; // _nLine + 2 * _nBus

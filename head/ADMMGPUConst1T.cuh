@@ -1,4 +1,5 @@
 #pragma once
+#include <device_launch_parameters.h>
 #include "MethodP2P.cuh"
 #include "MatrixGPU.cuh"
 #include "MatrixCPU.h"
