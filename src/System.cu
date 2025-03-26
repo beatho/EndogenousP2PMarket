@@ -57,14 +57,14 @@ Simparam System::solvePF()
 
 		_methodePFGPU->init(_case, &PQ, &PQD, useDoublePF);
 		_methodePFGPU->solve();
-		_methodePFGPU->display2(true);
+		_methodePFGPU->display(true);
 	} else{
 		MatrixCPU PQ = _case.getPobj();
 		MatrixCPUD PQD = _case.getPobjD();
 
 		_methodePF->init(_case, &PQ, &PQD, useDoublePF);
 		_methodePF->solve();
-		_methodePF->display2(true);
+		_methodePF->display(true);
 	}
 
 
@@ -98,7 +98,7 @@ ResultInterface* System::solvePF(ResultInterface* res, ParamInterface* param, St
 
 		_methodePFGPU->init(_case, &PQ, &PQD, useDoublePF);
 		_methodePFGPU->solve();
-		_methodePFGPU->display2(true);
+		_methodePFGPU->display(true);
 		
 		res->setvarPhysic(_methodePFGPU->getW(), MatrixCPU(2*sizes.get(0, nLineP_ind), 1), _methodePFGPU->getE());
 		res->setResult(_methodePFGPU->getIter(), 1, _methodePFGPU->getTime(), _methodePFGPU->getRes(), MatrixCPU(0,0));
@@ -109,7 +109,7 @@ ResultInterface* System::solvePF(ResultInterface* res, ParamInterface* param, St
 
 		_methodePF->init(_case, &PQ, &PQD, useDoublePF);
 		_methodePF->solve();
-		_methodePF->display2(true);
+		_methodePF->display(true);
 
 		res->setvarPhysic(_methodePF->getW(), MatrixCPU(2*sizes.get(0, 2), 1), _methodePF->getE());
 		res->setResult(_methodePF->getIter(), 1, _methodePF->getTime(), _methodePF->getRes(), MatrixCPU(0,0));
@@ -888,7 +888,7 @@ void System::setMethodPF(std::string nameMethode, bool isDouble)
 	}else if ((!nameMethode.compare(sGS))) {
 		_methodePF = new CPUPFGS;
 	}
-	else if ((!nameMethode.compare(sNRGPU))) {
+	else if ((!nameMethode.compare(sGSGPU))) {
 		_methodePFGPU = new GPUPFGS;
 		usePFGPU = true;
 	}

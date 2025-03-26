@@ -481,10 +481,8 @@ void CPUPFdistPQ::setE(MatrixCPU* Enew)
 #endif // INSTRUMENTATION
 }
 
-void CPUPFdistPQ::display2(bool all)
+void CPUPFdistPQ::display(bool all)
 {
-
-    std::cout << "***************ON EST BIEN ICI******************" <<std::endl;
     std::cout.precision(3);
     calcE();
     float errV = err;

@@ -4,21 +4,21 @@
 CPUPFdist::CPUPFdist() {}
 CPUPFdist::~CPUPFdist() {}
 
-//Fb0: init, Fb1ab 1 2 : Flu, Fb2abc : 3 4 5 Tension, FB3 6 : puissance, Fb4 7 erreur, 8 Fb0 mise à jour
+//Fb0: init, Fb1ab 1 2 : Flu, Fb2abc : 3 4 5 Tension, FB3 6 : puissance, Fb4 7 erreur, 8 Fb0 mise ï¿½ jour
 
 void CPUPFdist::init(const StudyCase& cas, MatrixCPU* PQ)
 {
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
-    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise à jour
+    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise ï¿½ jour
 
-    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
+    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisï¿½ pendant la simu
 #endif // INSTRUMENTATION
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
     N2 = 2 * Nagent;
-    Nline = cas.getNLine(true); // ne doit pas être réduit ici !!!
+    Nline = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
     Nconstraint = B2 + Nline;
     iterM = 30;
     iter = 0;
@@ -35,7 +35,7 @@ void CPUPFdist::init(const StudyCase& cas, MatrixCPU* PQ)
 
     //std::cout << "init " << _name << std::endl;
     W0 = MatrixCPU(B2, 1);
-    I = cas.getCoresBusAgentLin(); // I_n = bus de l'agent n, l'agent 0 est pour gérer les pertes du marché, il n'existe pas vraiment
+    I = cas.getCoresBusAgentLin(); // I_n = bus de l'agent n, l'agent 0 est pour gï¿½rer les pertes du marchï¿½, il n'existe pas vraiment
 
     for (int n = 1; n < Nagent; n++) {
         int bus = I.get(n, 0);
@@ -63,8 +63,8 @@ void CPUPFdist::init(const StudyCase& cas, MatrixCPU* PQ)
     //std::cout << " E : " << std::endl;
     //E.display();
 
-    // W0[2 * N] : puissance active et réactive au noeud (I*[P Q])
-    // W[2 * N] : puissance obtenue par calcul à partir de E
+    // W0[2 * N] : puissance active et rï¿½active au noeud (I*[P Q])
+    // W[2 * N] : puissance obtenue par calcul ï¿½ partir de E
     // dW[2 * N] : derive de puissance
     // E[2 * N] : angle puis tension [O et 1] pour l'init ?
     // dE[2 * N] : derive de angle puis tension
@@ -90,7 +90,7 @@ void CPUPFdist::init(const StudyCase& cas, MatrixCPU* PQ)
     Yd = cas.getYd();
     chekcase();
 
-    F = MatrixCPU(Nbus, 1, -1); // F_i = bus antécédent de i
+    F = MatrixCPU(Nbus, 1, -1); // F_i = bus antï¿½cï¿½dent de i
     F.set(1, 0, 0);
     if (Nbus != (Nline + 1)) {
         std::cout << "Warning this is not a distribution network, F not set" << std::endl;
@@ -350,7 +350,7 @@ void CPUPFdist::calcW(bool end)
         }
     }
 
-    if (!end) { // pendant simu, la puissance à ce noeud est libre
+    if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
         W.set(0, 0, W0.get(0, 0));
         W.set(Nbus, 0, W0.get(Nbus, 0));
 
@@ -428,7 +428,7 @@ void CPUPFdist::setE(MatrixCPU* Enew)
 #endif // INSTRUMENTATION
 }
 
-void CPUPFdist::display2(bool all)
+void CPUPFdist::display(bool all)
 {
     std::cout.precision(3);
     float errV = err;

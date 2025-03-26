@@ -470,7 +470,7 @@ void GPUPFdistPQ::setE(MatrixGPU* Enew)
 #endif // INSTRUMENTATION
 }
 
-void GPUPFdistPQ::display2(bool all)
+void GPUPFdistPQ::display(bool all)
 {
     std::cout.precision(3);
     float errV = err;

@@ -57,8 +57,7 @@ public:
 	MatrixCPU getE();
 	MatrixCPU getW();
 
-	void display();
-	virtual void display2(bool all);
+	virtual void display(bool all);
 
 	void saveTimeBlock(std::string fileName);
 

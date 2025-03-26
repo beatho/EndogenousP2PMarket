@@ -17,8 +17,9 @@
 - (optional :) if cl.exe is not found it may be useful to add it on the PATH (year or version may be different):
     - ==> C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\bin\Hostx64\x64
 - install the python module setupTools (**pip install setuptools**)
-- in the folder EndogenousP2PMarket, compile by using the commande **python setup.py build --force**
-- the module **EndoCuda.cp311-win_amd64.pyd** located in *build/lib.win-amd64-cpython-311/* can be moved on the folder where you want to use the code. 
+- in the folder EndogenousP2PMarket, compile by using the commande **python setup.py build --force** (--force is optional)
+- install the module by using **python setup.py install**
+
 
 ## How to use :
 ### Optionnal

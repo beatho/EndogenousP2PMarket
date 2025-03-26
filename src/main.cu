@@ -5092,7 +5092,7 @@ void testCPUPF()
 			PF.saveTimeBlock(fileName);
 		}
 		t2 = std::chrono::high_resolution_clock::now();
-		PF.display2(displayAll);
+		PF.display(displayAll);
 		results.set(0, method, PF.getP0());
 		results.set(1, method, PF.getQ0());
 		results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5118,7 +5118,7 @@ void testCPUPF()
 		}
 
 		t2 = std::chrono::high_resolution_clock::now();
-		PF2.display2(displayAll);
+		PF2.display(displayAll);
 		results.set(0, method, PF2.getP0());
 		results.set(1, method, PF2.getQ0());
 		results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5144,7 +5144,7 @@ void testCPUPF()
 			PFG.saveTimeBlock(fileName);
 		}
 		t2 = std::chrono::high_resolution_clock::now();
-		PFG.display2(displayAll);
+		PFG.display(displayAll);
 		results.set(0, method, PFG.getP0());
 		results.set(1, method, PFG.getQ0());
 		results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5169,7 +5169,7 @@ void testCPUPF()
 		}
 
 		t2 = std::chrono::high_resolution_clock::now();
-		PFG2.display2(displayAll);
+		PFG2.display(displayAll);
 		results.set(0, method, PFG2.getP0());
 		results.set(1, method, PFG2.getQ0());
 		results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5198,7 +5198,7 @@ void testCPUPF()
 
 		PFGS.calcE();
 		t2 = std::chrono::high_resolution_clock::now();
-		PFGS.display2(displayAll);
+		PFGS.display(displayAll);
 		results.set(0, method, PFGS.getP0());
 		results.set(1, method, PFGS.getQ0());
 		results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5223,7 +5223,7 @@ void testCPUPF()
 		}
 		PFGS2.calcE();
 		t2 = std::chrono::high_resolution_clock::now();
-		PFGS2.display2(displayAll);
+		PFGS2.display(displayAll);
 		results.set(0, method, PFGS2.getP0());
 		results.set(1, method, PFGS2.getQ0());
 		results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5253,7 +5253,7 @@ void testCPUPF()
 
 		PFGSG.calcE();
 		t2 = std::chrono::high_resolution_clock::now();
-		PFGSG.display2(displayAll);
+		PFGSG.display(displayAll);
 		results.set(0, method, PFGSG.getP0());
 		results.set(1, method, PFGSG.getQ0());
 		results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5277,7 +5277,7 @@ void testCPUPF()
 		}
 		PFGSG2.calcE();
 		t2 = std::chrono::high_resolution_clock::now();
-		PFGSG2.display2(displayAll);
+		PFGSG2.display(displayAll);
 		results.set(0, method, PFGSG2.getP0());
 		results.set(1, method, PFGSG2.getQ0());
 		results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5304,7 +5304,7 @@ void testCPUPF()
 			PF3.calcE();
 			PF3.calcW(true);
 			t2 = std::chrono::high_resolution_clock::now();
-			PF3.display2(displayAll);
+			PF3.display(displayAll);
 			results.set(0, method, PF3.getP0());
 			results.set(1, method, PF3.getQ0());
 			results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5335,7 +5335,7 @@ void testCPUPF()
 			PF3PQ.calcE();
 			PF3PQ.calcW(true);
 			t2 = std::chrono::high_resolution_clock::now();
-			PF3PQ.display2(displayAll);
+			PF3PQ.display(displayAll);
 			results.set(0, method, PF3PQ.getP0());
 			results.set(1, method, PF3PQ.getQ0());
 			results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -5366,7 +5366,7 @@ void testCPUPF()
 			PF3PQG.calcE();
 			PF3PQG.calcW(true);
 			t2 = std::chrono::high_resolution_clock::now();
-			PF3PQG.display2(displayAll);
+			PF3PQG.display(displayAll);
 			results.set(0, method, PF3PQG.getP0());
 			results.set(1, method, PF3PQG.getQ0());
 			results.set(2, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);

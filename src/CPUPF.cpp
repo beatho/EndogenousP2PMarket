@@ -970,16 +970,11 @@ int CPUPF::getConv()
 
 MatrixCPU CPUPF::getE()
 {
+    calcE();
     if (_useDouble) {
-        if(ED.max2()==0){
-            calcE();
-        }
         E = ED;
     }
-    if(E.max2()==0){
-        calcE();
-    }
-    
+       
     return E;
 }
 MatrixCPU CPUPF::getW()
@@ -1033,25 +1028,7 @@ MatrixCPU CPUPF::getY()
     return Y;
 }
 
-void CPUPF::display()
-{
-    std::cout << "-----------Resultat du PF --------" << std::endl;
-
-    std::cout << "Nombre d'iter " << iter << " precision atteinte " << err << " temps de resolution " << (float)time / CLOCKS_PER_SEC <<  std::endl;
-    //std::cout << " Puissance d'entree" << std::endl;
-    //W0.display();
-    std::cout << " Puissance active-reactive" << std::endl;
-    W.display();
-    std::cout << " Tension angle-tension" << std::endl;
-    E.display();
-
-    
-    std::cout << "Pertes actives  " << getPloss() << std::endl;
-    std::cout << "Pertes reactive " << getQloss() << std::endl;
-    std::cout << "---------------------------" << std::endl;
-}
-
-void CPUPF::display2(bool all)
+void CPUPF::display(bool all)
 {
     std::cout.precision(3);
     

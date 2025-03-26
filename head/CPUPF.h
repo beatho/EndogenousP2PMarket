@@ -46,8 +46,8 @@ public:
 	MatrixCPU getW();
 	virtual MatrixCPU getY(); // (angle, amplitude, flow)
 
-	void display();
-	virtual void display2(bool all=true);
+
+	virtual void display(bool all=true);
 	void saveTimeBlock(std::string fileName);
 
 protected:

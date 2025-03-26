@@ -489,18 +489,20 @@ class TestInterfaceMethod(unittest.TestCase):
             Pn = test.getPn()
             for i in range(len(Pn)):
                 self.assertAlmostEqual(Pn[i], PnExpected[i], 2)
-                print("{0:g} ".format(Pn[i]), end="")
-            print("\n", res)
-            print("***************************************")
+                #print("{0:g} ".format(Pn[i]), end="")
+            #print("\n perte = ", sum(Pn))
+            #print("\n", res)
+            #print("***************************************")
        
         #EndoCuda.solveACFromFile("case10ba","OPFADMM")
 
     def test_solveACEndoMarket(self):
         N = 11
+        Sbase = 10
         test = EndoCuda.interface(N, 10, 9)
         self.setAgentCase10ba(test)
         self.setGridCase10ba(test)
-        test.setSbase(10)
+        test.setSbase(Sbase)
         test.setVbase(23)
         #test.display(1)
         test.setIter(10000,5000, 5000)
@@ -509,7 +511,7 @@ class TestInterfaceMethod(unittest.TestCase):
         #test.setRho(10)
         PnExpected = [-0.0682349, -0.178785, -0.0926228, -0.172995, -0.153318, -0.153767, -0.0704824, -0.107069, -0.089416, -0.15496,
              1.24178, 0, -0.0913371, -0.0479741, -0.0357, -0.0460836, -0.185217, -0.0609629, -0.01155, -0.0063, -0.0136173, -0.0205507, 0.4165, 0.101547]
-        test.display(7)
+        #test.display(7)
         methodes = ["EndoMarketCons", "EndoMarketDirect", "EndoMarketConsGPU", "EndoMarketDirectGPU"]
         for methode in methodes :
             EndoCuda.solveACFromInterface(test, methode)
@@ -518,12 +520,45 @@ class TestInterfaceMethod(unittest.TestCase):
             Pn = test.getPn()
             for i in range(len(Pn)):
                 self.assertAlmostEqual(Pn[i], PnExpected[i], 2)
-                print("{0:g} ".format(Pn[i]), end="")
-            print("\n", res)
-            print("***************************************")
+                #print("{0:g} ".format(Pn[i]), end="")
+            #print("\n déséquilibre = ", sum(Pn))
+            #print("\n", res)
+            #print("***************************************")
        
         #EndoCuda.solveACFromFile("case10ba","OPFADMM")
-        
+    
+    def test_solvePF(self):
+        N = 11
+        Sbase = 10
+        test = EndoCuda.interface(N, 10, 9)
+        self.setAgentCase10ba(test)
+        self.setGridCase10ba(test)
+        test.setSbase(Sbase)
+        test.setVbase(23)
+        #test.display(1)
+        test.setIter(1000,1000)
+        test.setStep(1, 5)
+        test.setEps(0.001, 0.0001)
+        test.setRho(1)
+        	
+        PbExpected  = [13.1517784516434, -1.84, -0.98, -1.79, -1.598, -1.61, -0.78, -1.15, -0.98, -1.64,
+                       5.22247441139584, -0.46, -0.34, -0.446, -1.84, -0.6, -0.11, -0.06, -0.13, -0.2] 
+        #test.display(7)
+        methodes = ["NR", "GS", "DistPQ", "NRGPU", "GSGPU", "DistPQGPU"]
+        for methode in methodes :
+            EndoCuda.solvePFFromInterface(test, methode)
+            #test.display(13)
+            res = test.getResults()
+            Pb = test.getPb()
+            for i in range(len(Pb)):
+                self.assertAlmostEqual(Pb[i], PbExpected[i]/ Sbase, 2)
+                print("{0:g} ".format(Pb[i]), end="")
+            #print("\n perte = ", sum(Pn))
+            #print("\n", res)
+            #print("***************************************")
+       
+        #EndoCuda.solveACFromFile("case10ba","OPFADMM")
+    
     def setAgentCase10ba(self, interface):
         N = 11
         PosBus = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0]

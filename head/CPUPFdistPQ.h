@@ -31,7 +31,7 @@ public:
 	virtual MatrixCPU getY();
 	
 	virtual void setE(MatrixCPU* Enew);
-	virtual void display2(bool all = true);
+	virtual void display(bool all = true);
 
 private:
 

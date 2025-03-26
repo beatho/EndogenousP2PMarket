@@ -265,7 +265,7 @@ PyObject* solvePFFromInterface(PyObject* self, PyObject* args){
     try
     {
         
-        sys.setMethod(MethodName);
+        sys.setMethodPF(MethodName, false);
         try
         {
             interface->resultInterface = sys.solvePF(interface->resultInterface, interface->paramInterface, interface->interfaceCase);
