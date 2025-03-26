@@ -1,4 +1,5 @@
 #pragma once
+#include <device_launch_parameters.h>
 #include "MethodP2P.cuh"
 #include "MatrixGPU.cuh"
 #include "MatrixCPU.h"
@@ -11,9 +12,9 @@
 #include <chrono>
 
 /// <summary>
-/// But : utiliser une autre méthode pour gérer les contraintes : avoir un SO qui résoud un DC-OPF pour respecter les contraintes
-/// Change : Init car pas même problème local, et Fb3a et b (bref la partie réseau)
-/// Ici on utilise la méthode du dual ascent (CPU)
+/// But : utiliser une autre mï¿½thode pour gï¿½rer les contraintes : avoir un SO qui rï¿½soud un DC-OPF pour respecter les contraintes
+/// Change : Init car pas mï¿½me problï¿½me local, et Fb3a et b (bref la partie rï¿½seau)
+/// Ici on utilise la mï¿½thode du dual ascent (CPU)
 /// </summary>
 class ADMMGPUConstCons2 : public MethodP2P
 {
@@ -55,7 +56,7 @@ private:
 	float _at2 = 0;
 
 	MatrixGPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempN1; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixGPU tempN1; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	MatrixGPU tempL1;
 	MatrixGPU tempL2; // il faut deux vecteurs de taille L
 	
@@ -105,7 +106,7 @@ private:
 	MatrixGPU Pso;
 
 
-	// Pour le réseau
+	// Pour le rï¿½seau
 	int _nLine;
 	int _nBus;
 	float _rho1;
@@ -127,7 +128,7 @@ private:
 	MatrixGPU q; // 0.5x^THx + q^T*x
 	MatrixGPU diffPso;
 
-	MatrixGPU c; // contrainte Ax+b>0 ou = 0 pour egalité
+	MatrixGPU c; // contrainte Ax+b>0 ou = 0 pour egalitï¿½
 	MatrixGPU Ai;
 	MatrixGPU bi;
 

@@ -18,7 +18,7 @@
     - ==> C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\bin\Hostx64\x64
 - install the python module setupTools (**pip install setuptools**)
 - in the folder EndogenousP2PMarket, compile by using the commande **python setup.py build --force** (--force is optional)
-- install the module by using **python setup.py install**
+- install the module by using **python setup.py install** (you can add --user on linux to install only for user)
 
 
 ## How to use :

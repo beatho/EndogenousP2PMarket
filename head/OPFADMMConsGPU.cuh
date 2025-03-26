@@ -1,4 +1,5 @@
 #pragma once
+#include <device_launch_parameters.h>
 #include "MethodOPFGPU.cuh"
 #include <iostream>
 #include <string>

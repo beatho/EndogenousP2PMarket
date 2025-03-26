@@ -1,6 +1,5 @@
 #include "../head/StudyCaseAgent.h"
-
-
+#include <cfloat>
 
 
 void StudyCaseAgent::setMatFromFile(const std::string& path, const std::string& date, MatrixCPU* Pgen, MatrixCPU* P0, MatrixCPU* costGen)

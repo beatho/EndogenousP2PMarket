@@ -1,5 +1,5 @@
 #include "../head/MatrixCPU.h"
-
+#include <cstring>
 float MatrixCPU::rand1()
 {
     float a = (float)(rand()) / ((float)(RAND_MAX));

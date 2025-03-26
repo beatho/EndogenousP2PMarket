@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <device_launch_parameters.h>
 
 #include "Method.h"
 #include "MethodP2P.cuh"

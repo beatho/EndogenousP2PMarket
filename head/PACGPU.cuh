@@ -1,4 +1,5 @@
 #pragma once
+#include <device_launch_parameters.h>
 #include "MethodP2P.cuh"
 #include "kernelFunction.cuh"
 #include <iostream>
@@ -6,8 +7,8 @@
 #include <chrono>
 
 
-class PACGPU : public MethodP2P // gère P et Q comme si tous les Q étaient des agents différents
-	//et donc P et Q sont 2 problèmes complètement distincts
+class PACGPU : public MethodP2P // gï¿½re P et Q comme si tous les Q ï¿½taient des agents diffï¿½rents
+	//et donc P et Q sont 2 problï¿½mes complï¿½tement distincts
 {
 public:
 	PACGPU();
@@ -66,7 +67,7 @@ private:
 	
 
 	MatrixGPU tempN1; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempNN; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixGPU tempNN; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	MatrixGPU tempM1; //
 	MatrixGPU tempM; //
 	

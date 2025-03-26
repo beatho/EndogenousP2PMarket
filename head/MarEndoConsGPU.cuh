@@ -1,4 +1,5 @@
 #pragma once
+#include <device_launch_parameters.h>
 #include "MethodP2P.cuh"
 #include <iostream>
 #include <string>
@@ -66,7 +67,7 @@ private:
 	clock_t timeMarketEndo;
 
 	MatrixGPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempN1; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixGPU tempN1; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 
 
 	MatrixGPU Tlocal;
@@ -114,7 +115,7 @@ private:
 	MatrixGPU Pmin;
 	MatrixGPU Pmax;
 
-	// Pour le réseau
+	// Pour le rï¿½seau
 
 	float _rhoSO = 0;
 	MatrixGPU Ap3;

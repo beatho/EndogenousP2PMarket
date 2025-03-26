@@ -1,7 +1,7 @@
 #include "../head/MatrixGPU.cuh" 
 
 #define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
-static const int warpSize = 32;
+const int warpSize = 32;
 
 #define CHECK_CUDA_ERROR_MAT(val) checkMat((val), #val, __FILE__, __LINE__);
 #define CHECK_LAST_CUDA_ERROR_MAT() checkMatLast(__FILE__, __LINE__);

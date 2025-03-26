@@ -1,4 +1,5 @@
 #pragma once
+#include <device_launch_parameters.h>
 #include "MethodP2P.cuh"
 #include "MatrixGPU.cuh"
 #include "MatrixCPU.h"
@@ -51,7 +52,7 @@ private:
 	float _at2 = 0;
 
 	MatrixGPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempN1; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixGPU tempN1; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	MatrixGPU tempL1;
 	MatrixGPU tempL2; // il faut deux vecteurs de taille L
 	
@@ -96,7 +97,7 @@ private:
 	MatrixGPU Pmin;
 	MatrixGPU Pmax;
 	
-	// Pour le réseau
+	// Pour le rï¿½seau
 	int _nLine;
 	int _nBus;
 	float _rho1;

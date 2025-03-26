@@ -1,4 +1,5 @@
 #include "../head/MatrixCPUD.h"
+#include <cstring>
 
 double MatrixCPUD::rand1()
 {

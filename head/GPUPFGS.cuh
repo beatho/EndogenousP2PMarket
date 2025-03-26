@@ -1,5 +1,6 @@
 #pragma once
 
+#include <device_launch_parameters.h>
 #define DELETEB(x) if (x!=nullptr) {delete x; x = nullptr;}
 #define DELETEA(x) if (x!=nullptr) {delete[] x; x = nullptr;}
 
