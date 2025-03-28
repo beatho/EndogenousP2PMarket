@@ -5,8 +5,8 @@
 #include <chrono>
 
 
-class PAC : public MethodP2P // gère P et Q comme si tous les Q étaient des agents différents
-	//et donc P et Q sont 2 problèmes complètement distincts
+class PAC : public MethodP2P // gï¿½re P et Q comme si tous les Q ï¿½taient des agents diffï¿½rents
+	//et donc P et Q sont 2 problï¿½mes complï¿½tement distincts
 {
 public:
 	PAC();
@@ -42,7 +42,7 @@ private:
 	
 	// ne change pas avec P0
 	float _gamma = 1; // 0.1
-	float _gammahat = 0.1;
+	float _gammahat = 0.1f;
 	bool isAC = false;
 		
 	int _nAgent = 0;
@@ -62,7 +62,7 @@ private:
 	
 
 	MatrixCPU tempN1; // Matrix temporaire pour aider les calculs
-	MatrixCPU tempNN; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixCPU tempNN; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	MatrixCPU* tempM1 = nullptr; //
 	MatrixCPU* tempM = nullptr; //
 	

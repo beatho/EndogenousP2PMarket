@@ -61,7 +61,7 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 		init(sim, cas);
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.set(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.set(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		occurencePerBlock.set(0, 0, 1);
 #endif // INSTRUMENTATION
 	}
@@ -95,7 +95,7 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 				resL = calcRes();
 #ifdef INSTRUMENTATION
 				t2 = std::chrono::high_resolution_clock::now();
-				timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+				timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION			
 			}
 			Tlocal_pre.swap(&Tlocal); 
@@ -141,7 +141,7 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
-			timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+			timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION		
 		}
 		iterGlobal++;
@@ -205,7 +205,7 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 	result->setFc(fc);
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 9, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 9, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 9, 1);
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
@@ -244,7 +244,7 @@ void ADMMACConst1::updateP0(const StudyCase& cas)
 	Cp1.multiplyT(&nVoisin);
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 10, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 10, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 10, 1);
 #endif // INSTRUMENTATION
 
@@ -506,7 +506,7 @@ void ADMMACConst1::updateGlobalProb() {
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
-	timePerBlock.increment(0, 5, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 5, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 
 	// FB 3b
 	t1 = std::chrono::high_resolution_clock::now();
@@ -559,7 +559,7 @@ void ADMMACConst1::updateGlobalProb() {
 
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -571,7 +571,7 @@ void ADMMACConst1::updateGlobalProb() {
 	
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION
 	
 }
@@ -589,7 +589,7 @@ void ADMMACConst1::updateLocalProb() {
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
-	timePerBlock.increment(0, 1, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 1, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 
 	// FB 2b
 	t1 = std::chrono::high_resolution_clock::now();
@@ -608,7 +608,7 @@ void ADMMACConst1::updateLocalProb() {
 	}
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 2, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 2, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	
 	// FB 2c
 	t1 = std::chrono::high_resolution_clock::now();
@@ -620,7 +620,7 @@ void ADMMACConst1::updateLocalProb() {
 	updateMU();
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION
 	
 }

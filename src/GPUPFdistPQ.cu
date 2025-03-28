@@ -4,7 +4,7 @@
 GPUPFdistPQ::GPUPFdistPQ() {}
 GPUPFdistPQ::~GPUPFdistPQ() {}
 
-void GPUPFdistPQ::init(const StudyCase& cas, MatrixGPU* PQ)
+void GPUPFdistPQ::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD * PnD, bool useDouble)
 {
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
@@ -13,9 +13,11 @@ void GPUPFdistPQ::init(const StudyCase& cas, MatrixGPU* PQ)
     occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
 
 #endif // INSTRUMENTATION
-    
+    if(useDouble){
+        std::cout << "WARNING : double precision computation is not yet implemented for this method" << std::endl;
+    } 
 
-    //std::cout << "init PF GPUPFdistPQ" <<std::endl;
+    std::cout << "init PF GPUPFdistPQ" <<std::endl;
     //PQ->display(true);
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
@@ -176,7 +178,7 @@ void GPUPFdistPQ::init(const StudyCase& cas, MatrixGPU* PQ)
    
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
    //std::cout << " fin init" << std::endl;
@@ -228,7 +230,7 @@ void GPUPFdistPQ::updatePQ(MatrixGPU* PQ)
     calculW0Bis(PQ);
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
 #endif
 }
@@ -255,7 +257,7 @@ void GPUPFdistPQ::solve()
         
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 3, 1);
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -265,7 +267,7 @@ void GPUPFdistPQ::solve()
         
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
         VoltageRealImPre.set(&VoltageRealIm);
@@ -288,7 +290,7 @@ void GPUPFdistPQ::solve()
    // W.display(true);
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
 #endif // INSTRUMENTATION
     /*std::cout << "tension bus entree puis sortie" << std::endl;
@@ -321,7 +323,7 @@ void GPUPFdistPQ::calcS()
     
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 1, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 1, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 1, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -338,7 +340,7 @@ void GPUPFdistPQ::calcS()
     
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 2, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 2, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 2, 1);
 #endif // INSTRUMENTATION
     //Jb.display();
@@ -465,7 +467,7 @@ void GPUPFdistPQ::setE(MatrixGPU* Enew)
     
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
 #endif // INSTRUMENTATION
 }

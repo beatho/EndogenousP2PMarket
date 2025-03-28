@@ -125,7 +125,7 @@ void CPUPFdistPQ::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD * PnD, bo
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
     //std::cout << " fin init" << std::endl;
@@ -173,7 +173,7 @@ void CPUPFdistPQ::updatePQ(MatrixCPU* PQ)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
 #endif
 }
@@ -197,7 +197,7 @@ void CPUPFdistPQ::solve()
         calcVoltage();
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 3, 1);
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -206,7 +206,7 @@ void CPUPFdistPQ::solve()
         err = VoltageRealIm.distance2(&VoltageRealImPre);
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
         VoltageRealImPre = VoltageRealIm;
@@ -227,7 +227,7 @@ void CPUPFdistPQ::solve()
     calcW(true);
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
 #endif // INSTRUMENTATION
     /*std::cout << "tension bus entree puis sortie" << std::endl;
@@ -288,7 +288,7 @@ void CPUPFdistPQ::calcS()
    
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 1, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 1, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 1, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -323,7 +323,7 @@ void CPUPFdistPQ::calcS()
    
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 2, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 2, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 2, 1);
 #endif // INSTRUMENTATION
     //Jb.display();
@@ -410,6 +410,7 @@ int CPUPFdistPQ::calcVoltage()
 
 void CPUPFdistPQ::calcE()
 {
+    std::cout << "calculE de CPUPFDistPQ" << std::endl;
     for (int i = 0; i < Nbus; i++) {
         float Rev = VoltageRealIm.get(i, 0);
         float Imv = VoltageRealIm.get(i + Nbus, 0);
@@ -476,7 +477,7 @@ void CPUPFdistPQ::setE(MatrixCPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
 #endif // INSTRUMENTATION
 }

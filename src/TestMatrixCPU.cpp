@@ -265,7 +265,7 @@ bool testMSetRand()
 	MatrixCPU mat(line, column);
 	MatrixCPU mat2(line, column);
 	int nValue = 4;
-	int divide = nValue / 0.001;
+	int divide = nValue * 1000;
 	mat.setRand(nValue, divide);
 	mat.display();
 	mat2.setRand(nValue, divide);
@@ -893,8 +893,8 @@ bool testMDivide1()
 {
 	int line = 2;
 	int column = line + 1;
-	float value = 1.5;
-	float value2 = 1.2;
+	float value = 1.5f;
+	float value2 = 1.2f;
 	float value3 = value /value2;
 
 
@@ -955,8 +955,8 @@ bool testMDivide4()
 {
 	int line = 2;
 	int column = line + 1;
-	float value = 1.5;
-	float value2 = -1.2;
+	float value = 1.5f;
+	float value2 = -1.2f;
 	float value3 = value /value2;
 	MatrixCPU m1(line, column, value);
 	MatrixCPU m3(line, column, value3);

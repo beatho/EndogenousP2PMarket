@@ -33,7 +33,7 @@ void StudyCaseAgent::initCaseFromPobj()
 		offset = 1;
 	}
 
-	float dP = 0.1; // 10% of flexibility
+	float dP = 0.1f; // 10% of flexibility
 	int nVoisin;
 	float pLim1, pLim2, cost1, cost2, P0;
 	float qLim1, qLim2, cost1Q, cost2Q, Q0, S0;
@@ -188,13 +188,13 @@ StudyCaseAgent::StudyCaseAgent()
 StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da, float b, float db, float propCons, float propPro)
 {
 	clock_t t = clock();
-	srand(time(nullptr));
+	srand((unsigned int)time(nullptr));
 	if (propCons < 0 || propPro < 0 || (1 - propCons - propPro) < 0) {
 		throw std::invalid_argument("propCons and propPro are proportion <1 and >0");
 	}	
 	_nAgent = nAgent;
-	_nCons = nAgent * propCons;
-	_nPro = nAgent * propPro;
+	_nCons = (int) nAgent * propCons;
+	_nPro = (int) nAgent * propPro;
 	_nGen = nAgent - _nCons - _nPro;
 
 	
@@ -207,10 +207,10 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 	for (int id = 0; id < nAgent; id++)
 	{
 		if (id < _nCons) { // consumer
-			float P0 = -P + dP * 2 * (rand1() - 0.5);
-			pLim1 = 1.1 * P0;
-			pLim2 = 0.9 * P0;
-			cost1 = a + da * 2 * (rand1() - 0.5);
+			float P0 = -P + dP * 2 * (rand1() - 0.5f);
+			pLim1 = 1.1f * P0;
+			pLim2 = 0.9f * P0;
+			cost1 = a + da * 2 * (rand1() - 0.5f);
 			cost2 = -P0 * a;
 			nVoisin = _nGen + _nPro;
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, nAgent, 1);
@@ -219,9 +219,9 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 		}
 		else if (id < (_nCons + _nGen)) { // generator
 			pLim1 = 0;
-			pLim2 = P + dP * 2 * (rand1() - 0.5);
-			cost1 = a + da * 2 * (rand1() - 0.5);
-			cost2 = b + db * 2 * (rand1() - 0.5);
+			pLim2 = P + dP * 2 * (rand1() - 0.5f);
+			cost1 = a + da * 2 * (rand1() - 0.5f);
+			cost2 = b + db * 2 * (rand1() - 0.5f);
 			nVoisin = _nCons + _nPro;
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, nAgent, 2);
 			_Ub.set(id, 0, pLim2);
@@ -229,10 +229,10 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 		}
 		else { // prosumer
 			
-			pLim1 = -P + dP * 2 * (rand1() - 0.5);
-			pLim2 = P + dP * 2 * (rand1() - 0.5);
-			cost1 = a + da * 2 * (rand1() - 0.5);
-			cost2 = b + db * 2 * (rand1() - 0.5);
+			pLim1 = -P + dP * 2 * (rand1() - 0.5f);
+			pLim2 = P + dP * 2 * (rand1() - 0.5f);
+			cost1 = a + da * 2 * (rand1() - 0.5f);
+			cost2 = b + db * 2 * (rand1() - 0.5f);
 			nVoisin = _nGen + _nCons;
 			
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, nAgent, 3);
@@ -257,7 +257,7 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 
 StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float Q, float dQ, float a, float da, float aQ, float daQ, float b, float db, float Gamma, float dGamma, float propCons, float propGenNFle, float propPro)
 {
-	srand(time(nullptr));
+	srand((unsigned int) time(nullptr));
 	if (propCons < 0 || propPro < 0 || propGenNFle < 0 || (1 - propCons - propPro - propGenNFle) < 0) {
 		throw std::invalid_argument("propCons or propPro or propGenNFle are proportion <1 and >0");
 	} if (dP > P || db > b || dQ > Q || dGamma > Gamma) {
@@ -268,9 +268,9 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float Q, float dQ,
 	}
 	_AC = true;
 	_nAgent = nAgent + 1;
-	_nCons = nAgent * propCons + 1;
-	_nPro = nAgent * propPro;
-	_nGenNFle = nAgent * propGenNFle;
+	_nCons = (int) nAgent * propCons + 1;
+	_nPro = (int) nAgent * propPro;
+	_nGenNFle = (int) nAgent * propGenNFle;
 	_nGen = _nAgent - _nCons - _nPro;
 	_nGenFle = _nGen - _nGenNFle;
 	
@@ -295,14 +295,14 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float Q, float dQ,
 	for (int id = 1; id < _nAgent; id++)
 	{
 		if (id < _nCons) { // consumer
-			float P0 = P + dP * 2 * (rand1() - 0.5);
-			Q0 = dQ * 2 * (rand1() - 0.5);
-			a0 = a + da * 2 * (rand1() - 0.5);
-			aQ0 = a + da * 2 * (rand1() - 0.5);
+			float P0 = P + dP * 2 * (rand1() - 0.5f);
+			Q0 = dQ * 2 * (rand1() - 0.5f);
+			a0 = a + da * 2 * (rand1() - 0.5f);
+			aQ0 = a + da * 2 * (rand1() - 0.5f);
 			pLim1 = -1.1 * P0 / _Sbase;
 			pLim2 = -0.9 * P0 / _Sbase;
-			qLim1 = Q0 / _Sbase * (1.05 - 0.1 * (Q0 > 0));
-			qLim2 = Q0 / _Sbase * (0.95 + 0.1 * (Q0 > 0));
+			qLim1 = Q0 / _Sbase * (1.05f - 0.1f * (Q0 > 0));
+			qLim2 = Q0 / _Sbase * (0.95f + 0.1f * (Q0 > 0));
 			cost1 = a0 * (_Sbase * _Sbase);
 			cost2 = P0 * a0 * _Sbase;
 			costQ1 = aQ0 * (_Sbase * _Sbase);
@@ -315,12 +315,12 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float Q, float dQ,
 			_Lb.set(id, 0, pLim1);
 		}
 		else if (id < _nCons + _nGenNFle) {
-			P0 = P + dP * 2 * (rand1() - 0.5);
-			Q0 = dQ * 2 * (rand1() - 0.5);
-			a0 = a + da * 2 * (rand1() - 0.5);
-			aQ0 = a + da * 2 * (rand1() - 0.5);
-			pLim1 = 0.9 * P0 / _Sbase;
-			pLim2 = 1.1 * P0 / _Sbase;
+			P0 = P + dP * 2 * (rand1() - 0.5f);
+			Q0 = dQ * 2 * (rand1() - 0.5f);
+			a0 = a + da * 2 * (rand1() - 0.5f);
+			aQ0 = a + da * 2 * (rand1() - 0.5f);
+			pLim1 = 0.9f * P0 / _Sbase;
+			pLim2 = 1.1f * P0 / _Sbase;
 			qLim1 = -dQ;
 			qLim2 = dQ;
 			cost1 = a0 * (_Sbase * _Sbase);
@@ -336,17 +336,17 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float Q, float dQ,
 		}
 		else if (id < _nCons + _nGen)// generator
 		{ 
-			P0 = P + dP * 2 * (rand1() - 0.5);
-			Q0 = dQ * 2 * (rand1() - 0.5);
-			a0 = a + da * 2 * (rand1() - 0.5);
-			aQ0 = a + da * 2 * (rand1() - 0.5);
+			P0 = P + dP * 2 * (rand1() - 0.5f);
+			Q0 = dQ * 2 * (rand1() - 0.5f);
+			a0 = a + da * 2 * (rand1() - 0.5f);
+			aQ0 = a + da * 2 * (rand1() - 0.5f);
 			pLim1 = 0;
 			pLim2 = P0 / _Sbase;
-			qLim1 = Q0 / _Sbase * (1.05 - 0.1 * (Q0 > 0));
-			qLim2 = Q0 / _Sbase * (0.95 + 0.1 * (Q0 > 0));
+			qLim1 = Q0 / _Sbase * (1.05f - 0.1f * (Q0 > 0));
+			qLim2 = Q0 / _Sbase * (0.95f + 0.1f * (Q0 > 0));
 			
 			cost1 = a0 * (_Sbase * _Sbase);
-			cost2 = b * _Sbase + db * 2 * (rand1() - 0.5) * _Sbase;
+			cost2 = b * _Sbase + db * 2 * (rand1() - 0.5f) * _Sbase;
 			costQ1 = aQ0 * (_Sbase * _Sbase);
 			costQ2 = -Q0 * _Sbase * aQ0;
 			nVoisin = _nCons + _nPro;
@@ -357,10 +357,10 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float Q, float dQ,
 			_PobjD.set(id, 0, P0 / _Sbase);
 		}
 		else { // prosumer
-			P0 = dP * 2 * (rand1() - 0.5); // positive or negative
-			Q0 = dQ * 2 * (rand1() - 0.5); // positive or negative
-			a0 = a + da * 2 * (rand1() - 0.5);
-			aQ0 = a + da * 2 * (rand1() - 0.5);
+			P0 = dP * 2 * (rand1() - 0.5f); // positive or negative
+			Q0 = dQ * 2 * (rand1() - 0.5f); // positive or negative
+			a0 = a + da * 2 * (rand1() - 0.5f);
+			aQ0 = a + da * 2 * (rand1() - 0.5f);
 
 			pLim1 = -dP;
 			pLim2 = dP;
@@ -400,7 +400,7 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float Q, float dQ,
 
 StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da, float b, float db, float Gamma, float dGamma, float propCons, float propGenNFle, float propPro)
 {
-	srand(time(nullptr));
+	srand((unsigned int) time(nullptr));
 	if (propCons < 0 || propPro < 0 || propGenNFle < 0 || (1 - propCons - propPro - propGenNFle) < 0) {
 		throw std::invalid_argument("propCons or propPro or propGenNFle are proportion <1 and >0");
 	} if (dP > P || db > b || dGamma > Gamma) {
@@ -411,9 +411,9 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 	}
 	_AC = false;
 	_nAgent = nAgent ;
-	_nCons = nAgent * propCons;
-	_nPro = nAgent * propPro;
-	_nGenNFle = nAgent * propGenNFle;
+	_nCons = (int) nAgent * propCons;
+	_nPro = (int) nAgent * propPro;
+	_nGenNFle = (int) nAgent * propGenNFle;
 	_nGen = _nAgent - _nCons - _nPro;
 	_nGenFle = _nGen - _nGenNFle;
 
@@ -430,8 +430,8 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 	for (int id = 0; id < _nAgent; id++)
 	{
 		if (id < _nCons) { // consumer
-			P0 = P + dP * 2 * (rand1() - 0.5);
-			a0 = a + da * 2 * (rand1() - 0.5);
+			P0 = P + dP * 2 * (rand1() - 0.5f);
+			a0 = a + da * 2 * (rand1() - 0.5f);
 			pLim1 = -1.1 * P0 / _Sbase;
 			pLim2 = -0.9 * P0 / _Sbase;
 			cost1 = a0 * (_Sbase * _Sbase);
@@ -444,8 +444,8 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 			_Lb.set(id, 0, pLim1);
 		}
 		else if (id < _nCons + _nGenNFle) {
-			P0 = P + dP * 2 * (rand1() - 0.5);
-			a0 = a + da * 2 * (rand1() - 0.5);
+			P0 = P + dP * 2 * (rand1() - 0.5f);
+			a0 = a + da * 2 * (rand1() - 0.5f);
 			pLim1 = 0.9 * P0 / _Sbase;
 			pLim2 = 1.1 * P0 / _Sbase;
 			cost1 = a0 * (_Sbase * _Sbase);
@@ -459,13 +459,13 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 		}
 		else if (id < _nCons + _nGen)// generator
 		{
-			P0 = P + dP * 2 * (rand1() - 0.5);
-			a0 = a + da * 2 * (rand1() - 0.5);
+			P0 = P + dP * 2 * (rand1() - 0.5f);
+			a0 = a + da * 2 * (rand1() - 0.5f);
 			pLim1 = 0;
 			pLim2 = P0 / _Sbase;
 
 			cost1 = a0 * (_Sbase * _Sbase);
-			cost2 = b * _Sbase + db * 2 * (rand1() - 0.5) * _Sbase;
+			cost2 = b * _Sbase + db * 2 * (rand1() - 0.5f) * _Sbase;
 			nVoisin = _nCons + _nPro;
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 2);
 			_Ub.set(id, 0, pLim2);
@@ -474,8 +474,8 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 			_PobjD.set(id, 0, P0 / _Sbase);
 		}
 		else { // prosumer
-			P0 = dP * 2 * (rand1() - 0.5); // positive or negative
-			a0 = a + da * 2 * (rand1() - 0.5);
+			P0 = dP * 2 * (rand1() - 0.5f); // positive or negative
+			a0 = a + da * 2 * (rand1() - 0.5f);
 			
 			pLim1 = -dP;
 			pLim2 = dP;
@@ -508,12 +508,12 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 StudyCaseAgent::StudyCaseAgent(int nAgent, float P0, float dP, float b, float db, float propCons)
 {
 	clock_t t = clock();
-	srand(time(nullptr));
+	srand((unsigned int) time(nullptr));
 	if (propCons < 0 || (1 - propCons) < 0) {
 		throw std::invalid_argument("propCons is a proportion <1 and >0");
 	}
 	_nAgent = nAgent;
-	_nCons = nAgent * propCons;
+	_nCons = (int) nAgent * propCons;
 	_nPro = 0;
 	_nGen = nAgent - _nCons - _nPro;
 
@@ -530,8 +530,8 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P0, float dP, float b, float db
 		for (int id = 0; id < nAgent; id++)
 		{
 			if (id < _nCons) { // consumer
-				pLim1 = -P0 - dP * (rand1() + 0.01);
-				pLim2 = -P0 + dP * (rand1() + 0.01);
+				pLim1 = -P0 - dP * (rand1() + 0.01f);
+				pLim2 = -P0 + dP * (rand1() + 0.01f);
 				cost1 = 1;
 				cost2 = P0;
 				nVoisin = _nGen + _nPro;
@@ -541,9 +541,9 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P0, float dP, float b, float db
 			}
 			else { // generator
 				pLim1 = 0;
-				pLim2 = P0 + dP * 2 * (rand1() - 0.5);
-				cost1 = 0.1;
-				cost2 = b + db * 2 * (rand1() - 0.5);
+				pLim2 = P0 + dP * 2 * (rand1() - 0.5f);
+				cost1 = 0.1f;
+				cost2 = b + db * 2 * (rand1() - 0.5f);
 				nVoisin = _nCons + _nPro;
 				_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, nAgent, 2);
 				_Ub.set(id, 0, pLim2);
@@ -691,14 +691,14 @@ StudyCaseAgent::StudyCaseAgent(std::string fileName)
 		for (int id = 0; id < _nAgent; id++)
 		{
 			if (id < _nCons) { // consumer
-				_agents[id].setAgent(id, _Pmin.get(id, 0), _Pmax.get(id, 0), _a.get(id, 0), _b.get(id, 0), _nVoisin.get(id, 0), &_connect, _nAgent, 1);
+				_agents[id].setAgent(id, _Pmin.get(id, 0), _Pmax.get(id, 0), _a.get(id, 0), _b.get(id, 0), (int) _nVoisin.get(id, 0), &_connect, _nAgent, 1);
 
 			}
 			else if (id < (_nCons + _nGen)) { // generator
-				_agents[id].setAgent(id, _Pmin.get(id, 0), _Pmax.get(id, 0), _a.get(id, 0), _b.get(id, 0), _nVoisin.get(id, 0), &_connect, _nAgent, 2);
+				_agents[id].setAgent(id, _Pmin.get(id, 0), _Pmax.get(id, 0), _a.get(id, 0), _b.get(id, 0), (int) _nVoisin.get(id, 0), &_connect, _nAgent, 2);
 			}
 			else { // prosumer
-				_agents[id].setAgent(id, _Pmin.get(id, 0), _Pmax.get(id, 0), _a.get(id, 0), _b.get(id, 0), _nVoisin.get(id, 0), &_connect, _nAgent, 3);
+				_agents[id].setAgent(id, _Pmin.get(id, 0), _Pmax.get(id, 0), _a.get(id, 0), _b.get(id, 0), (int) _nVoisin.get(id, 0), &_connect, _nAgent, 3);
 			}
 		}
 	}
@@ -760,7 +760,7 @@ StudyCaseAgent& StudyCaseAgent::operator= (const StudyCaseAgent& s)
 void StudyCaseAgent::genAgents(int nAgent, float propCons, float Pconso, float dPconso, float bProd, float dbProd, float Pprod, float dPprod, float Gamma, float dGamma)
 {
 	clock_t t = clock();
-	srand(time(nullptr));
+	srand((unsigned int) time(nullptr));
 	if (propCons < 0 || (1 - propCons) < 0) {
 		throw std::invalid_argument("propCons is a proportion <1 and >0");
 	} if (dPconso > Pconso || dbProd > bProd || dPprod > Pprod || dGamma > Gamma) {
@@ -770,7 +770,7 @@ void StudyCaseAgent::genAgents(int nAgent, float propCons, float Pconso, float d
 		Pconso = -Pconso;
 	}
 	_nAgent = nAgent;
-	_nCons = nAgent * propCons;
+	_nCons = (int) (nAgent * propCons);
 	_nPro = 0;
 	_nGen = nAgent - _nCons - _nPro;
 
@@ -791,7 +791,7 @@ void StudyCaseAgent::genAgents(int nAgent, float propCons, float Pconso, float d
 	_BETA = MatrixCPU(_nAgent, _nAgent);
 
 	genConnec(&_connect);
-	float gamma = Gamma + dGamma * 2 * (rand1() - 0.5);
+	float gamma = Gamma + dGamma * 2 * (rand1() - 0.5f);
 	genBetaUniforme(gamma);
 
 	int nVoisin;
@@ -803,9 +803,9 @@ void StudyCaseAgent::genAgents(int nAgent, float propCons, float Pconso, float d
 		for (int id = 0; id < nAgent; id++)
 		{
 			if (id < _nCons) { // consumer
-				float P0 = Pconso + dPconso * 2 * (rand1() - 0.5);
-				pLim1 = -1.1 * P0;
-				pLim2 = -0.9 * P0;
+				float P0 = Pconso + dPconso * 2 * (rand1() - 0.5f);
+				pLim1 = -1.1f * P0;
+				pLim2 = -0.9f * P0;
 				cost1 = 1;
 				cost2 = P0;
 				nVoisin = _nGen + _nPro;
@@ -814,11 +814,11 @@ void StudyCaseAgent::genAgents(int nAgent, float propCons, float Pconso, float d
 				_Lb.set(id, 0, pLim1);
 			}
 			else { // generator
-				float P0 = Pprod + dPprod * 2 * (rand1() - 0.5);
+				float P0 = Pprod + dPprod * 2 * (rand1() - 0.5f);
 				pLim1 = 0;
 				pLim2 = P0;
-				cost1 = 0.1;
-				cost2 = bProd + dbProd * 2 * (rand1() - 0.5);
+				cost1 = 0.1f;
+				cost2 = bProd + dbProd * 2 * (rand1() - 0.5f);
 				nVoisin = _nCons + _nPro;
 				_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, nAgent, 2);
 				_Ub.set(id, 0, pLim2);
@@ -854,9 +854,9 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 	}
 	
 	_nAgent = nAgent + 1;
-	_nCons = nAgent * propCons + 1;
+	_nCons = (int) (nAgent * propCons + 1);
 	_nPro = 0;
-	_nGenNFle = nAgent * propGenNFle;
+	_nGenNFle = (int) (nAgent * propGenNFle);
 	_nGen = _nAgent - _nCons - _nPro;
 	_nGenFle = _nGen - _nGenNFle;
 
@@ -865,7 +865,7 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 	float pLim1, pLim2, cost1, cost2, costQ1, costQ2, qLim1, qLim2, Q0;
 		
 	initMatAC();
-	float gamma = Gamma + dGamma * 2 * (rand1() - 0.5);
+	float gamma = Gamma + dGamma * 2 * (rand1() - 0.5f);
 	genBetaUniforme(gamma);
 
 	int nVoisin;
@@ -884,15 +884,15 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 	for (int id = 1; id < _nAgent; id++)
 	{
 		if (id < _nCons) { // consumer
-			float P0 = Pconso + dPconso * 2 * (rand1() - 0.5);
-			Q0 = dQconso * 2 * (rand1() - 0.5);
-			pLim1 = -1.1 * P0 / _Sbase;
-			pLim2 = -0.9 * P0 / _Sbase;
-			qLim1 = Q0 / _Sbase * (1.05 - 0.1 * (Q0 > 0));
-			qLim2 = Q0 / _Sbase * (0.95 + 0.1 * (Q0 > 0));
+			float P0 = Pconso + dPconso * 2 * (rand1() - 0.5f);
+			Q0 = dQconso * 2 * (rand1() - 0.5f);
+			pLim1 = -1.1f * P0 / _Sbase;
+			pLim2 = -0.9f * P0 / _Sbase;
+			qLim1 = Q0 / _Sbase * (1.05f - 0.1f * (Q0 > 0));
+			qLim2 = Q0 / _Sbase * (0.95f + 0.1f * (Q0 > 0));
 			cost1 = 1 * (_Sbase * _Sbase);
 			cost2 = P0 * cost1 /_Sbase;
-			costQ1 = 0.1 * (_Sbase * _Sbase);
+			costQ1 = 0.1f * (_Sbase * _Sbase);
 			costQ2 = -Q0 * costQ1 / _Sbase;
 			nVoisin = _nGen + _nPro;
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 1);
@@ -903,15 +903,15 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 
 		}
 		else if (id < _nCons + _nGenNFle) {
-			float P0 = Pconso + dPconso * 2 * (rand1() - 0.5);
-			Q0 = dQconso * 2 * (rand1() - 0.5);
-			pLim1 = 0.9 * P0 / _Sbase;
-			pLim2 = 1.1 * P0 / _Sbase;
+			float P0 = Pconso + dPconso * 2 * (rand1() - 0.5f);
+			Q0 = dQconso * 2 * (rand1() - 0.5f);
+			pLim1 = 0.9f * P0 / _Sbase;
+			pLim2 = 1.1f * P0 / _Sbase;
 			qLim1 = - 2 * dQconso;
 			qLim2 =   2 * dQconso;
-			cost1 = 0.1 * (_Sbase * _Sbase);
+			cost1 = 0.1f * (_Sbase * _Sbase);
 			cost2 = - P0 * cost1 / _Sbase;
-			costQ1 = 0.1 * (_Sbase * _Sbase);
+			costQ1 = 0.1f * (_Sbase * _Sbase);
 			costQ2 = -Q0 * costQ1 / _Sbase;
 			nVoisin = _nCons + _nPro;
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 1);
@@ -921,12 +921,12 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 			_Lb.set(id, 0, 0);
 		}
 		else { // generator
-			float P0 = Pconso + dPconso * 2 * (rand1() - 0.5);
-			float P02 = Pprod + dPprod * 2 * (rand1() - 0.5);
+			float P0 = Pconso + dPconso * 2 * (rand1() - 0.5f);
+			float P02 = Pprod + dPprod * 2 * (rand1() - 0.5f);
 			if (P0 < P02) {
 				P0 = P02;
 			}
-			Q0 = dQconso * 2 * (rand1() - 0.5);
+			Q0 = dQconso * 2 * (rand1() - 0.5f);
 			pLim1 = 0;
 			pLim2 = P0 / _Sbase;
 			qLim1 = Q0 / _Sbase * (1.05 - 0.1 * (Q0 > 0));

@@ -36,25 +36,25 @@ public:
 private:
 	bool augmente = true;
 	// ne change pas avec P0
-	float _gamma = 0.01;
-	float _gammahat = 0.01;
+	float _gamma = 0.01f;
+	float _gammahat = 0.01f;
 		
 	int _nAgent = 0;
 	int _nTrade = 0;
 	int _nLine = 0;
 	float _rhog = 0;
-	float _rho = 1.5;
+	float _rho = 1.5f;
 	float _rhoInv = 0;
 	int _sizePACConst = 0;
 	
 	// parameter agent and iteration dependant (but not here for now)
-	float _alpha = 0.6;
-	float _phi = 0.2;
-	float _theta = 0.2;
+	float _alpha = 0.6f;
+	float _phi = 0.2f;
+	float _theta = 0.2f;
 	
 
 	MatrixCPU tempN1; // Matrix temporaire pour aider les calculs
-	MatrixCPU tempNN; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixCPU tempNN; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	MatrixCPU* tempM1 = nullptr; //
 	MatrixCPU* tempM = nullptr;; //
 	MatrixCPU tempL;

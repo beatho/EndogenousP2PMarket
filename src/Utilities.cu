@@ -54,6 +54,15 @@ float Mymax(float a, float b){
 	return a*(a>b) + b*(a<=b);
 }
 
+double Mymin(double a, double b){
+	return b*(a>b) + a*(a<=b);
+}
+
+double Mymax(double a, double b){
+	return a*(a>b) + b*(a<=b);
+}
+
+
 
 int resolveRealPolynome3without2term(double* root, double* coef) {
 	/*

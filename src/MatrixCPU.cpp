@@ -33,6 +33,38 @@ MatrixCPU::MatrixCPU(int l, int c, float value)
     std::cout << _matrixCPU << std::endl;
 #endif
 }
+MatrixCPU::MatrixCPU(int l, int c, int value)
+{
+#ifdef DEBUG_CONSTRUCTOR
+    std::cout << "contructeur parametre appele" << std::endl;
+    std::cout << _matrixCPU << std::endl;
+#endif
+    _row = l;
+    _column = c;
+    _matrixCPU = new float[l*c];
+    for (int elem = 0; elem < l * c;elem++) {
+        _matrixCPU[elem] = (float) value; 
+    }
+#ifdef DEBUG_CONSTRUCTOR
+    std::cout << _matrixCPU << std::endl;
+#endif
+}
+MatrixCPU::MatrixCPU(int l, int c, double value)
+{
+#ifdef DEBUG_CONSTRUCTOR
+    std::cout << "contructeur parametre appele" << std::endl;
+    std::cout << _matrixCPU << std::endl;
+#endif
+    _row = l;
+    _column = c;
+    _matrixCPU = new float[l*c];
+    for (int elem = 0; elem < l * c;elem++) {
+        _matrixCPU[elem] = (float) value; 
+    }
+#ifdef DEBUG_CONSTRUCTOR
+    std::cout << _matrixCPU << std::endl;
+#endif
+}
 
 MatrixCPU::MatrixCPU(const MatrixCPU & m)
 {
@@ -244,13 +276,31 @@ void MatrixCPU::setSize(int l, int c)
 ///////////////////////////////////////////////////////////////////////////////
 // Setter
 ///////////////////////////////////////////////////////////////////////////////
-inline void MatrixCPU::set(int i, int j, float value)
+void MatrixCPU::set(int i, int j, float value)
 {
     if ((i >= _row) || (j >= _column) || (i < 0) || (j < 0)) {
         std::cout << "err set" << _row << " " << _column << " " << i << " " << j << std::endl;
         throw std::out_of_range("index out of bounds, (set)");
     }
     _matrixCPU[i * _column + j] = value;
+}
+
+void MatrixCPU::set(int i, int j, int value)
+{
+    if ((i >= _row) || (j >= _column) || (i < 0) || (j < 0)) {
+        std::cout << "err set" << _row << " " << _column << " " << i << " " << j << std::endl;
+        throw std::out_of_range("index out of bounds, (set)");
+    }
+    _matrixCPU[i * _column + j] = (float) value;
+}
+
+void MatrixCPU::set(int i, int j, double value)
+{
+    if ((i >= _row) || (j >= _column) || (i < 0) || (j < 0)) {
+        std::cout << "err set" << _row << " " << _column << " " << i << " " << j << std::endl;
+        throw std::out_of_range("index out of bounds, (set)");
+    }
+    _matrixCPU[i * _column + j] = (float) value;
 }
 
 void MatrixCPU::set(float value)
@@ -456,6 +506,22 @@ void MatrixCPU::increment(int i, int j, float add)
         throw std::out_of_range("index out of bounds (increment)");
     }
     _matrixCPU[i * _column + j] += add;
+}
+void MatrixCPU::increment(int i, int j, double add)
+{
+    if ((i >= _row) || (j >= _column) || (i < 0) || (j < 0)) {
+        std::cout << _row << " " << _column << " " << i << " " << j << std::endl;
+        throw std::out_of_range("index out of bounds (increment)");
+    }
+    _matrixCPU[i * _column + j] += (float) add;
+}
+void MatrixCPU::increment(int i, int j, int add)
+{
+    if ((i >= _row) || (j >= _column) || (i < 0) || (j < 0)) {
+        std::cout << _row << " " << _column << " " << i << " " << j << std::endl;
+        throw std::out_of_range("index out of bounds (increment)");
+    }
+    _matrixCPU[i * _column + j] += (float) add;
 }
 void MatrixCPU::addVector(MatrixCPU* v)
 {

@@ -81,7 +81,7 @@ bool testADMM1Solve1()
 	MatrixCPU trade = res.getTrade();
 	res.display();
 	trade.display();
-	return trade.isEqual(&Trade,0.001);
+	return trade.isEqual(&Trade,0.001f);
 }
 bool testADMM1Solve2()
 {
@@ -102,7 +102,7 @@ bool testADMM1Solve2()
 	res.display();
 	
 					
-	float Pn[31] = { -1.008853555,-4.62966156,-2.927534103,-0.8979898691,-0.9462603927,-0.09805059433,-0.127968356,-4.168303013,-3.151874542,-2.261414766,-0.670329392,-3.399893284,-0.4841034412,-2.775528431,-3.008597374,-1.849177122,-0.5534118414,-2.362840891,-1.122991204,-0.1379692554,-2.332088947,4.406820297,5.406073093,3.676487684,3.929354668,4.570535183,2.529039145,3.478654861,2.755935192,3.768760443,4.393183708, };
+	float Pn[31] = { -1.008853555f,-4.62966156f,-2.927534103f,-0.8979898691f,-0.9462603927f,-0.09805059433f,-0.127968356f,-4.168303013f,-3.151874542f,-2.261414766f,-0.670329392f,-3.399893284f,-0.4841034412f,-2.775528431f,-3.008597374f,-1.849177122f,-0.5534118414f,-2.362840891f,-1.122991204f,-0.1379692554f,-2.332088947f,4.406820297f,5.406073093f,3.676487684f,3.929354668f,4.570535183f,2.529039145f,3.478654861f,2.755935192f,3.768760443f,4.393183708f };
 
 	MatrixCPU P(31, 1);
 	for (int i = 0; i < 31; i++) {
@@ -111,14 +111,14 @@ bool testADMM1Solve2()
 
 	MatrixCPU P2 = res.getPn();
 	std::cout << std::endl;
-	return P2.isEqual(&P,0.01);
+	return P2.isEqual(&P,0.01f);
 }
 
 bool testADMM1Solve3()
 {
 	//solve(Simparam* result, Simparam sim, StudyCase cas);
 	StudyCase cas;
-	float lim = 0.8;
+	float lim = 0.8f;
 	cas.Set2nodeConstraint(lim);
 	int nAgent = cas.getNagent();
 	float epsG = 0.00001f;
@@ -142,7 +142,7 @@ bool testADMM1Solve3()
 	MatrixCPU trade = res.getTrade();
 	res.display();
 	trade.display();
-	return trade.isEqual(&Trade, 0.001);
+	return trade.isEqual(&Trade, 0.001f);
 }
 
 
@@ -153,7 +153,7 @@ void ADMMConst::updateBt1(MatrixCPU* Bt1, MatrixCPU* trade, float rho, MatrixCPU
 {
 	Bt1->set(trade);
 	Bt1->subtractTrans(trade);
-	Bt1->multiply(0.5*rho); // c'est mieux que de copier une matrix complète
+	Bt1->multiply(0.5*rho); // c'est mieux que de copier une matrix complï¿½te
 	Bt1->subtract(LAMBDA);
 	Bt1->divide(rho);
 
@@ -179,10 +179,10 @@ void ADMMConst::updateBt1(MatrixCPU* Bt1, MatrixCPU* trade, float rho, MatrixCPU
 
 
 	for (int t = 0; t < nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
+		int k = (int) CoresLinTrans.get(t, 0);
 		Bt1.set(t, 0, trade.get(t, 0) - trade.get(k, 0));
 	}
-	Bt1.multiply(0.5 * rho);
+	Bt1.multiply(0.5f * rho);
 	Bt1.subtract(&LAMBDA);
 	Bt1.divide(rho);
 	
@@ -219,8 +219,8 @@ bool testADMM1Function2()
 
 	
 	for (int i = 0; i < nAgent; i++) {
-		int nVoisinLocal = nVoisin.get(i, 0);
-		int beginLocal = CoresAgentLin.get(i, 0);
+		int nVoisinLocal = (int) nVoisin.get(i, 0);
+		int beginLocal = (int) CoresAgentLin.get(i, 0);
 		int endLocal = beginLocal + nVoisinLocal;
 		for (int j = beginLocal; j < endLocal; j++) {
 			float m = Tlocal.get(j, 0) - Tmoy.get(i, 0) + P.get(i, 0) - MU.get(i, 0);
@@ -282,7 +282,7 @@ bool testADMM1Function4()
 	void ADMMConst::updateTl(MatrixCPU* Tlocal, float at1, float at2, MatrixCPU* Bt1, MatrixCPU*Bt2, MatrixCPU* Ct, MatrixCPU* matLb, MatrixCPU* matUb)
 {
 
-	float ada = at1 / at2; // pourrait être prècalculé
+	float ada = at1 / at2; // pourrait ï¿½tre prï¿½calculï¿½
 	float apa = at1 + at2;
 
 	Tlocal->set(Bt1);
@@ -405,8 +405,8 @@ bool testADMM1Function6()
 	MatrixCPU LAMBDALin2(ntrade, 1, value1 + 0.5 * value3 * (value2 + value4));
 	
 	for (int t = 0; t < ntrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
-		float lamb = 0.5 * rho * (trade.get(t, 0) + trade.get(k, 0));
+		int k = (int) CoresLinTrans.get(t, 0);
+		float lamb = 0.5f * rho * (trade.get(t, 0) + trade.get(k, 0));
 		LAMBDALin.set(t, 0, LAMBDALin.get(t, 0) + lamb);
 	}
 

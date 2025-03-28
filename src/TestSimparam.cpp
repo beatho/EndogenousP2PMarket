@@ -45,8 +45,8 @@ bool testSimConstruc3()
 	float rho = 1;
 	int iterMaxGlobal = 500;
 	int iterMaxLocal = 300;
-	float epsGlobal = 0.001;
-	float epsLocal = 0.0001;
+	float epsGlobal = 0.001f;
+	float epsLocal = 0.0001f;
 	
 	std::cout << "param constructor" << std::endl;
 	Simparam sim(rho, iterMaxGlobal, iterMaxLocal, epsGlobal, epsLocal, nAgent);

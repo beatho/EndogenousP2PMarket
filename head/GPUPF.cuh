@@ -21,8 +21,8 @@ class GPUPF
 public:
 	GPUPF();
 	~GPUPF();
-	virtual void init(const StudyCase& cas, MatrixGPU* Pn);
-	virtual void init(const StudyCase& cas, MatrixGPU* Pn, MatrixGPUD* PnD, bool useDouble);
+	//virtual void init(const StudyCase& cas, MatrixGPU* Pn);
+	virtual void init(const StudyCase& cas, MatrixGPU* Pn, MatrixGPUD* PnD = nullptr, bool useDouble = false);
 	virtual void solve();
 	virtual void updatePQ(MatrixGPU* PQ);
 	virtual void calculW0(MatrixGPU* PQ);

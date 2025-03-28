@@ -9,15 +9,15 @@ void GPUPFGS::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD* PQD, bool us
 
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
-    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise à jour
+    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise ï¿½ jour
 
-    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
+    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisï¿½ pendant la simu
 #endif // INSTRUMENTATION
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
     N2 = 2 * Nagent;
-    Nline = cas.getNLine(true); // ne doit pas être réduit ici !!!
+    Nline = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
     BL2 = Nbus + 2 * Nline;
     Nconstraint = B2 + Nline;
     iterM = 5000;
@@ -212,15 +212,15 @@ void GPUPFGS::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD* PQD, bool us
     //std::cout << " E : " << std::endl;
     //E.display();
     
-	// W0[2 * N] : puissance active et réactive au noeud (I*[P Q])
-	// W[2 * N] : puissance obtenue par calcul à partir de E
+	// W0[2 * N] : puissance active et rï¿½active au noeud (I*[P Q])
+	// W[2 * N] : puissance obtenue par calcul ï¿½ partir de E
 	// dW[2 * N] : derive de puissance
 	// E[2 * N] : angle puis tension [O et 1] pour l'init ?
 	// dE[2 * N] : derive de angle puis tension
 	// Jac[2 * N][2 * N] : jacobienne
 	// Jac_inv[2 * N][2 * N]: inverse de la jacobienne
 	
-	// B[N][N], G[N][N] : caractéristique des lignes entre les noeuds i et j
+	// B[N][N], G[N][N] : caractï¿½ristique des lignes entre les noeuds i et j
 
     /*G = MatrixCPU(Nconstraint, N2);
     Phi = MatrixCPU(Nline, 1);
@@ -235,7 +235,7 @@ void GPUPFGS::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD* PQD, bool us
 #ifdef INSTRUMENTATION
     cudaDeviceSynchronize();
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
     //std::cout << numBlock << " " << _blockSize << std::endl;
@@ -296,7 +296,7 @@ int GPUPFGS::calcVoltage()
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 3, 1);
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -313,7 +313,7 @@ int GPUPFGS::calcVoltage()
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 4, 1);
 #endif // INSTRUMENTATION
 
@@ -358,7 +358,7 @@ int GPUPFGS::calcVoltage()
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 3, 1);
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -375,7 +375,7 @@ int GPUPFGS::calcVoltage()
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 4, 1);
 #endif // INSTRUMENTATION
 
@@ -403,7 +403,7 @@ void GPUPFGS::calcW(bool end)
 
         calcWinterCarD << <numBlock, _blockSize, B2 * sizeof(double) >> > (_PintermediateD._matrixGPU, _QintermediateD._matrixGPU, VoltageRealImD._matrixGPU, _GlinD._matrixGPU, _BlinD._matrixGPU, _CoresVoiLin._matrixGPU, _CoresBusLin._matrixGPU, _nLines._matrixGPU, Nbus);
 
-        if (!end) { // pendant simu, la puissance à ce noeud est libre
+        if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
             switch (_blockSize) {
             case 512:
                 calcWGPUD<512> << <numBlock, _blockSize >> > (WD._matrixGPU, W0D._matrixGPU, _PintermediateD._matrixGPU, _QintermediateD._matrixGPU, _CoresBusLin._matrixGPU, _nLines._matrixGPU, Nbus);
@@ -487,7 +487,7 @@ void GPUPFGS::calcW(bool end)
 
         /*_Pintermediate.display(true);
         _Qintermediate.display(true);*/
-        if (!end) { // pendant simu, la puissance à ce noeud est libre
+        if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
             switch (_blockSize) {
             case 512:
                 calcWGPU<512> << <numBlock, _blockSize >> > (W._matrixGPU, W0._matrixGPU, _Pintermediate._matrixGPU, _Qintermediate._matrixGPU, _CoresBusLin._matrixGPU, _nLines._matrixGPU, Nbus);
@@ -582,14 +582,14 @@ void GPUPFGS::setE(MatrixGPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
     calcW();
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -603,7 +603,7 @@ void GPUPFGS::setE(MatrixGPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
 
@@ -628,14 +628,14 @@ void GPUPFGS::setE(MatrixGPUD* Enew)
     
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
     calcW();
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -649,9 +649,9 @@ void GPUPFGS::setE(MatrixGPUD* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 7, 1);
-#endif // INSTRUMENTATION²
+#endif // INSTRUMENTATIONï¿½
 }
 
 
@@ -946,7 +946,7 @@ __global__ void calculVoltStep2(float* VoltageRealIm, float* RMGgrid, float* RPG
         for (int voisin = thIdx + begin + 1; voisin < end; voisin += size) {
             int p = CoresVoiLin[voisin];
            
-            if (p == iter ) { // pour trouver quel indice est p, c'est plutôt nul
+            if (p == iter ) { // pour trouver quel indice est p, c'est plutï¿½t nul
                 
                 float db1 = RMGgrid[voisin] * VoltageRealIm[iter] - RPGgrid[voisin] * VoltageRealIm[iter + B];
                 float db2 = RPGgrid[voisin] * VoltageRealIm[iter] + RMGgrid[voisin] * VoltageRealIm[iter + B];
@@ -979,9 +979,9 @@ __global__ void calculVoltStep2(float* VoltageRealIm, float* RMGgrid, float* RPG
             int j = CoresVoiLin[l];
             
             if (j > iter) {
-                int lTrans = CoresTrans[l]; // accès pas du tout coalescent !!!
+                int lTrans = CoresTrans[l]; // accï¿½s pas du tout coalescent !!!
 
-                float ri = RMGgrid[lTrans]; // accès pas du tout coalescent mais c'est sur la mémoire partagé
+                float ri = RMGgrid[lTrans]; // accï¿½s pas du tout coalescent mais c'est sur la mï¿½moire partagï¿½
                 float li = RPGgrid[lTrans];
 
                 float db1 = ri * ei - li * fi;
@@ -1027,9 +1027,9 @@ __global__ void calculVoltDStep2(double* VoltageRealIm, double* RMGgrid, double*
             int j = CoresVoiLin[l];
 
             if (j > iter) {
-                int lTrans = CoresTrans[l]; // accès coalescent !!!
+                int lTrans = CoresTrans[l]; // accï¿½s coalescent !!!
 
-                double ri = RMGgrid[lTrans]; // accès pas du tout coalescent mais c'est sur la mémoire partagé
+                double ri = RMGgrid[lTrans]; // accï¿½s pas du tout coalescent mais c'est sur la mï¿½moire partagï¿½
                 double li = RPGgrid[lTrans];
 
                 double db1 = ri * ei - li * fi;
@@ -1082,7 +1082,7 @@ __global__ void calculVoltStep2bis(float* VoltageRealIm, float* RMGgrid, float* 
             if (j > iter) {
                 int lTrans = CoresTrans[l];
 
-                float ri = RI[lTrans]; // accès pas du tout coalescent mais c'est sur la mémoire partagé
+                float ri = RI[lTrans]; // accï¿½s pas du tout coalescent mais c'est sur la mï¿½moire partagï¿½
                 float li = RI[lTrans + BL2];
 
 
@@ -1134,7 +1134,7 @@ __global__ void calculVoltDStep2bis(double* VoltageRealIm, double* RMGgrid, doub
             if (j > iter) {
                 int lTrans = CoresTrans[l];
 
-                double ri = RID[lTrans]; // accès pas du tout coalescent mais c'est sur la mémoire partagé
+                double ri = RID[lTrans]; // accï¿½s pas du tout coalescent mais c'est sur la mï¿½moire partagï¿½
                 double li = RID[lTrans + BL2];
 
 

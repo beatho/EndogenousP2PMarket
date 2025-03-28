@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "MatrixGPU.cuh"
+#include "MatrixGPUD.cuh"
 #include "StudyCase.h"
 #include "GPUPF.cuh"
 #include "Utilities.cuh"
@@ -22,7 +23,7 @@ public:
 	GPUPFdistPQ();
 	~GPUPFdistPQ();
 
-	virtual void init(const StudyCase& cas, MatrixGPU* Pn);
+	virtual void init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD * PnD = nullptr, bool useDouble = false);
 	bool chekcase();
 	virtual void updatePQ(MatrixGPU* PQ);
 	

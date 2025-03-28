@@ -7,7 +7,7 @@
 
 
 static MatrixCPU convertListToVectorCPUf(PyObject* list){
-    MatrixCPU toReturn(PyList_GET_SIZE(list),1);
+    MatrixCPU toReturn((int) PyList_GET_SIZE(list),1);
     for (int i=0; i <PyList_GET_SIZE(list); i++ ){
         PyObject* pItem = PyList_GetItem(list, i);
         double Gs = PyFloat_AsDouble(pItem);
@@ -42,7 +42,7 @@ static MatrixCPU convertListToVectorCPUi(PyObject* list){
 }
 static MatrixCPU convertListToMatrixCPUf(PyObject* list, int row, int collum){
     MatrixCPU toReturn(row,collum);
-    int N = PyList_GET_SIZE(list);
+    int N = (int) PyList_GET_SIZE(list);
     if(N != collum*row){
         PyErr_SetString(PyExc_ValueError, "Wrong size for the matrix from a list");
         return MatrixCPU(0,0);
@@ -61,7 +61,7 @@ static MatrixCPU convertListToMatrixCPUf(PyObject* list, int row, int collum){
 }
 static MatrixCPU convertListToMatrixCPUi(PyObject* list, int collum, int row){
     MatrixCPU toReturn(row,collum);
-    int N = PyList_GET_SIZE(list);
+    int N = (int) PyList_GET_SIZE(list);
     if(N != collum*row){
         PyErr_SetString(PyExc_ValueError, "Wrong size for the matrix from a list");
         return MatrixCPU(0,0);
@@ -440,12 +440,12 @@ extern "C"{
         }
         
         MatrixCPU PosBus = convertListToVectorCPUi(pList);
-        MatrixCPU zone(n, 1);
+        MatrixCPU zone((int) n, 1);
         if(pList2!=nullptr){
             zone = convertListToVectorCPUi(pList2);   
         } 
         for (int i=0; i<n; i++) {
-            int bus = PosBus.get(i,0);
+            int bus = (int) PosBus.get(i,0);
             if(bus<-1 || bus >=self->interfaceCase->getB()){
                 PyErr_SetString(PyExc_ValueError, "Position must be a int between -1 (not on the grid) and B (exclude)");
                 return NULL;
@@ -745,8 +745,8 @@ extern "C"{
         int B = self->interfaceCase->getB();
 
         for(int i=0; i<L; i++){
-            int from = From_vect.get(i,0);
-            int to = To_vect.get(i,0);
+            int from = (int) From_vect.get(i,0);
+            int to = (int) To_vect.get(i,0);
 
             if(from < 0 || from > (B-1)){
                 PyErr_SetString(PyExc_ValueError, "From must be a bus id, between 0 and B (exclude)");
@@ -1043,7 +1043,7 @@ extern "C"{
     
     static PyObject* StudyCase_checkCase(CustomObject* self, PyObject* args){
         MatrixCPU sizes = self->paramInterface->getSize();
-        int nLinecons = sizes.get(0, nLineCons_ind);
+        int nLinecons = (int) sizes.get(0, nLineCons_ind);
         self->interfaceCase->checkCase(nLinecons);
         Py_IncRef(Py_None);
         return Py_None;

@@ -91,7 +91,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
 	}
@@ -148,7 +148,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 1, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 1, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 
@@ -157,7 +157,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 2, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 2, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION
 		//Q.saveCSVForce("TestQGPU.csv", 11, 1);
 		CommunicationX();
@@ -165,7 +165,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 		//Y.saveCSVForce("TestYGPU.csv", 11, 1);
@@ -174,7 +174,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 		
@@ -185,7 +185,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 5, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 5, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION
 		// FB 4
 		if (!(_iterGlobal % _stepG)) {
@@ -198,7 +198,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
-			timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+			timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION
 		}
 		//std::cout << iterGlobal << " " << _iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG) << " " << resF.get(1, iterGlobal / stepG) << std::endl;
@@ -273,7 +273,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize();  
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 7, 1);
 
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
@@ -363,7 +363,7 @@ void MarketEndoDirectGPU::updateP0(const StudyCase& cas)
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize(); 
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 8, 1);
 #endif // INSTRUMENTATION
 

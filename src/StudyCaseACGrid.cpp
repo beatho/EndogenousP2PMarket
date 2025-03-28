@@ -1,14 +1,14 @@
 #include "../head/StudyCaseACGrid.h"
-float  BTLINE[] = { 0.306, 0.29, 13.2, 0.35 };// 94-AL1/15-ST1A 0.4 : r x b Imax (ohm, ohm, nF) /km kA
-float HTALINE[] = { 0.5939, 0.372, 9.5, 0.21 };// 48-AL1/8-ST1A 20 : r x b Imax (ohm, ohm, nF) /km  kA
-float HTBLINE[] = { 0.059, 0.253, 11, 0.96 };// 490-AL1/64-ST1A 380.0 : r x b Imax (ohm, ohm, nF) /km kA
+float  BTLINE[] = { 0.306f, 0.29f, 13.2f, 0.35f };// 94-AL1/15-ST1A 0.4 : r x b Imax (ohm, ohm, nF) /km kA
+float HTALINE[] = { 0.5939f, 0.372f, 9.5f, 0.21f };// 48-AL1/8-ST1A 20 : r x b Imax (ohm, ohm, nF) /km  kA
+float HTBLINE[] = { 0.059f, 0.253f, 11.0f, 0.96f };// 490-AL1/64-ST1A 380.0 : r x b Imax (ohm, ohm, nF) /km kA
 
 
 void StudyCaseACGrid::genGridLine(int nBus, float length, float dlength)
 {
 	
 	_Sbase = 1; // 1MW
-	_Vbase = 0.4; // 400V
+	_Vbase = 0.4f; // 400V
 	_Zbase = _Vbase * _Vbase / _Sbase;
 	int billion = 1000000000;
 
@@ -39,7 +39,7 @@ void StudyCaseACGrid::genGridOneStep(int nBus, float length, float dlength)
 {
 
 	_Sbase = 1; // 1MW
-	_Vbase = 0.4; // 400V
+	_Vbase = 0.4f; // 400V
 	_Zbase = _Vbase * _Vbase / _Sbase;
 	int billion = 1000000000;
 
@@ -71,7 +71,7 @@ void StudyCaseACGrid::genGridBalance(int nBus, float length, float dlength)
 {
 
 	_Sbase = 1; // 1MW
-	_Vbase = 0.4; // 400V
+	_Vbase = 0.4f; // 400V
 	_Zbase = _Vbase * _Vbase / _Sbase;
 	int billion = 1000000000;
 
@@ -147,8 +147,8 @@ void StudyCaseACGrid::creatLine(int line, int from, int to, float length, float 
 	int billion = 1000000000;
 
 
-	_CoresLineBus.set(l, 0, i);
-	_CoresLineBus.set(l, 1, j);
+	_CoresLineBus.set(l, 0, (float) i);
+	_CoresLineBus.set(l, 1, (float) j);
 
 	double L = length + 2 * (rand1() - 0.5) * dlength;
 	double ZsRe = L * BTLINE[0] / _Zbase;
@@ -164,15 +164,15 @@ void StudyCaseACGrid::creatLine(int line, int from, int to, float length, float 
 
 
 
-	_lineReactance.increment(i, j, -YlsRe);
-	_lineReactance.increment(j, i, -YlsRe);
-	_lineSuceptance.increment(j, i, -YlsIm);
-	_lineSuceptance.increment(i, j, -YlsIm);
+	_lineReactance.increment(i, j,  (float) -YlsRe);
+	_lineReactance.increment(j, i,  (float) -YlsRe);
+	_lineSuceptance.increment(j, i, (float) -YlsIm);
+	_lineSuceptance.increment(i, j, (float)-YlsIm);
 
-	_lineReactance.increment(j, j, YlsRe);
-	_lineSuceptance.increment(j, j, YlsIm + Ylp);
-	_lineReactance.increment(i, i, YlsRe);
-	_lineSuceptance.increment(i, i, YlsIm + Ylp);
+	_lineReactance.increment(j, j,  (float) YlsRe);
+	_lineSuceptance.increment(j, j, (float) (YlsIm + Ylp));
+	_lineReactance.increment(i, i,  (float) YlsRe);
+	_lineSuceptance.increment(i, i, (float) (YlsIm + Ylp));
 
 
 	_lineReactanceD.increment(i, j, -YlsRe);
@@ -186,16 +186,16 @@ void StudyCaseACGrid::creatLine(int line, int from, int to, float length, float 
 	_lineSuceptanceD.increment(i, i, YlsIm + Ylp);
 
 
-	_busSuceptance.increment(i, 0, Ylp);
-	_busSuceptance.increment(j, 0, Ylp);
+	_busSuceptance.increment(i, 0, (float) Ylp);
+	_busSuceptance.increment(j, 0, (float) Ylp);
 
 
-	_lineImpedanceReal.increment(l, 0, ZsRe);
-	_lineImpedanceImag.increment(l, 0, ZsIm);
+	_lineImpedanceReal.increment(l, 0, (float) ZsRe);
+	_lineImpedanceImag.increment(l, 0, (float) ZsIm);
 	if (limitLine > 0) {
 		_nLineConstraint++;
-		_lineLimits.set(l, 0, limitLine); // dans le cas DC : S = P = UI avec U = 1 pu, donc P = I
-		_currentLimit.set(l, 0, limitI);
+		_lineLimits.set(l, 0, (float) limitLine); // dans le cas DC : S = P = UI avec U = 1 pu, donc P = I
+		_currentLimit.set(l, 0, (float) limitI);
 	}
 	else {
 		_lineLimits.set(l, 0, LINELIMITMAX);
@@ -207,12 +207,12 @@ void StudyCaseACGrid::setDefaultConstraint()
 	for (int i = 0; i < _nBus; i++) { // bound on voltage angle rad
 		_upperBound.set(i, 0, 3);
 		_lowerBound.set(i, 0, -3);
-		_upperBound.set(i + _nBus, 0, 1.1 * _V0);
-		_lowerBound.set(i + _nBus, 0, 0.9 * _V0);
+		_upperBound.set(i + _nBus, 0, (float) 1.1 * _V0);
+		_lowerBound.set(i + _nBus, 0, (float) 0.9 * _V0);
 		_VoltageInit.set(i, 0, 0);
-		_VoltageInit.set(i + _nBus, 0, _V0);
+		_VoltageInit.set(i + _nBus, 0, (float) _V0);
 		_VoltageInitD.set(i, 0, 0);
-		_VoltageInitD.set(i + _nBus, 0, _V0);
+		_VoltageInitD.set(i + _nBus, 0,  _V0);
 
 	}
 
@@ -232,29 +232,29 @@ void StudyCaseACGrid::setGridACFromFile(const std::string& path, MatrixCPU* file
 	
 	_nLineConstraint = 0;
 	for (int i = 0; i < _nLine; i++) {
-		int nodeFromFile = matFile.get(i, 0);
-		int nodeToFile = matFile.get(i, 1);
+		int nodeFromFile = (int) matFile.get(i, 0);
+		int nodeToFile = (int) matFile.get(i, 1);
 		float YlsRe = matFile.get(i, 2);
 		float YlsIm = matFile.get(i, 3);
 		float Ylp = matFile.get(i, 4);
 		float limit = matFile.get(i, 5);
 
-		int nodeFrom = fileBusAgent->get(nodeFromFile, 0);
-		int nodeTo = fileBusAgent->get(nodeToFile, 0);
+		int nodeFrom = (int) fileBusAgent->get(nodeFromFile, 0);
+		int nodeTo = (int) fileBusAgent->get(nodeToFile, 0);
 
 		
-		_lineReactance.set(nodeFrom, nodeTo, -YlsRe);
-		_lineReactance.set(nodeTo, nodeFrom, -YlsRe);
-		_lineSuceptance.set(nodeFrom, nodeTo, -YlsIm);
-		_lineSuceptance.set(nodeTo, nodeFrom, -YlsIm);
+		_lineReactance.set(nodeFrom, nodeTo,  (float) -YlsRe);
+		_lineReactance.set(nodeTo, nodeFrom,  (float) -YlsRe);
+		_lineSuceptance.set(nodeFrom, nodeTo, (float) -YlsIm);
+		_lineSuceptance.set(nodeTo, nodeFrom, (float) -YlsIm);
 		
-		_lineReactance.increment(nodeTo, nodeTo, YlsRe);
-		_lineSuceptance.increment(nodeTo, nodeTo, YlsIm + Ylp);
-		_lineReactance.increment(nodeFrom, nodeFrom, YlsRe);
-		_lineSuceptance.increment(nodeFrom, nodeFrom, YlsIm + Ylp);
+		_lineReactance.increment(nodeTo, nodeTo,      (float) YlsRe);
+		_lineSuceptance.increment(nodeTo, nodeTo,     (float) (YlsIm + Ylp));
+		_lineReactance.increment(nodeFrom, nodeFrom,  (float) YlsRe);
+		_lineSuceptance.increment(nodeFrom, nodeFrom, (float) (YlsIm + Ylp));
 		
-		_CoresLineBus.set(i, 0, nodeFrom);
-		_CoresLineBus.set(i, 1, nodeTo);
+		_CoresLineBus.set(i, 0, (float) nodeFrom);
+		_CoresLineBus.set(i, 1, (float) nodeTo);
 		
 		
 		if (limit > 0) {
@@ -285,7 +285,7 @@ void StudyCaseACGrid::setBusFromFile(const std::string& path, MatrixCPU* fileCor
 			myfile >> idAgent;
 			myfile >> idBus;
 			myfile >> country;
-			fileCoresBus->set(idAgent, 0, idBus);
+			fileCoresBus->set(idAgent, 0, (float) idBus);
 			
 			found = false;
 			indice = zone;
@@ -301,7 +301,7 @@ void StudyCaseACGrid::setBusFromFile(const std::string& path, MatrixCPU* fileCor
 				_nameZone.push_back(country);
 				zone++;
 			}
-			_zoneBus.set(idAgent, 0, indice);
+			_zoneBus.set(idAgent, 0, (float) indice);
 
 		}
 		myfile.close();
@@ -339,8 +339,8 @@ void StudyCaseACGrid::initMat()
 	_VoltageInitD = MatrixCPUD(2 * _nBus, 1);
 
 	for (int i = 0; i < _nBus; i++) {
-		_VoltageInit.set(i + _nBus, 0, _V0);
-		_VoltageInitD.set(i + _nBus, 0, _V0);
+		_VoltageInit.set(i + _nBus, 0, (float) _V0);
+		_VoltageInitD.set(i + _nBus, 0, (float) _V0);
 	}
 
 	_lineSuceptanceLin = MatrixCPU(_nBus + 2 * _nLine, 1);
@@ -430,12 +430,12 @@ void StudyCaseACGrid::LinearizeImp()
 	int indice = 0;
 	int line = 0;
 	for (int i = 0; i < _nBus; i++) {
-		_CoresBusLin.set(i, 0, indice);
+		_CoresBusLin.set(i, 0, (float) indice);
 		_lineSuceptanceLin.set(indice, 0, _lineSuceptance.get(i, i));
 		_lineReactanceLin.set(indice, 0, _lineReactance.get(i, i));
 		_lineSuceptanceLinD.set(indice, 0, _lineSuceptanceD.get(i, i));
 		_lineReactanceLinD.set(indice, 0, _lineReactanceD.get(i, i));
-		_CoresVoiLin.set(indice, 0, i);
+		_CoresVoiLin.set(indice, 0, (float) i);
 		_nLines.increment(i, 0, 1);
 		indice++;
 		for (int j = 0; j < _nBus; j++) {
@@ -446,7 +446,7 @@ void StudyCaseACGrid::LinearizeImp()
 					_lineReactanceLin.set(indice, 0, _lineReactance.get(i, j));
 					_lineSuceptanceLinD.set(indice, 0, _lineSuceptanceD.get(i, j));
 					_lineReactanceLinD.set(indice, 0, _lineReactanceD.get(i, j));
-					_CoresVoiLin.set(indice, 0, j);
+					_CoresVoiLin.set(indice, 0, (float) j);
 					indice++;
 					if (i < j) {
 						_lineSuceptanceLin2.set(line, 0, _lineSuceptance.get(i, j));
@@ -456,7 +456,7 @@ void StudyCaseACGrid::LinearizeImp()
 				}
 			}
 		}
-		_nLinesBegin.set(i, 0, indice - (i + 1));
+		_nLinesBegin.set(i, 0, (float) (indice - (i + 1)));
 	}
 }
 
@@ -470,8 +470,8 @@ void StudyCaseACGrid::genDCGridFromAC()
 	for (int i = 0; i < _nLine; i++) {
 		float limit = _lineLimits.get(i, 0);
 		
-		int nodeFrom = _CoresLineBus.get(i, 0);
-		int nodeTo = _CoresLineBus.get(i, 1);
+		int nodeFrom = (int) _CoresLineBus.get(i, 0);
+		int nodeTo = (int) _CoresLineBus.get(i, 1);
 
 		float react = _lineSuceptance.get(nodeFrom, nodeTo);
 		_LineImpedance.set(i, i, react);
@@ -510,7 +510,7 @@ StudyCaseACGrid::StudyCaseACGrid() : StudyCaseDCGrid()
 	_CoresLineBus = MatrixCPU(_nLine, 2); // Perso from, to
 	_CoresLineBus.set(0, 1, 1);
 	
-	_lineLimits = MatrixCPU(_nLine, 1, 0.8); // l
+	_lineLimits = MatrixCPU(_nLine, 1, 0.8f); // l
 	_currentLimit = MatrixCPU(_nLine, 1, 200);
 	_nConstraint = 2*_nBus + _nLine;
 
@@ -532,8 +532,8 @@ StudyCaseACGrid::StudyCaseACGrid() : StudyCaseDCGrid()
 	_VoltageInitD.set(3, 0, 1);
 	_VoltageInit = _VoltageInitD;
 	
-	float x =  0.01;
-	float r =  0.005;
+	float x =  0.01f;
+	float r =  0.005f;
 
 	float YlsRe =   r / (x * x + r * r);
 	float YlsIm = - x / (x * x + r * r);
@@ -545,7 +545,7 @@ StudyCaseACGrid::StudyCaseACGrid() : StudyCaseDCGrid()
 	_lineSuceptance = MatrixCPU(_nBus, _nBus);
 
 
-	_lineReactance.increment(0, 1, -YlsRe);
+	_lineReactance.increment(0, 1,  -YlsRe);
 	_lineReactance.increment(1, 0, -YlsRe);
 	_lineSuceptance.increment(1, 0, -YlsIm);
 	_lineSuceptance.increment(0, 1, -YlsIm);
@@ -569,8 +569,8 @@ StudyCaseACGrid::StudyCaseACGrid() : StudyCaseDCGrid()
 	_upperBound.set(_nBus, 0, 1);
 	_lowerBound.set(_nBus, 0, 1);
 	for (int i = _nBus + 1; i < 2 * _nBus; i++) { // bound on voltage 
-		_upperBound.set(i, 0, 1.1);
-		_lowerBound.set(i, 0, 0.9);
+		_upperBound.set(i, 0, 1.1f);
+		_lowerBound.set(i, 0, 0.9f);
 
 	}
 	for (int i = 0; i < _nLine; i++) {
@@ -614,7 +614,7 @@ void StudyCaseACGrid::SetAC39Bus(std::string path, bool alreadyDefine)
 	else {
 		MatrixCPU fileCoresBus(_nBus + 1, 1);
 		for (int i = 0; i < _nBus + 1; i++) {
-			fileCoresBus.set(i, 0, i - 1);
+			fileCoresBus.set(i, 0, (float) (i - 1));
 		}
 		setGridACFromFile(filename, &fileCoresBus);
 
@@ -628,7 +628,7 @@ void StudyCaseACGrid::SetAC39Bus(std::string path, bool alreadyDefine)
 		//_CoresLineBusReduce = MatrixCPU(_nLineConstraint, 2);
 		
 		for (int i = 0; i < _nLine; i++) {
-			int lim = _lineLimits.get(i, 0);
+			int lim = (int) _lineLimits.get(i, 0);
 			if (lim == 0) {
 				_lineLimits.set(i, 0, LINELIMITMAX);
 			}
@@ -641,8 +641,8 @@ void StudyCaseACGrid::SetAC39Bus(std::string path, bool alreadyDefine)
 			_lowerBound.set(i, 0, -3);
 		}
 		for (int i = _nBus; i < 2*_nBus; i++) { // bound on voltage 
-			_upperBound.set(i, 0, 1.05);
-			_lowerBound.set(i, 0, 0.95);
+			_upperBound.set(i, 0, 1.05f);
+			_lowerBound.set(i, 0, 0.95f);
 			
 		}
 		int indice = 0;
@@ -692,7 +692,7 @@ void StudyCaseACGrid::SetAC3Bus(std::string path)
 	
 	MatrixCPU fileCoresBus(_nBus + 1, 1);
 	for (int i = 0; i < _nBus + 1; i++) {
-		fileCoresBus.set(i, 0, i - 1);
+		fileCoresBus.set(i, 0, (float) (i - 1));
 	}
 	
 	setGridACFromFile(filename, &fileCoresBus);
@@ -705,7 +705,7 @@ void StudyCaseACGrid::SetAC3Bus(std::string path)
 	
 	
 	for (int i = 0; i < _nLine; i++) {
-		int lim = _lineLimits.get(i, 0);
+		int lim = (int) _lineLimits.get(i, 0);
 		if (lim == 0 || lim == LINELIMITMAX) {
 			_lineLimits.set(i, 0, LINELIMITMAX);
 		}
@@ -718,8 +718,8 @@ void StudyCaseACGrid::SetAC3Bus(std::string path)
 		_lowerBound.set(i, 0, -3);
 	}
 	for (int i = _nBus; i < 2 * _nBus; i++) { // bound on voltage 
-		_upperBound.set(i, 0, 1.05);
-		_lowerBound.set(i, 0, 0.95);
+		_upperBound.set(i, 0, 1.05f);
+		_lowerBound.set(i, 0, 0.95f);
 
 	}
 	int indice = 0;
@@ -749,12 +749,12 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 	//Info.display();
 	
 	
-	_Sbase = Info.get(0, 0);
-	_Vbase = Info.get(0, 1);
+	_Sbase = (float) Info.get(0, 0);
+	_Vbase = (float) Info.get(0, 1);
 	_Zbase = _Vbase * _Vbase / _Sbase;
 
-	_nBus = Info.get(0, 5);
-	_nLine = Info.get(0, 6);
+	_nBus = (int) Info.get(0, 5);
+	_nLine = (int) Info.get(0, 6);
 	_nConstraint = _nLine + 2 * _nBus;
 	_V0 = Info.get(0, 7);
 	_theta0 = Info.get(0, 8);
@@ -775,7 +775,7 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 					std::cout << "la presence de transformateur est peut etre mal prise en compte ?" << std::endl;
 					inversionLine.set(l, 0, 1);
 				}
-				int temp = MatLine.get(l, 0);
+				int temp = (int) MatLine.get(l, 0);
 				MatLine.set(l, 0, MatLine.get(l, 1));
 				MatLine.set(l, 1, temp);
 				MatLine.set(l, 6, -MatLine.get(l, 6));	// ????
@@ -795,7 +795,7 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 					break;
 				}
 				else {
-					MatLine.swapLine(l, MatLine.get(l, 1) - 2);
+					MatLine.swapLine(l, (double) (MatLine.get(l, 1) - 2));
 				}	
 			}
 		}
@@ -832,11 +832,11 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 	}
 
 	for (int l = 0; l < _nLine; l++) {
-		int i = MatLine.get(l, 0) - offsetbus;
-		int j = MatLine.get(l, 1) - offsetbus;
+		int i = (int) MatLine.get(l, 0) - offsetbus;
+		int j = (int) MatLine.get(l, 1) - offsetbus;
 		
-		_CoresLineBus.set(l, 0, i);
-		_CoresLineBus.set(l, 1, j);
+		_CoresLineBus.set(l, 0, (float) i);
+		_CoresLineBus.set(l, 1, (float) j);
 		double limit = MatLine.get(l, 7);
 		double ZsRe = MatLine.get(l, 8);
 		double ZsIm = MatLine.get(l, 9);
@@ -859,17 +859,17 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 
 				double YjiRe = (YlsRe * cos(theta) + YlsIm * sin(theta)) / tau;
 				double YjiImag = (YlsIm * cos(theta) - YlsRe * sin(theta)) / tau;
-				_lineReactance.increment(i, j, -YijRe);  // Yft
-				_lineSuceptance.increment(i, j, -YijImag);
+				_lineReactance.increment(i, j, (float) -YijRe);  // Yft
+				_lineSuceptance.increment(i, j, (float) -YijImag);
 
-				_lineReactance.increment(j, i, -YjiRe); // Ytf
-				_lineSuceptance.increment(j, i, -YjiImag);
+				_lineReactance.increment(j, i, (float) -YjiRe); // Ytf
+				_lineSuceptance.increment(j, i, (float) -YjiImag);
 
-				_lineReactance.increment(j, j, YlsRe); // Ytt
-				_lineSuceptance.increment(j, j, YlsIm + Ylp);
+				_lineReactance.increment(j, j,  (float) YlsRe); // Ytt
+				_lineSuceptance.increment(j, j, (float) YlsIm + Ylp);
 
-				_lineReactance.increment(i, i, YlsRe / (tau * tau)); // Yff
-				_lineSuceptance.increment(i, i, (YlsIm + Ylp) / (tau * tau));
+				_lineReactance.increment(i, i, (float) (YlsRe / (tau * tau))); // Yff
+				_lineSuceptance.increment(i, i, (float) ((YlsIm + Ylp) / (tau * tau)));
 
 				_lineReactanceD.increment(i, j, -YijRe);  // Yft
 				_lineSuceptanceD.increment(i, j, -YijImag);
@@ -885,19 +885,19 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 
 			}
 			else {
-				_lineReactance.increment(i, j, -YlsRe);
-				_lineReactance.increment(j, i, -YlsRe);
-				_lineSuceptance.increment(j, i, -YlsIm);
-				_lineSuceptance.increment(i, j, -YlsIm);
+				_lineReactance.increment(i, j, (float) -YlsRe);
+				_lineReactance.increment(j, i, (float) -YlsRe);
+				_lineSuceptance.increment(j, i, (float) -YlsIm);
+				_lineSuceptance.increment(i, j, (float) -YlsIm);
 
-				_lineReactance.increment(j, j, YlsRe);
-				_lineSuceptance.increment(j, j, YlsIm + Ylp);
-				_lineReactance.increment(i, i, YlsRe);
-				_lineSuceptance.increment(i, i, YlsIm + Ylp);
+				_lineReactance.increment(j, j,  (float) YlsRe);
+				_lineSuceptance.increment(j, j, (float) (YlsIm + Ylp));
+				_lineReactance.increment(i, i,  (float) YlsRe);
+				_lineSuceptance.increment(i, i, (float) YlsIm + Ylp);
 
 
-				_lineReactanceD.increment(i, j, -YlsRe);
-				_lineReactanceD.increment(j, i, -YlsRe);
+				_lineReactanceD.increment(i, j,  -YlsRe);
+				_lineReactanceD.increment(j, i,  -YlsRe);
 				_lineSuceptanceD.increment(j, i, -YlsIm);
 				_lineSuceptanceD.increment(i, j, -YlsIm);
 
@@ -907,15 +907,15 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 				_lineSuceptanceD.increment(i, i, YlsIm + Ylp);
 
 
-				_busSuceptance.increment(i, 0, Ylp);
-				_busSuceptance.increment(j, 0, Ylp);
+				_busSuceptance.increment(i, 0, (float) Ylp);
+				_busSuceptance.increment(j, 0, (float) Ylp);
 			}
 		}
-		_lineImpedanceReal.increment(l, 0, ZsRe);
-		_lineImpedanceImag.increment(l, 0, ZsIm);
+		_lineImpedanceReal.increment(l, 0, (float) ZsRe);
+		_lineImpedanceImag.increment(l, 0, (float) ZsIm);
 		if (limit > 0) {
 			_nLineConstraint++;
-			_lineLimits.set(l, 0, limit);
+			_lineLimits.set(l, 0, (float) limit);
 		}
 		else {
 			_lineLimits.set(l, 0, LINELIMITMAX);
@@ -929,24 +929,24 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 	for (int i = 0; i < _nBus; i++) { // bound on voltage angle rad
 		_upperBound.set(i, 0, 3);
 		_lowerBound.set(i, 0, -3);
-		_VoltageInit.set(i, 0, MatBus.get(i, 5));
-		_VoltageInit.set(i + _nBus, 0, MatBus.get(i, 4));
+		_VoltageInit.set(i, 0, (float) MatBus.get(i, 5));
+		_VoltageInit.set(i + _nBus, 0, (float) MatBus.get(i, 4));
 		_VoltageInitD.set(i, 0, MatBus.get(i, 5));
 		_VoltageInitD.set(i + _nBus, 0, MatBus.get(i, 4));
 		if (impedanceToBeDefined) {
-			_lineReactance.increment( i, i, MatBus.get(i, 0) / _Sbase);
-			_lineSuceptance.increment(i, i, MatBus.get(i, 1) / _Sbase);
+			_lineReactance.increment( i, i, (float) (MatBus.get(i, 0) / _Sbase));
+			_lineSuceptance.increment(i, i, (float) (MatBus.get(i, 1) / _Sbase));
 
 			_lineReactanceD.increment(i, i, MatBus.get(i, 0) / _Sbase);
 			_lineSuceptanceD.increment(i, i, MatBus.get(i, 1) / _Sbase);
 		}
 		
 
-		_busSuceptance.increment(i, 0, MatBus.get(i, 1) / _Sbase);
+		_busSuceptance.increment(i, 0, (float) (MatBus.get(i, 1) / _Sbase));
 	}
 	for (int i = _nBus; i < 2 * _nBus; i++) { // bound on voltage 
-		_upperBound.set(i, 0, MatBus.get(i - _nBus, 3));
-		_lowerBound.set(i, 0, MatBus.get(i - _nBus, 2));
+		_upperBound.set(i, 0, (float) MatBus.get(i - _nBus, 3));
+		_lowerBound.set(i, 0, (float) MatBus.get(i - _nBus, 2));
 
 	}
 	
@@ -975,12 +975,12 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 	Info.setFromFile(fileName1);
 	//Info.display();
 
-	_Sbase = Info.get(0, 0);
-	_Vbase = Info.get(0, 1);
-	_Zbase = Info.get(0, 2);
+	_Sbase = (float) Info.get(0, 0);
+	_Vbase = (float) Info.get(0, 1);
+	_Zbase = (float) Info.get(0, 2);
 
-	_nBus = Info.get(0, 4);
-	_nLine = Info.get(0, 5);
+	_nBus =  (int) Info.get(0, 4);
+	_nLine = (int) Info.get(0, 5);
 	_nConstraint = _nLine + 2 * _nBus;
 	_V0 = Info.get(0, 6);
 	_theta0 = Info.get(0, 7);
@@ -992,9 +992,9 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 
 	for (int l = 0; l < _nLine; l++) {
 		if (MatLine.get(l, 0) > MatLine.get(l, 1)) {
-			int temp = MatLine.get(l, 0);
+			int temp = (int) MatLine.get(l, 0);
 			MatLine.set(l, 0, MatLine.get(l, 1));
-			MatLine.set(l, 1, temp);
+			MatLine.set(l, 1, (double) temp);
 		}
 	}
 	
@@ -1004,7 +1004,7 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 	}
 	for (int l = 0; l < _nLine; l++) { // s'il y a des bus non reli� et donc un resau pas radial cela ne marchera pas
 		while (MatLine.get(l, 1) != l + 1) {
-			MatLine.swapLine(l, MatLine.get(l, 1) - 1);
+			MatLine.swapLine(l, (double) (MatLine.get(l, 1) - 1));
 		}
 	}
 
@@ -1013,11 +1013,11 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 	
 	
 	for (int l = 0; l < _nLine; l++) {
-		int i = MatLine.get(l, 0);
-		int j = MatLine.get(l, 1);
+		int i = (int) MatLine.get(l, 0);
+		int j = (int) MatLine.get(l, 1);
 
-		_CoresLineBus.set(l, 0, i);
-		_CoresLineBus.set(l, 1, j);
+		_CoresLineBus.set(l, 0, (float) i);
+		_CoresLineBus.set(l, 1, (float) j);
 		double limit = MatLine.get(l, 7);
 		double ZsRe = MatLine.get(l, 8);
 		double ZsIm = MatLine.get(l, 9);
@@ -1032,15 +1032,15 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 			throw std::invalid_argument("WIP, transformers not taking into account for now in this case");
 		}
 
-		_lineReactance.increment(i, j, -YlsRe);
-		_lineReactance.increment(j, i, -YlsRe);
-		_lineSuceptance.increment(j, i, -YlsIm);
-		_lineSuceptance.increment(i, j, -YlsIm);
+		_lineReactance.increment(i, j, (float) -YlsRe);
+		_lineReactance.increment(j, i, (float) -YlsRe);
+		_lineSuceptance.increment(j, i, (float) -YlsIm);
+		_lineSuceptance.increment(i, j, (float) -YlsIm);
 
-		_lineReactance.increment(j, j, YlsRe);
-		_lineSuceptance.increment(j, j, YlsIm + Ylp);
-		_lineReactance.increment(i, i, YlsRe);
-		_lineSuceptance.increment(i, i, YlsIm + Ylp);
+		_lineReactance.increment(j, j, (float) YlsRe);
+		_lineSuceptance.increment(j, j, (float) (YlsIm + Ylp));
+		_lineReactance.increment(i, i, (float) YlsRe);
+		_lineSuceptance.increment(i, i, (float) (YlsIm + Ylp));
 
 		_lineReactanceD.increment(i, j, -YlsRe);
 		_lineReactanceD.increment(j, i, -YlsRe);
@@ -1052,14 +1052,14 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 		_lineReactanceD.increment(i, i, YlsRe);
 		_lineSuceptanceD.increment(i, i, YlsIm + Ylp);
 
-		_busSuceptance.increment(i, 0, Ylp);
-		_busSuceptance.increment(j, 0, Ylp);
+		_busSuceptance.increment(i, 0, (float) Ylp);
+		_busSuceptance.increment(j, 0, (float) Ylp);
 			
-		_lineImpedanceReal.increment(l, 0, ZsRe);
-		_lineImpedanceImag.increment(l, 0, ZsIm);
+		_lineImpedanceReal.increment(l, 0, (float) ZsRe);
+		_lineImpedanceImag.increment(l, 0, (float) ZsIm);
 		if (limit > 0) {
 			_nLineConstraint++;
-			_lineLimits.set(l, 0, limit);
+			_lineLimits.set(l, 0, (float) limit);
 		}
 		else {
 			_lineLimits.set(l, 0, LINELIMITMAX);
@@ -1072,13 +1072,13 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 	for (int i = 0; i < _nBus; i++) { // bound on voltage angle rad
 		_upperBound.set(i, 0, 3);
 		_lowerBound.set(i, 0, -3);
-		_VoltageInit.set(i, 0, _theta0);
+		_VoltageInit.set(i, 0, (float) _theta0);
 		_VoltageInitD.set(i, 0, _theta0);
 	}
 	for (int i = _nBus; i < 2 * _nBus; i++) { // bound on voltage 
-		_upperBound.set(i, 0, 1.1);
-		_lowerBound.set(i, 0, 0.9);
-		_VoltageInit.set(i, 0, _V0);
+		_upperBound.set(i, 0, 1.1f);
+		_lowerBound.set(i, 0, 0.9f);
+		_VoltageInit.set(i, 0, (float) _V0);
 		_VoltageInitD.set(i, 0, _V0);
 	}
 	_upperBound.set(0, 0, 0);

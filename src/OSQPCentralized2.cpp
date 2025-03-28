@@ -94,7 +94,7 @@ void OSQPCentralized2::solve(Simparam* result, const Simparam& sim, const StudyC
 		init(sim, cas);
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
 	}
@@ -110,7 +110,7 @@ void OSQPCentralized2::solve(Simparam* result, const Simparam& sim, const StudyC
 	
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 5, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 5, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 5, 1);
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -135,7 +135,7 @@ void OSQPCentralized2::solve(Simparam* result, const Simparam& sim, const StudyC
 	result->setTime((float)tall / CLOCKS_PER_SEC);
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 7, 1);
 
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
@@ -518,7 +518,7 @@ void OSQPCentralized2::updateP0(const StudyCase& cas)
 
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 8, 1);
 #endif // INSTRUMENTATION
 

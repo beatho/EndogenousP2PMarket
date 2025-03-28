@@ -80,6 +80,69 @@ MatrixGPU::MatrixGPU(int l, int c, float value, bool pos)
 #endif
 }
 
+MatrixGPU::MatrixGPU(int l, int c, double value, bool pos)
+{
+#ifdef DEBUG_CONSTRUCTOR
+    std::cout << "contructeur parametre appele" << std::endl;
+    std::cout << _matrixCPU << std::endl;
+#endif
+    _row = l;
+    _column = c;
+    _N = _row * _column;
+    _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+    if (pos) {
+        if (_N > 0) {
+            cudaMalloc((void**)&_matrixGPU, sizeof(float) * _N);
+            setGPU << <_numBlocks, _blockSize >> > (_matrixGPU, (float) value, _N);
+        }
+        _GPU = true;
+    }
+    else {
+        if (_N > 0) {
+            _matrixCPU = new float[_N];
+        }
+        for (int elem = 0; elem < _N; elem++) {
+            _matrixCPU[elem] = (float) value;
+        }
+    }
+#ifdef DEBUG_CONSTRUCTOR
+    std::cout << _matrixGPU << std::endl;
+#endif
+}
+
+
+
+MatrixGPU::MatrixGPU(int l, int c, int value, bool pos)
+{
+#ifdef DEBUG_CONSTRUCTOR
+    std::cout << "contructeur parametre appele" << std::endl;
+    std::cout << _matrixCPU << std::endl;
+#endif
+    _row = l;
+    _column = c;
+    _N = _row * _column;
+    _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+    if (pos) {
+        if (_N > 0) {
+            cudaMalloc((void**)&_matrixGPU, sizeof(float) * _N);
+            setGPU << <_numBlocks, _blockSize >> > (_matrixGPU, (float) value, _N);
+        }
+        _GPU = true;
+    }
+    else {
+        if (_N > 0) {
+            _matrixCPU = new float[_N];
+        }
+        for (int elem = 0; elem < _N; elem++) {
+            _matrixCPU[elem] = (float) value;
+        }
+    }
+#ifdef DEBUG_CONSTRUCTOR
+    std::cout << _matrixGPU << std::endl;
+#endif
+}
+
+
 MatrixGPU::MatrixGPU(const MatrixCPU& m, bool pos)
 {
     _row = m.getNLin();
@@ -578,6 +641,40 @@ void MatrixGPU::toMatGPUD(MatrixGPUD& m) const
     else {
         //std::cout << "changement de valeur " << value << " en " << i << " " << j << std::endl;
         _matrixCPU[i * _column + j] = value;
+    }
+}
+void MatrixGPU::set(int i, int j, int value, bool force)
+{
+    if ((i >= _row) || (j >= _column) || (i < 0) || (j < 0)) {
+        std::cout << _row << " " << _column << " " << i << " " << j << std::endl;
+        throw std::out_of_range("set : index out of bounds");
+    }
+    if (_GPU && !force) {
+        throw std::invalid_argument("set : Matrix on GPU");
+    }
+    else if (_GPU && force) {
+        setGPUunique <<< 1, 1 >>> (_matrixGPU, (float) value, i * _column + j);
+    }
+    else {
+        //std::cout << "changement de valeur " << value << " en " << i << " " << j << std::endl;
+        _matrixCPU[i * _column + j] = (float) value;
+    }
+}
+void MatrixGPU::set(int i, int j, double value, bool force)
+{
+    if ((i >= _row) || (j >= _column) || (i < 0) || (j < 0)) {
+        std::cout << _row << " " << _column << " " << i << " " << j << std::endl;
+        throw std::out_of_range("set : index out of bounds");
+    }
+    if (_GPU && !force) {
+        throw std::invalid_argument("set : Matrix on GPU");
+    }
+    else if (_GPU && force) {
+        setGPUunique <<< 1, 1 >>> (_matrixGPU, (float) value, i * _column + j);
+    }
+    else {
+        //std::cout << "changement de valeur " << value << " en " << i << " " << j << std::endl;
+        _matrixCPU[i * _column + j] = (float) value;
     }
 }
 

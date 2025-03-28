@@ -3,9 +3,9 @@
 
 GPUPF::GPUPF(){}
 GPUPF::~GPUPF(){
-   
 
 }
+/*
 void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ)
 {
 #ifdef INSTRUMENTATION
@@ -88,7 +88,7 @@ void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ)
     /*std::cout << " Bgrid : " << std::endl;
     Bgrid.display();
     std::cout << " Ggrid : " << std::endl;
-    Ggrid.display();*/
+    Ggrid.display();
     W0 = MatrixGPU(B2, 1, 0, 1);
 
     calculW0Bis(PQ);
@@ -101,7 +101,7 @@ void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ)
     CoresAgentBus.display(true);
     CoresAgentBusBegin.display(true);
     NagentByBus.display(true);
-    std::cout << "N: " << Nagent << " B= " << Nbus << std::endl;*/
+    std::cout << "N: " << Nagent << " B= " << Nbus << std::endl;
 
 
     //std::cout << " W0 : " << std::endl;
@@ -116,13 +116,15 @@ void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ)
 #ifdef INSTRUMENTATION
     cudaDeviceSynchronize();
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
 
     //std::cout << " fin init" << std::endl;
 
 }
+
+*/
 void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD* PQD, bool useDouble)
 {
 #ifdef INSTRUMENTATION
@@ -315,7 +317,7 @@ void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD* PQD, bool useD
 #ifdef INSTRUMENTATION
     cudaDeviceSynchronize();
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
 
@@ -349,7 +351,7 @@ void GPUPF::solve() {
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 6, 1);
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -364,7 +366,7 @@ void GPUPF::solve() {
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION      
         iter++;
@@ -378,7 +380,7 @@ void GPUPF::solve() {
 #ifdef INSTRUMENTATION
     cudaDeviceSynchronize();
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
 #endif // INSTRUMENTATION
 
@@ -402,7 +404,7 @@ void GPUPF::updatePQ(MatrixGPU* PQ)
     calculW0Bis(PQ);
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
 #endif
    
@@ -783,7 +785,7 @@ int GPUPF::calcVoltage()
 #ifdef INSTRUMENTATION
     cudaDeviceSynchronize();
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 3, 1);
 #endif // INSTRUMENTATION
     
@@ -808,7 +810,7 @@ int GPUPF::calcVoltage()
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 4, 1);
 #endif // INSTRUMENTATION
 
@@ -816,7 +818,7 @@ int GPUPF::calcVoltage()
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 5, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 5, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 5, 1);
 #endif // INSTRUMENTATION
         //dED.display(true);
@@ -859,14 +861,14 @@ int GPUPF::calcVoltage()
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 4, 1);
 #endif // INSTRUMENTATION
         dE.solveSys(&A, &P, &dW);/**/
 #ifdef INSTRUMENTATION
         cudaDeviceSynchronize();
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 5, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 5, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 5, 1);
 #endif // INSTRUMENTATION       
         E.add(&E, &dE);// E = E + dE;
@@ -922,14 +924,14 @@ void GPUPF::setE(MatrixGPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
     calcW();
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -943,7 +945,7 @@ void GPUPF::setE(MatrixGPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
 
@@ -967,7 +969,7 @@ void GPUPF::setE(MatrixGPUD* Enew)
 #ifdef INSTRUMENTATION
     cudaDeviceSynchronize();
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -975,7 +977,7 @@ void GPUPF::setE(MatrixGPUD* Enew)
 #ifdef INSTRUMENTATION
     cudaDeviceSynchronize();
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -990,7 +992,7 @@ void GPUPF::setE(MatrixGPUD* Enew)
 #ifdef INSTRUMENTATION
     cudaDeviceSynchronize();
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
 }

@@ -36,7 +36,9 @@ public:
     float* _matrixCPU = nullptr;
    
     MatrixCPU();
-    MatrixCPU(int line, int column, float value = 0.0);
+    MatrixCPU(int line, int column, float value = 0.0f);
+    MatrixCPU(int line, int column, int value);
+    MatrixCPU(int line, int column, double value);
     MatrixCPU(const MatrixCPU & m);
     MatrixCPU(const MatrixCPUD & m);
     MatrixCPU& operator= (const MatrixCPU& m);
@@ -45,7 +47,7 @@ public:
     void toMatCPUD(MatrixCPUD& m) const;
 
    
-    inline float get(int i, int j) const;
+    float get(int i, int j) const;
     double getD(int i, int j) const;
     int getNCol() const;
     int getNLin() const;
@@ -59,7 +61,9 @@ public:
     
    
     void setSize(int l, int c);
-    inline void set(int i, int j, float value);
+    void set(int i, int j, float value);
+    void set(int i, int j, int value);
+    void set(int i, int j, double value);
     void set(float value);
     void set(MatrixCPU* m);
     void setTrans(MatrixCPU* m);
@@ -75,6 +79,8 @@ public:
     void add(MatrixCPU* m1, float c); // m = m1 + c;
     void add(MatrixCPU* m1);  // m = m + m1;
     void increment(int i, int j, float add); //m[i,j] = m[i,j] + add
+    void increment(int i, int j, double add); //m[i,j] = m[i,j] + add
+    void increment(int i, int j, int add); //m[i,j] = m[i,j] + add
     void addVector(MatrixCPU* v);
     void addTrans(MatrixCPU* m1); // m = m + tm1;
     

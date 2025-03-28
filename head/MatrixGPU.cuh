@@ -53,7 +53,9 @@ public:
     int _numBlocks = 0;
     bool preallocation = false;
     MatrixGPU();
-    MatrixGPU(int line, int column, float value = 0.0, bool pos=false);
+    MatrixGPU(int line, int column, float value = 0.0f, bool pos=false);
+    MatrixGPU(int line, int column, int value, bool pos=false);
+    MatrixGPU(int line, int column, double value, bool pos=false);
     MatrixGPU(const MatrixCPU& m, bool pos=false);
     MatrixGPU(const MatrixGPU& m);
     MatrixGPU(const MatrixGPUD& m);
@@ -82,6 +84,8 @@ public:
  
     
     void set(int i, int j, float value, bool force=false);
+    void set(int i, int j, double value, bool force=false);
+    void set(int i, int j, int value, bool force=false);
     void setEyes(float value);
     void setEyes(MatrixGPU* m);
     void setRand(float eps); 

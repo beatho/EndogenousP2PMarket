@@ -95,7 +95,7 @@ CPUPF::~CPUPF(){
     // B[N][N], G[N][N] : caract�ristique des lignes entre les noeuds i et j
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
     //std::cout << " fin init" << std::endl;
@@ -277,7 +277,7 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool useD
     // B[N][N], G[N][N] : caract�ristique des lignes entre les noeuds i et j
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
 }
@@ -305,7 +305,7 @@ void CPUPF::solve() {
         calcW();
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 6, 1);
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -319,7 +319,7 @@ void CPUPF::solve() {
         }
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
 
@@ -333,7 +333,7 @@ void CPUPF::solve() {
     calcW(true);
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
 #endif // INSTRUMENTATION
 
@@ -360,7 +360,7 @@ void CPUPF::updatePQ(MatrixCPU* PQ)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
 #endif
 }
@@ -659,7 +659,7 @@ int CPUPF::calcVoltage()
     calcJac();
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 3, 1);
 #endif // INSTRUMENTATION
     //std::cout << " Jac : " << std::endl;
@@ -687,7 +687,7 @@ int CPUPF::calcVoltage()
         
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 4, 1);
 #endif // INSTRUMENTATION
 
@@ -717,7 +717,7 @@ int CPUPF::calcVoltage()
       
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 4, 1);
 #endif // INSTRUMENTATION
         /*JacInv.invertEigen(&Jac); //inversion matrice Jac
@@ -740,7 +740,7 @@ void CPUPF::setE(MatrixCPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -748,7 +748,7 @@ void CPUPF::setE(MatrixCPU* Enew)
    // W.display();
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -762,7 +762,7 @@ void CPUPF::setE(MatrixCPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
     
@@ -779,14 +779,14 @@ void CPUPF::setE(MatrixCPUD* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
     calcW();
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -800,7 +800,7 @@ void CPUPF::setE(MatrixCPUD* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
     
@@ -815,6 +815,7 @@ void CPUPF::setW(MatrixCPU* Wnew)
 
 void CPUPF::calcE()
 {
+    std::cout << "calculE de CPUPF" << std::endl;
     // nothing to do
 }
 

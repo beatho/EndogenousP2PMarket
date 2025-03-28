@@ -9,16 +9,16 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ)
 
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
-    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise à jour
+    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise ï¿½ jour
 
-    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
+    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisï¿½ pendant la simu
 
 #endif // INSTRUMENTATION
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
     N2 = 2 * Nagent;
-    Nline = cas.getNLine(true); // ne doit pas être réduit ici !!!
+    Nline = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
     Nconstraint = B2 + Nline;
     iterM = 5000; 
     iter = 0;
@@ -126,15 +126,15 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ)
     //std::cout << " E : " << std::endl;
     //E.display();
     
-	// W0[2 * N] : puissance active et réactive au noeud (I*[P Q])
-	// W[2 * N] : puissance obtenue par calcul à partir de E
+	// W0[2 * N] : puissance active et rï¿½active au noeud (I*[P Q])
+	// W[2 * N] : puissance obtenue par calcul ï¿½ partir de E
 	// dW[2 * N] : derive de puissance
 	// E[2 * N] : angle puis tension [O et 1] pour l'init ?
 	// dE[2 * N] : derive de angle puis tension
 	// Jac[2 * N][2 * N] : jacobienne
 	// Jac_inv[2 * N][2 * N]: inverse de la jacobienne
 	
-	// B[N][N], G[N][N] : caractéristique des lignes entre les noeuds i et j
+	// B[N][N], G[N][N] : caractï¿½ristique des lignes entre les noeuds i et j
 
     G = MatrixCPU(Nconstraint, N2);
     Phi = MatrixCPU(Nline, 1);
@@ -148,7 +148,7 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ)
 
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
 
@@ -161,16 +161,16 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool us
 
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
-    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise à jour
+    timePerBlock = MatrixCPU(1, 9); // Fb0 : init, Fb1ab : Flu, Fb2abc: Tension , FB3 : puissance, Fb4 erreur, Fb0 mise ï¿½ jour
 
-    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisé pendant la simu
+    occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilisï¿½ pendant la simu
 
 #endif // INSTRUMENTATION
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
     N2 = 2 * Nagent;
-    Nline = cas.getNLine(true); // ne doit pas être réduit ici !!!
+    Nline = cas.getNLine(true); // ne doit pas ï¿½tre rï¿½duit ici !!!
     Nconstraint = B2 + Nline;
     iterM = 5000;
     iter = 0;
@@ -356,15 +356,15 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool us
     //std::cout << " E : " << std::endl;
     //E.display();
 
-    // W0[2 * N] : puissance active et réactive au noeud (I*[P Q])
-    // W[2 * N] : puissance obtenue par calcul à partir de E
+    // W0[2 * N] : puissance active et rï¿½active au noeud (I*[P Q])
+    // W[2 * N] : puissance obtenue par calcul ï¿½ partir de E
     // dW[2 * N] : derive de puissance
     // E[2 * N] : angle puis tension [O et 1] pour l'init ?
     // dE[2 * N] : derive de angle puis tension
     // Jac[2 * N][2 * N] : jacobienne
     // Jac_inv[2 * N][2 * N]: inverse de la jacobienne
 
-    // B[N][N], G[N][N] : caractéristique des lignes entre les noeuds i et j
+    // B[N][N], G[N][N] : caractï¿½ristique des lignes entre les noeuds i et j
 
     G = MatrixCPU(Nconstraint, N2);
     Phi = MatrixCPU(Nline, 1);
@@ -378,7 +378,7 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool us
 
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
 
@@ -400,7 +400,7 @@ void CPUPFGS::updatePQ(MatrixCPU* PQ)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
 #endif
 }
@@ -502,7 +502,7 @@ void CPUPFGS::calcW(bool end)
            WD.set(i, 0, ED.get(Nbus + i, 0) * (Gcos[i] + Bsin[i]));
            WD.set(i + Nbus, 0, ED.get(Nbus + i, 0) * (Gsin[i] - Bcos[i]));
        }*/
-        if (!end) { // pendant simu, la puissance à ce noeud est libre
+        if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
             WD.set(0, 0, W0D.get(0, 0));
             WD.set(Nbus, 0, W0D.get(Nbus, 0));
 
@@ -587,7 +587,7 @@ void CPUPFGS::calcW(bool end)
             sq = 0;
 
         }*/
-        if (!end) { // pendant simu, la puissance à ce noeud est libre
+        if (!end) { // pendant simu, la puissance ï¿½ ce noeud est libre
             W.set(0, 0, W0.get(0, 0));
             W.set(Nbus, 0, W0.get(Nbus, 0));
 
@@ -631,7 +631,7 @@ int CPUPFGS::calcVoltage()
         
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 3, 1);
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -655,7 +655,7 @@ int CPUPFGS::calcVoltage()
         //VoltageRealImD.display();
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 4, 1);
 #endif // INSTRUMENTATION
 
@@ -684,7 +684,7 @@ int CPUPFGS::calcVoltage()
         }
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 3, 1);
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -707,7 +707,7 @@ int CPUPFGS::calcVoltage()
         //VoltageRealIm.display();
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 4, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 4, 1);
 #endif // INSTRUMENTATION
 
@@ -748,6 +748,7 @@ int CPUPFGS::calcVoltage()
 
 void CPUPFGS::calcE()
 {
+    std::cout << "calculE de CPUPFGS" << std::endl;
     if (_useDouble) {
         for (int i = 0; i < Nbus; i++) {
             float Rev = VoltageRealImD.get(i, 0);
@@ -800,7 +801,7 @@ void CPUPFGS::setE(MatrixCPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -808,7 +809,7 @@ void CPUPFGS::setE(MatrixCPU* Enew)
     //W.display();
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -822,7 +823,7 @@ void CPUPFGS::setE(MatrixCPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
 
@@ -855,14 +856,14 @@ void CPUPFGS::setE(MatrixCPUD* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
     calcW();
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -876,7 +877,7 @@ void CPUPFGS::setE(MatrixCPUD* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 7, 1);
-#endif // INSTRUMENTATION²
+#endif // INSTRUMENTATIONï¿½
 }

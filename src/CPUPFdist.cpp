@@ -6,7 +6,7 @@ CPUPFdist::~CPUPFdist() {}
 
 //Fb0: init, Fb1ab 1 2 : Flu, Fb2abc : 3 4 5 Tension, FB3 6 : puissance, Fb4 7 erreur, 8 Fb0 mise � jour
 
-void CPUPFdist::init(const StudyCase& cas, MatrixCPU* PQ)
+void CPUPFdist::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD * PnD, bool useDouble)
 {
 #ifdef INSTRUMENTATION
     t1 = std::chrono::high_resolution_clock::now();
@@ -14,6 +14,11 @@ void CPUPFdist::init(const StudyCase& cas, MatrixCPU* PQ)
 
     occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilis� pendant la simu
 #endif // INSTRUMENTATION
+    if(useDouble){
+        std::cout << "WARNING : double precision computation is not yet implemented for this method" << std::endl;
+    }    
+
+
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
@@ -127,7 +132,7 @@ void CPUPFdist::init(const StudyCase& cas, MatrixCPU* PQ)
 
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
     //std::cout << " fin init" << std::endl;
@@ -175,7 +180,7 @@ void CPUPFdist::updatePQ(MatrixCPU* PQ)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
 #endif
 }
@@ -199,7 +204,7 @@ void CPUPFdist::solve()
         calcVoltage();
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 3, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 3, 1);
         t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -208,7 +213,7 @@ void CPUPFdist::solve()
         err = VoltageRealIm.distance2(&VoltageRealImPre);
 #ifdef INSTRUMENTATION
         t2 = std::chrono::high_resolution_clock::now();
-        timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+        timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         occurencePerBlock.increment(0, 7, 1);
 #endif // INSTRUMENTATION
         VoltageRealImPre = VoltageRealIm;
@@ -229,7 +234,7 @@ void CPUPFdist::solve()
     calcW(true);
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 6, 1);
 #endif // INSTRUMENTATION
     /*std::cout << "tension bus entree puis sortie" << std::endl;
@@ -287,7 +292,7 @@ void CPUPFdist::calcJ()
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 1, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 1, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 1, 1);
     t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -308,7 +313,7 @@ void CPUPFdist::calcJ()
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 2, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 2, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 2, 1);
 #endif // INSTRUMENTATION
     //Jb.display();
@@ -423,7 +428,7 @@ void CPUPFdist::setE(MatrixCPU* Enew)
     }
 #ifdef INSTRUMENTATION
     t2 = std::chrono::high_resolution_clock::now();
-    timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
     occurencePerBlock.increment(0, 8, 1);
 #endif // INSTRUMENTATION
 }

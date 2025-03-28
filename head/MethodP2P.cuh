@@ -31,8 +31,8 @@ public:
 	void updateCp2(MatrixCPU* Cp2, float rho1, MatrixCPU* Kappa1, MatrixCPU* Kappa2, MatrixCPU* G, MatrixCPU* temp1L, MatrixCPU* Qpart, MatrixCPU* nVoisin, int nLine, int nAgent);
 	virtual float updateRes(MatrixCPU* res, MatrixGPU* Tlocal, MatrixGPU* trade, int iter, MatrixGPU* tempNN);
 	
-	float updateRes(MatrixCPU* res, MatrixCPU* Tlocal, MatrixCPU* trade, int iter);
-	float updateRes(MatrixCPU* res, MatrixCPU* Tlocal, MatrixCPU* trade, int iter, MatrixCPU* Kappa1, MatrixCPU* Kappa2, MatrixCPU* Kappa1_pre, MatrixCPU* Kappa2_pre);
+	virtual float updateRes(MatrixCPU* res, MatrixCPU* Tlocal, MatrixCPU* trade, int iter);
+	virtual float updateRes(MatrixCPU* res, MatrixCPU* Tlocal, MatrixCPU* trade, int iter, MatrixCPU* Kappa1, MatrixCPU* Kappa2, MatrixCPU* Kappa1_pre, MatrixCPU* Kappa2_pre);
 	
 	virtual void updatePn(MatrixCPU* Pn, MatrixCPU* Tmoy, MatrixCPU* nVoisin);
 	void updatePn(MatrixGPU* Pn, MatrixGPU* Tmoy, MatrixGPU* nVoisin);

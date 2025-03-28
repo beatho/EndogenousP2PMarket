@@ -182,7 +182,7 @@ void DCOPFOSQP::updateP0(const StudyCase& cas)
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize();
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 10, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 10, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 10, 1);
 #endif // INSTRUMENTATION
 
@@ -214,7 +214,7 @@ void DCOPFOSQP::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
 	}
@@ -231,7 +231,7 @@ void DCOPFOSQP::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 #endif
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 1, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 1, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 1, iterGlobal);
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -249,7 +249,7 @@ void DCOPFOSQP::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize();
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 9, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 9, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 9, 1);
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION

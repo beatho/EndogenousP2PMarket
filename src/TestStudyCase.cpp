@@ -32,8 +32,8 @@ bool testSCConstru()
 	int nAgent = 4;
 	float P = 10;
 	float dP = 2;
-	float a = 0.06;
-	float da = 0.01;
+	float a = 0.06f;
+	float da = 0.f;
 	float b = 50;
 	float db = 10;
 
@@ -129,8 +129,8 @@ bool testRemoveLink() {
 	int nAgent = 4; // 2 cons, 2 prod
 	float P = 10;
 	float dP = 2;
-	float a = 0.06;
-	float da = 0.01;
+	float a = 0.06f;
+	float da = 0.01f;
 	float b = 50;
 	float db = 10;
 
@@ -178,8 +178,8 @@ bool testAddLink() {
 	int nAgent = 4; // 2 cons, 2 prod
 	float P = 10;
 	float dP = 2;
-	float a = 0.06;
-	float da = 0.01;
+	float a = 0.06f;
+	float da = 0.01f;
 	float b = 50;
 	float db = 10;
 
@@ -216,11 +216,11 @@ bool testAddLink() {
 bool testGenRandom()
 {
 	int nAgent = 12;
-	float propCons = 0.25;
+	float propCons = 0.25f;
 	float Pconso = 10;
 	float dPconso = 1;
 	float bProd = 2;
-	float dbProd = 0.1;
+	float dbProd = 0.1f;
 	float Pprod = 20;
 	float dPprod = 5;
 	float Gamma = 15;

@@ -96,7 +96,7 @@ void OPFADMMCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 		init(sim, cas);
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 0, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		occurencePerBlock.increment(0, 0, 1);
 #endif // INSTRUMENTATION
 	}
@@ -138,7 +138,7 @@ void OPFADMMCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 		updateXWOCurrent();
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 5, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 5, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 		
@@ -146,21 +146,21 @@ void OPFADMMCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 		
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 6, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 		updateGlobalProb();
 		updateMu();
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 7, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 		updateChat();
 		
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
-		timePerBlock.increment(0, 8, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION
 		// FB 4
 		if (!(_iterGlobal % _stepG)) {
@@ -172,7 +172,7 @@ void OPFADMMCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 			//resG = 1;
 #ifdef INSTRUMENTATION
 			t2 = std::chrono::high_resolution_clock::now();
-			timePerBlock.increment(0, 9, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+			timePerBlock.increment(0, 9, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION
 		}
 		//std::cout << iterGlobal << " " << _iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG) << " " << resF.get(1, iterGlobal / stepG) << std::endl;
@@ -235,7 +235,7 @@ void OPFADMMCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 10, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 10, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 10, 1);
 
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
@@ -302,7 +302,7 @@ void OPFADMMCons::updateP0(const StudyCase& cas)
 	updateChat();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 11, std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	timePerBlock.increment(0, 11, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 11, 1);
 #endif // INSTRUMENTATION
 
@@ -1025,8 +1025,8 @@ void OPFADMMCons::initConsensus(const Simparam& sim, const StudyCase& cas, float
 	{
 	case LossType::POWER:
 		for (int n = 1; n < _nAgent; n++) {
-			int bus = _CoresBusAgent.get(n, 0);
-			int In = PosAgent.get(n, 0);
+			int bus = (int) _CoresBusAgent.get(n, 0);
+			int In = (int) PosAgent.get(n, 0);
 
 			X[_nBus].set(n, 0, X[bus].get(5 + 2 * In, 0));
 			X[_nBus].set(n + _nAgent, 0, X[bus].get(6 + 2 * In, 0));
@@ -1083,7 +1083,7 @@ void OPFADMMCons::initConsensus(const Simparam& sim, const StudyCase& cas, float
 
 	//std::cout << " Hinv " << std::endl;
 	for (int i = 0; i < _nBus; i++) {
-		int Ni = _nAgentByBus.get(i, 0);
+		int Ni = (int) _nAgentByBus.get(i, 0);
 		if (i > 0) {
 			A[i].set(2, 0, 2 * ZsRe.get(i - 1, 0));
 			A[i].set(2, 1, 2 * ZsIm.get(i - 1, 0));
@@ -1103,7 +1103,7 @@ void OPFADMMCons::initConsensus(const Simparam& sim, const StudyCase& cas, float
 
 
 		for (int j = 0; j < nChild.get(i, 0); j++) {
-			int c = Childs[i].get(j, 0);
+			int c = (int) Childs[i].get(j, 0);
 			A[i].set(0, 5 + 2 * Ni + 3 * j, 1); // Pci
 			A[i].set(1, 6 + 2 * Ni + 3 * j, 1); // Qci
 			A[i].set(0, 7 + 2 * Ni + 3 * j, -ZsRe.get(c - 1, 0)); // -R l
@@ -1111,8 +1111,8 @@ void OPFADMMCons::initConsensus(const Simparam& sim, const StudyCase& cas, float
 		}
 		//A[i].display();
 		MatrixCPU temp33(2 + 1 * (i > 0), 2 + 1 * (i > 0));
-		MatrixCPU temp3M(2 + 1 * (i > 0), sizeOPFADMMCons.get(i, 0));
-		MatrixCPU tempMM(sizeOPFADMMCons.get(i, 0), sizeOPFADMMCons.get(i, 0));
+		MatrixCPU temp3M(2 + 1 * (i > 0), (int) sizeOPFADMMCons.get(i, 0));
+		MatrixCPU tempMM((int) sizeOPFADMMCons.get(i, 0), (int) sizeOPFADMMCons.get(i, 0));
 		temp33.multiplyTrans(&A[i], &A[i]); // (3*o_b) * (o_b*3) -> 9 * o_b^2
 		temp33.invertGaussJordan(&temp33); // 3^3 = 27 (fixe !!!)
 		temp3M.MultiplyMatMat(&temp33, &A[i]); // (3*3) * (3*o_b) -> 27 *o_b
@@ -1170,9 +1170,9 @@ void OPFADMMCons::updateConsensus(MatrixCPU* Pmarket)
 	//Pmarket->display();
 	
 	for (int n = 1; n < _nAgent; n++) { 
-		float eta = etaSO.get(n, 0) +  0.5 * (Pn.get(n, 0) - Pmarket->get(n, 0));
+		float eta = etaSO.get(n, 0) +  0.5f * (Pn.get(n, 0) - Pmarket->get(n, 0));
 		etaSO.set(n, 0, eta);
-		eta = etaSO.get(n + _nAgent, 0) + 0.5 * (Pn.get(n + _nAgent, 0) - Pmarket->get(n + _nAgent, 0));
+		eta = etaSO.get(n + _nAgent, 0) + 0.5f * (Pn.get(n + _nAgent, 0) - Pmarket->get(n + _nAgent, 0));
 		etaSO.set(n + _nAgent, 0,  eta);
 	}
 	
@@ -1181,7 +1181,7 @@ void OPFADMMCons::updateConsensus(MatrixCPU* Pmarket)
 	Cost2.set(_nAgent, 0, 0);
 	//Cost2.set(0, 0, _Ploss + Pmarket->get(0, 0));
 	//Cost2.set(_nAgent, 0, _Qloss + Pmarket->get(_nAgent, 0));
-	Cost2.multiply(-0.5);
+	Cost2.multiply(-0.5f);
 	Cost2.add(&etaSO);
 	Cost2.multiply(_rhoSO);
 
@@ -1680,10 +1680,10 @@ void OPFADMMCons::updateX()
 		
 		
 		// pn & qn
-		int Nb = _nAgentByBus.get(i, 0);
-		int begin = _CoresAgentBusBegin.get(i, 0);
+		int Nb = (int) _nAgentByBus.get(i, 0);
+		int begin = (int) _CoresAgentBusBegin.get(i, 0);
 		for (int In = 0; In < Nb; In++) {
-			int n = _CoresAgentBus.get(In + begin, 0);
+			int n = (int) _CoresAgentBus.get(In + begin, 0);
 			float ub = Pmax.get(n, 0);
 			float lb = Pmin.get(n, 0);
 			float pn = (_rho * Chat[i].get(4 + 2 * In, 0) - Cost2.get(n, 0)) / (Cost1.get(n, 0) + _rho);

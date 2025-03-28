@@ -874,20 +874,20 @@ void StudyCase::SetEuropeP0(const std::string& path, MatrixCPU* P0, bool already
 		
 
 		for (int i = 0; i < _nBus; i++) {
-			int bus = fileCoresBus.get(i, 0);
-			fileBusAgent.set(bus, 0, i);
+			int bus = (int) fileCoresBus.get(i, 0);
+			fileBusAgent.set(bus, 0, (float) i);
 		}
 	
 		//std::cout << _nLineConstraint << std::endl;
 		for (int i = 0; i < _nAgent; i++) {
 			if (i < nCons) { // le bus correspond directement pour les conso
 				int bus = i;
-				_CoresBusAgentLin.set(i, 0, bus);
+				_CoresBusAgentLin.set(i, 0, (float) bus);
 			}
 			else {
 				int idGen = i - nCons;
-				int bus = fileBusAgent.get(GenBus.get(idGen, 0), 0);
-				_CoresBusAgentLin.set(i, 0, bus);
+				int bus = (int) fileBusAgent.get(GenBus.get(idGen, 0), 0);
+				_CoresBusAgentLin.set(i, 0, (float) bus);
 			}
 		}
 
@@ -954,14 +954,14 @@ void StudyCase::genGrid(int _nBus, int _nMajorLine, int _minorLine, float ReacMa
 
 void StudyCase::genGridBT(int nBus, int Nbranch, int Ndeep, float length, float dlength)
 {
-	_timeInit = clock();
+	clock_t t = clock();
 	createGrid(false);
 	((StudyCaseACGrid*)SCGrid)->genGridBT(nBus, Nbranch, Ndeep, length, dlength);
 	_nBus = nBus;
 	_nLine = nBus - 1;
 	_name = "gridBT";
 
-	_timeInit = (float) (clock() - _timeInit)/ CLOCKS_PER_SEC;
+	_timeInit = (float) (clock() - t)/ CLOCKS_PER_SEC;
 	
 	
 	/*
@@ -981,14 +981,14 @@ void StudyCase::genGridBT(int nBus, int Nbranch, int Ndeep, float length, float 
 
 void StudyCase::genGridBTSpecial(int nBus, int Nbranch, int Ndeep, float length, float dlength, RadialType type)
 {
-	_timeInit = clock();
+	clock_t t = clock();
 	createGrid(false);
 	((StudyCaseACGrid*)SCGrid)->genGridBTSpecial(nBus, Nbranch, Ndeep, length, dlength, type);
 	_nBus = nBus;
 	_nLine = nBus - 1;
 	_name = "gridBT";
 
-	_timeInit = (float)(clock() - _timeInit) / CLOCKS_PER_SEC;
+	_timeInit = (float)(clock() - t) / CLOCKS_PER_SEC;
 
 	/*
 	// melange grid/agent
@@ -1007,25 +1007,25 @@ void StudyCase::genGridBTSpecial(int nBus, int Nbranch, int Ndeep, float length,
 
 void StudyCase::genGridHTB(int nBus, int nLine, int dnLine, float length, float dlength)
 {
-	_timeInit = clock();
+	clock_t t = clock();
 	createGrid(false);
 	((StudyCaseACGrid*)SCGrid)->genGridHTB(nBus, nLine, dnLine, length, dlength);
 	_nBus = nBus;
 	_nLine = nLine;
 	_name = "gridHTB";
 
-	_timeInit = (float)(clock() - _timeInit) / CLOCKS_PER_SEC;
+	_timeInit = (float)(clock() - t) / CLOCKS_PER_SEC;
 }
 
 
 void StudyCase::genGridFromFile(std::string path, bool alreadyDefine)
 {
-	_timeInit = clock();
+	clock_t t = clock();
 	createGrid(true);
 	SCGrid->genGridFromFile(path, alreadyDefine);
 	_nBus = SCGrid->getNBus();
 	_nLine = SCGrid->getNLine();
-	_timeInit = (float)(clock() - _timeInit) / CLOCKS_PER_SEC;
+	_timeInit = (float)(clock() - t) / CLOCKS_PER_SEC;
 }
 
 void StudyCase::genAgents(int nAgent, float propCons, float Pconso, float dPconso, float bProd, float dbProd, float Pprod, float dPprod, float Gamma, float dGamma)
@@ -1033,8 +1033,8 @@ void StudyCase::genAgents(int nAgent, float propCons, float Pconso, float dPcons
 	clock_t t = clock();
 	SCAg.genAgents(nAgent, propCons, Pconso, dPconso, bProd, dbProd, Pprod, dPprod, Gamma, dGamma);
 	_nAgent = nAgent;
-	t = clock() - t;
-	_timeInit += (float)t / CLOCKS_PER_SEC;
+	
+	_timeInit += (float)(clock() - t) / CLOCKS_PER_SEC;
 }
 
 void StudyCase::genAgentsAC(int nAgent, float propCons, float propGenNFle, float Pconso, float dPconso, float bProd, float dbProd, float dQconso, float Pprod, float dPprod, float Gamma, float dGamma)
@@ -1042,8 +1042,7 @@ void StudyCase::genAgentsAC(int nAgent, float propCons, float propGenNFle, float
 	clock_t t = clock();
 	SCAg.genAgentsAC(nAgent, propCons, propGenNFle, Pconso, dPconso, bProd, dbProd, dQconso, Pprod, dPprod, Gamma, dGamma);
 	_nAgent = nAgent;
-	t = clock() - t;
-	_timeInit += (float)t / CLOCKS_PER_SEC;
+	_timeInit += (float)(clock() - t) / CLOCKS_PER_SEC;
 }
 
 void StudyCase::genAgentsFullRandom(int nAgent, float aMin, float aMax, float P0Min, float P0Max, float gammaMin, float gammaMax, float propConsoMin, float propConsoMax, float borneMin, float borneMax)
@@ -1052,11 +1051,12 @@ void StudyCase::genAgentsFullRandom(int nAgent, float aMin, float aMax, float P0
 	SCAg.genAgentsFullRandom(nAgent, aMin, aMax, P0Min, P0Max, gammaMin, gammaMax, propConsoMin, propConsoMax, borneMin, borneMax);
 	
 	_nAgent = nAgent;
-	t = clock() - t;
-	_timeInit += (float)t / CLOCKS_PER_SEC;
-
-
+	_timeInit += (float)(clock() - t) / CLOCKS_PER_SEC;
 }
+
+
+
+
 
 void StudyCase::genLinkGridAgent()
 {
@@ -1087,7 +1087,7 @@ void StudyCase::genLinkGridAgent()
 			_CoresBusAgent.set(bus, n, 1);
 		}
 		else {
-			_CoresBusAgentLin.set(n, 0, bus);
+			_CoresBusAgentLin.set(n, 0, (float) bus);
 			_nAgentByBus.increment(bus, 0, 1);
 		}
 	}
@@ -1102,15 +1102,15 @@ void StudyCase::genLinkGridAgent()
 		int debut = 0;
 		int* decompteAgent = new int[_nBus];
 		for (int b = 0; b < _nBus; b++) {
-			_CoresAgentBusLinBegin.set(b, 0, debut);
-			debut += _nAgentByBus.get(b, 0);
+			_CoresAgentBusLinBegin.set(b, 0, (float) debut);
+			debut += (int) _nAgentByBus.get(b, 0);
 			decompteAgent[b] = 0;
 		}
 		for (int n = 0; n < _nAgent; n++) {
-			int bus = _CoresBusAgentLin.get(n, 0);
-			int indice = _CoresAgentBusLinBegin.get(bus, 0) + decompteAgent[bus];
+			int bus = (int) _CoresBusAgentLin.get(n, 0);
+			int indice = (int) _CoresAgentBusLinBegin.get(bus, 0) + decompteAgent[bus];
 			decompteAgent[bus]++;
-			_CoresAgentBusLin.set(indice, 0, n);
+			_CoresAgentBusLin.set(indice, 0, (float) n);
 		}
 		DELETEA(decompteAgent);
 
@@ -1156,7 +1156,7 @@ void StudyCase::genDCGridFromAC()
 		_CoresBusAgent = MatrixCPU(_nBus, _nAgent);
 
 		for (int n = 0; n < _nAgent; n++) {
-			int bus = _CoresBusAgentLin.get(n, 0);
+			int bus = (int) _CoresBusAgentLin.get(n, 0);
 			_CoresBusAgent.set(bus, n, 1);
 		}
 		//_CoresBusAgent.display();

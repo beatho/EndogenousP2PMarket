@@ -76,8 +76,8 @@ bool testPACSolve1()
 	param.setItG(iterG);
 	Simparam res(param);
 	
-	float lambdaMax = 4.7;
-	float lambdaMin = 0.5858;
+	float lambdaMax = 4.7f;
+	float lambdaMin = 0.5858f;
 	/*float rho = 1.5; // 1.5 fonctionne 
 	float alpha = 0.9;
 
@@ -102,7 +102,7 @@ bool testPACSolve1()
 	MatrixCPU trade = res.getTrade();
 	res.display();
 	trade.display();
-	return trade.isEqual(&Trade,0.01);
+	return trade.isEqual(&Trade, 0.01f);
 }
 bool testPACSolve2()
 {
@@ -121,9 +121,9 @@ bool testPACSolve2()
 	Simparam res(param);
 
 
-	float lambdaMax = 6.4;
-	float lambdaMin = 0.1535;
-	/*float rho = 0.001; // 0.001 fonctionne en 30 000 itérations
+	float lambdaMax = 6.4f;
+	float lambdaMin = 0.1535f;
+	/*float rho = 0.001; // 0.001 fonctionne en 30 000 itï¿½rations
 
 
 	float gammarho = 1 / (rho * lambdaMax); // 1
@@ -143,7 +143,7 @@ bool testPACSolve2()
 	MatrixCPU P2 = res.getPn();
 	res.display();
 	P2.display();
-	return P.isEqual(&P2, 0.01);
+	return P.isEqual(&P2, 0.01f);
 }
 
 bool testPACSolve3()
@@ -163,12 +163,12 @@ bool testPACSolve3()
 
 	Simparam res(param);
 	
-	float rho = 0.1; // 0.001 fonctionne en 30 000 itérations
+	float rho = 0.1f; // 0.001 fonctionne en 30 000 itï¿½rations
 	PAC a;
 	//param.setRho(rho);
 	
 	float lambdaMax = 23;
-	float lambdaMin = 0.1162;
+	float lambdaMin = 0.1162f;
 
 	float gammarho = 1 /(rho* lambdaMax); // 1
 	float gammahatrho = 1 * gammarho; //0.8
@@ -182,7 +182,7 @@ bool testPACSolve3()
 	res.display();
 
 
-	float Pn[31] = { -0.927, -4.51, -2.81, -0.795, -0.880, -0.0980, -0.128, -4.07, -3.04, -2.16, -0.593, -3.31, -0.389, -2.71, -2.93, -1.77, -0.490, -2.26, -1.05, -0.138, -2.24, 4.246, 5.19, 3.42, 3.75, 4.41, 2.34, 3.31, 2.57, 3.49, 4.23 };
+	float Pn[31] = { -0.927f, -4.51f, -2.81f, -0.795f, -0.880f, -0.0980f, -0.128f, -4.07f, -3.04f, -2.16f, -0.593f, -3.31f, -0.389f, -2.71f, -2.93f, -1.77f, -0.490f, -2.26f, -1.05f, -0.138f, -2.24f, 4.246f, 5.19f, 3.42f, 3.75f, 4.41f, 2.34f, 3.31f, 2.57f, 3.49f, 4.23f };
 
 	MatrixCPU P(31, 1);
 	for (int i = 0; i < 31; i++) {
@@ -191,14 +191,14 @@ bool testPACSolve3()
 	MatrixCPU P2 = res.getPn();
 	P2.display();
 
-	return P2.isEqual(&P, 0.1);
+	return P2.isEqual(&P, 0.1f);
 }
 
 bool testPACSolve4()
 {
 	//solve(Simparam* result, Simparam sim, StudyCase cas);
 	StudyCase cas;
-	float lim = 0.8;
+	float lim = 0.8f;
 	cas.Set2nodeConstraint(lim);
 	int nAgent = cas.getNagent();
 	Simparam param(nAgent, 1);
@@ -217,7 +217,7 @@ bool testPACSolve4()
 	MatrixCPU trade = res.getTrade();
 	res.display();
 	trade.display();
-	return trade.isEqual(&Trade, 0.001);
+	return trade.isEqual(&Trade, 0.001f);
 }
 
 
@@ -229,7 +229,7 @@ bool testPACFunction1()
 	float value1 = 2;
 	float value2 = 4;
 	float value3 = -2;
-	float rho = 1.5;
+	float rho = 1.5f;
 	
 
 	return true;

@@ -18,7 +18,7 @@ public:
 	CPUPFdist();
 	~CPUPFdist();
 
-	virtual void init(const StudyCase& cas, MatrixCPU* Pn);
+	virtual void init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD * PnD = nullptr, bool useDouble = false);
 	bool chekcase();
 	virtual void updatePQ(MatrixCPU* PQ);
 	

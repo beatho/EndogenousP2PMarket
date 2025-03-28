@@ -16,8 +16,8 @@ bool testAConstruc()
 	int id = 1;
 	float pLim1 = -10;
 	float pLim2 = -1;
-	float cost1 = 0.06;
-	float cost2 = 0.5;
+	float cost1 = 0.06f;
+	float cost2 = 0.5f;
 	int nVoisin = 0;
 	MatrixCPU connec(1, 1);
 	int nAgent = 1; 
@@ -44,8 +44,8 @@ bool testASet()
 	int id = 1;
 	float pLim1 = -10;
 	float pLim2 = -1;
-	float cost1 = 0.06;
-	float cost2 = 0.5;
+	float cost1 = 0.06f;
+	float cost2 = 0.5f;
 	int nVoisin = 0;
 	MatrixCPU connec(0, 0);
 	int nAgent = 1;
@@ -63,14 +63,14 @@ bool testAupdateP0()
 	int id = 1;
 	float pLim1 = -10;
 	float pLim2 = -1;
-	float cost1 = 0.06;
-	float cost2 = 0.5;
+	float cost1 = 0.06f;
+	float cost2 = 0.5f;
 	int nVoisin = 0;
 	MatrixCPU connec(0, 0);
 	int nAgent = 1;
 	int type = 1;
 	float P0 = 10;
-	float dP = 0.2;
+	float dP = 0.2f;
 
 	Agent a1;
 	a1.setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &connec, nAgent, type);
