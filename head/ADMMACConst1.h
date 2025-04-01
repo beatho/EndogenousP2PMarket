@@ -1,5 +1,5 @@
 #pragma once
-#include "MethodP2P.cuh"
+#include "MethodP2P.h"
 #include "CPUPF.h"
 #include <iostream>
 #include <string>
@@ -17,7 +17,7 @@ public:
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
 	virtual void updateP0(const StudyCase& cas);
 	virtual void init(const Simparam& sim, const StudyCase& cas);
-	std::string NAME ="ADMMConst1";
+	std::string NAME ="ADMMConst";
 	void updateGlobalProb();
 	void updateLocalProb();
 	void updateLambda();
@@ -47,7 +47,7 @@ private:
 	float _at2 = 0;
 
 	MatrixCPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixCPU tempN1; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixCPU tempN1; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 
 
 	MatrixCPU Tlocal;
@@ -92,7 +92,7 @@ private:
 	MatrixCPU Pmin;
 	MatrixCPU Pmax;
 
-	// Pour le réseau
+	// Pour le rï¿½seau
 
 	CPUPF PF;
 

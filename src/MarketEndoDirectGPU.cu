@@ -1,5 +1,5 @@
 #include "../head/MarketEndoDirectGPU.cuh"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 // get loss
 // comuunication loss
@@ -9,7 +9,7 @@
 
 
 
-MarketEndoDirectGPU::MarketEndoDirectGPU() : Method()
+MarketEndoDirectGPU::MarketEndoDirectGPU() : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << " MarketEndoDirectGPU Constructor" << std::endl;
@@ -21,7 +21,7 @@ MarketEndoDirectGPU::MarketEndoDirectGPU() : Method()
 }
 
 
-MarketEndoDirectGPU::MarketEndoDirectGPU(float rho) : Method()
+MarketEndoDirectGPU::MarketEndoDirectGPU(float rho) : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "default MarketEndoDirectGPU Constructor" << std::endl;
@@ -118,7 +118,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 		
 		//LAMBDALin.display();
 		//Bt1.display();
-		//TradeLin.display();	
+		//tradeLin.display();	
 		
 		std::cout << " Q "   << std::endl;
 		Q.display(true);
@@ -192,7 +192,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(_iterGlobal / _stepG);
+			resG = updateResEndo(_iterGlobal / _stepG);
 			//std::cout << _iterGlobal << " " << resF.get(0, _iterGlobal / _stepG) << " " << resF.get(1, _iterGlobal / _stepG) << " " << resF.get(2, _iterGlobal / _stepG) << std::endl;
 			//resG = 1;
 #ifdef INSTRUMENTATION
@@ -223,7 +223,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 	ComputePFromAgentToBus();
 
 	MatrixCPU tradeLinCPU;
-	TradeLin.toMatCPU(tradeLinCPU);
+	tradeLin.toMatCPU(tradeLinCPU);
 	MatrixCPU LAMBDALinCPU;
 	LAMBDALin.toMatCPU(LAMBDALinCPU);
 	MatrixCPU PnCPU;
@@ -260,7 +260,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 	//Ct.display();
 	//Tlocal.display();
 
-	fc = calcFc(&Cost1, &Cost2, &Tlocal, &Pn, &Ct, &tempN1, &tempNN);
+	fc = calcFc();
 	// FB 5
 	
 	result->setResF(&resF);
@@ -294,7 +294,7 @@ void MarketEndoDirectGPU::updateP0(const StudyCase& cas)
     
 	Pmin = cas.getPmin();
 	Pmax = cas.getPmax();
-	Cost2 = cas.getb();
+	b = cas.getb();
 	Cp = cas.getb();
 
 
@@ -475,7 +475,7 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 	
 	//std::cout << " local resolution " << std::endl;
 	// local resolution
-	tempN2 = MatrixGPU(_nAgent, 1, 0, 1);
+
 	tempB2 = MatrixGPU(2 * _nBus, 1, 0, 1);
 	
 	Pbmax = MatrixGPU(2 * _nBus, 1, 0, 1);
@@ -506,8 +506,6 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 
 	Mu = MatrixGPU(_sizeEndoMarketTotal, 1, 0, 1);
 	
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1);
-	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
 	//tempM1 = new MatrixCPU[_nAgent];
 	tempM = MatrixGPU(_sizeEndoMarketTotal, 1, 0, 1);
 	
@@ -631,8 +629,6 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 	
 	
 	// bus factice
-	float sumP = 0;
-	float sumQ = 0;
 	int sizeA = 0;
 	MatrixGPU A;
 	switch (losstype)
@@ -737,7 +733,7 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 		CoresLinTrans.transferCPU();
 
 		Tlocal_pre.transferCPU();
-		TradeLin.transferCPU();
+		tradeLin.transferCPU();
 		LAMBDALin.transferCPU();
 
 		matLb.transferCPU();
@@ -846,7 +842,7 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 	CoresLinTrans = MatrixGPU(_nTrade, 1);
 
 	Tlocal_pre = MatrixGPU(_nTrade, 1);
-	TradeLin = MatrixGPU(_nTrade, 1);
+	tradeLin = MatrixGPU(_nTrade, 1);
 	LAMBDALin = MatrixGPU(_nTrade, 1);
 
 	matLb = MatrixGPU(_nTrade, 1);
@@ -869,7 +865,7 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
 			}
 			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-			TradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
+			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
 			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
 			CoresLinAgent.set(indice, 0, idAgent);
@@ -885,7 +881,7 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 			if (idVoisin != (idAgent - _nAgentTrue)) {
 				matLb.set(indice, 0, Lb.get(idAgent, 0));
 				matUb.set(indice, 0, Ub.get(idAgent, 0));
-				TradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
+				tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 				Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
 				LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
 				CoresLinAgent.set(indice, 0, idAgent);
@@ -913,7 +909,7 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 	Ct.transferGPU();
 
 	Tlocal_pre.transferGPU();
-	TradeLin.transferGPU();
+	tradeLin.transferGPU();
 	LAMBDALin.transferGPU();
 
 	CoresAgentLin.transferGPU();
@@ -937,16 +933,16 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 	Tlocal = MatrixGPU(_nTrade, 1, 0, 1);
 	Tlocal.preallocateReduction();
 
-	Cost1 = MatrixGPU(cas.geta(), 1);
-	Cost2 = MatrixGPU(cas.getb(), 1);
+	a = MatrixGPU(cas.geta(), 1);
+	b = MatrixGPU(cas.getb(), 1);
 	Ap1 = nVoisin;
 	Ap2 = nVoisin;
-	Ap3 = Cost1;	
+	Ap3 = a;	
 	Ap123 = MatrixGPU(_nAgent, 1, 0, 1);
 
 	
 	
-	Cp = Cost2;
+	Cp = b;
 	Bp1 = MatrixGPU(_nAgent, 1, 0, 1);
 	Bp2 = MatrixGPU(_nAgent, 1, 0, 1);
 	Bt1 = MatrixGPU(_nTrade, 1, 0, 1);
@@ -1522,8 +1518,7 @@ void MarketEndoDirectGPU::updateXWOCurrentCPU()
 	Chat.transferCPU();
 	double x1, x2, x3, x4, c1, c2, c3, c4, lambdaLo, lambdaUp, x3min, x3max, gamma, k2;
 	double c1122;
-	int nSol = 0;
-	
+		
 	double p = 0;
 	int nRoot = 0;
 
@@ -1616,7 +1611,7 @@ void MarketEndoDirectGPU::updateXWOCurrentCPU()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = Mymin(gamma, lambdaUp);
+					bestGamma = MYMIN(gamma, lambdaUp);
 					BestRoot = n;
 				}
 
@@ -1650,7 +1645,7 @@ void MarketEndoDirectGPU::updateXWOCurrentCPU()
 					}
 					if (gamma > bestGamma && lambdaLo > bestGamma) {
 						typeSol = 3;
-						bestGamma = Mymin(gamma, lambdaLo);
+						bestGamma = MYMIN(gamma, lambdaLo);
 						BestRoot = n;
 					}
 				}
@@ -1683,7 +1678,7 @@ void MarketEndoDirectGPU::updateXWOCurrentCPU()
 						break;
 					}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 						typeSol = 4;
-						bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
+						bestGamma = MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min));
 						BestRoot = n;
 					}
 				}
@@ -1762,12 +1757,12 @@ void MarketEndoDirectGPU::updatePMarket()
 	P.display(true);*/
 	
 	
-	TradeLin.swap(&Tlocal);
+	tradeLin.swap(&Tlocal);
 	/*std::cout << Ap1.get(0, 0) << " " << Bp1.get(0, 0) << std::endl;
 	std::cout << " P" << std::endl;
 	P.display();
 	Tmoy.display();
-	TradeLin.display();*/
+	tradeLin.display();*/
 	
 	updateXPn<<<_nBusWLoss, _blockSizeSmall>>>(X._matrixGPU, Pn._matrixGPU, P._matrixGPU, nVoisin._matrixGPU, _indiceBusBegin._matrixGPU, _nAgentByBus._matrixGPU, _CoresAgentBusBegin._matrixGPU,  _CoresAgentBus._matrixGPU, losstype, _nAgentTrue, _nBus);
 	
@@ -1886,7 +1881,7 @@ void MarketEndoDirectGPU::updateChat()
 	updateBp2();
 	
 	// pour �changes
-	updateLAMBDABt1GPU << <_numBlocksM, _blockSize >> > (Bt1._matrixGPU, LAMBDALin._matrixGPU, TradeLin._matrixGPU, _rho, CoresLinTrans._matrixGPU, _nTrade);
+	updateLAMBDABt1GPU << <_numBlocksM, _blockSize >> > (Bt1._matrixGPU, LAMBDALin._matrixGPU, tradeLin._matrixGPU, _rho, CoresLinTrans._matrixGPU, _nTrade);
 
 	//Bt1.display();
 }
@@ -1908,13 +1903,13 @@ void MarketEndoDirectGPU::CommunicationX()
 }
 
 
-float MarketEndoDirectGPU::updateRes(int indice) 
+float MarketEndoDirectGPU::updateResEndo(int indice) 
 {
 	
 	updateDiffGPU << <_numBlocksM, _blockSize >> > (tempNN._matrixGPU, Tlocal._matrixGPU, CoresLinTrans._matrixGPU, _nTrade);
 	float resR = tempNN.max2();
 
-	float resS = Tlocal.max2(&TradeLin); // nomalement * _rhog mais si _rhog est tres grand impossible que cela converge !!!
+	float resS = Tlocal.max2(&tradeLin); // nomalement * _rhog mais si _rhog est tres grand impossible que cela converge !!!
 
 
 
@@ -1935,7 +1930,7 @@ float MarketEndoDirectGPU::updateRes(int indice)
 
 
 
-	return MAX(MAX(resV, resS), resR);
+	return MYMAX(MYMAX(resV, resS), resR);
 }
 
 float MarketEndoDirectGPU::updateResRhoFixe(int indice)
@@ -1943,7 +1938,7 @@ float MarketEndoDirectGPU::updateResRhoFixe(int indice)
 	updateDiffGPU << <_numBlocksM, _blockSize >> > (tempNN._matrixGPU, Tlocal._matrixGPU, CoresLinTrans._matrixGPU, _nTrade);
 	float resR = tempNN.max2();
 
-	float resS = Tlocal.max2(&TradeLin); // nomalement * _rhog mais si _rhog est tres grand impossible que cela converge !!!
+	float resS = Tlocal.max2(&tradeLin); // nomalement * _rhog mais si _rhog est tres grand impossible que cela converge !!!
 
 
 
@@ -1963,7 +1958,7 @@ float MarketEndoDirectGPU::updateResRhoFixe(int indice)
 	resF.set(2, indice, resV);
 
 
-	return MAX(MAX(resV, resS), resR);
+	return MYMAX(MYMAX(resV, resS), resR);
 }
 
 int MarketEndoDirectGPU::feasiblePoint()
@@ -2165,8 +2160,8 @@ void MarketEndoDirectGPU::display() {
 	Pb.set(0.0);
 	Pb.transferCPU();
 
-	Cost1.transferCPU();
-	Cost2.transferCPU();
+	a.transferCPU();
+	b.transferCPU();
 	for (int i = 0; i < _nBus; i++) {
 		int Nb = _nAgentByBus.get(i, 0);
 		int begin = _CoresAgentBusBegin.get(i, 0);
@@ -2212,12 +2207,12 @@ void MarketEndoDirectGPU::display() {
 	std::cout << "-----|-------------|----------------|----------------|----------------|----------------|----------------|" << std::endl;
 
 		
-	float seuil = 0.0001;
+	//float seuil = 0.0001;
 		
-	for (int b = 0; b < _nBus; b++) {
-		int begining = _indiceBusBegin.get(b, 0);
-		std::cout << std::setw(5) << b << "|" << std::setw(12) << sqrt(X.get(begining + 3, 0)) << " |" << std::setw(16)
-			<< Pb.get(b, 0) << "|" << std::setw(16) << Pb.get(b, 0)
+	for (int bus = 0; bus < _nBus; bus++) {
+		int begining = _indiceBusBegin.get(bus, 0);
+		std::cout << std::setw(5) << bus << "|" << std::setw(12) << sqrt(X.get(begining + 3, 0)) << " |" << std::setw(16)
+			<< Pb.get(bus, 0) << "|" << std::setw(16) << Pb.get(bus, 0)
 			<< "|" << std::setw(16) << Mu.get(begining + 3, 0) << "|" << std::setw(16)
 			<< Mu.get(begining, 0) << "|" << std::setw(16) << Mu.get(begining + 1, 0) << "|" << std::endl;
 
@@ -2231,8 +2226,8 @@ void MarketEndoDirectGPU::display() {
 	std::cout << "------|-------------|------------|------------|------------|------------|------------|------------------|" << std::endl;
 
 	for (int l = 0; l < _nLine; l++) {
-		int b = l + 1;
-		int begining = _indiceBusBegin.get(b, 0);
+		int bus = l + 1;
+		int begining = _indiceBusBegin.get(bus, 0);
 		std::cout << std::setw(6) << l << "|" << std::setw(12) << CoresLineBus.get(l, 0) << " |" << std::setw(12)
 			<< CoresLineBus.get(l, 1) << "|" << std::setw(16) << X.get(begining + 0, 0)
 			<< "|" << std::setw(16) << X.get(begining + 1, 0) << "|" << std::setw(16)
@@ -2243,16 +2238,16 @@ void MarketEndoDirectGPU::display() {
 	std::cout << "     Constraints                                                                                        |" << std::endl;
 	std::cout << "========================================================================================================|" << std::endl;
 	std::cout << " Bus | Voltage | Voltage | Voltage |        Power Injection          |          Power Injection         |" << std::endl;
-	std::cout << "  #  | Mag(pu) | MIN(pu) |  MAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
+	std::cout << "  #  | Mag(pu) | MIN(pu) |  MYMAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
 	std::cout << "-----|---------|---------|---------|---------|-----------|-----------|----------|-----------|-----------|" << std::endl;
 	
-	for (int b = 0; b < _nBus; b++) {
-		int begining = _indiceBusBegin.get(b, 0);
-		std::cout << std::setw(5) << b << "|" << std::setw(8) << sqrt(Y.get(begining + 3, 0)) << " |" << std::setw(9)
-			<< VoltageLimitReal.get(0, b) << "|" << std::setw(9) << VoltageLimitReal.get(1, b)
-			<< "|" << std::setw(9) << Pb.get(b, 0) << "|" << std::setw(11)
-			<< Pbmin.get(b, 0) << "|" << std::setw(11) << Pbmax.get(b, 0) << "|" << std::setw(10) << Pb.get(b + _nBus, 0)
-			<< "|" << std::setw(11) << Pbmin.get(b + _nBus, 0) << "|" << std::setw(11) << Pbmax.get(b + _nBus, 0) << "|" << std::endl;
+	for (int bus = 0; bus < _nBus; bus++) {
+		int begining = _indiceBusBegin.get(bus, 0);
+		std::cout << std::setw(5) << bus << "|" << std::setw(8) << sqrt(Y.get(begining + 3, 0)) << " |" << std::setw(9)
+			<< VoltageLimitReal.get(0, bus) << "|" << std::setw(9) << VoltageLimitReal.get(1, bus)
+			<< "|" << std::setw(9) << Pb.get(bus, 0) << "|" << std::setw(11)
+			<< Pbmin.get(bus, 0) << "|" << std::setw(11) << Pbmax.get(bus, 0) << "|" << std::setw(10) << Pb.get(bus + _nBus, 0)
+			<< "|" << std::setw(11) << Pbmin.get(bus + _nBus, 0) << "|" << std::setw(11) << Pbmax.get(bus + _nBus, 0) << "|" << std::endl;
 	}
 
 	std::cout << std::endl << std::endl;
@@ -2264,9 +2259,9 @@ void MarketEndoDirectGPU::display() {
 	std::cout << "-------|-------|---------|---------|---------|-----------|-----------|----------|-----------|-----------|" << std::endl;
 
 	for (int n = 0; n < _nAgent; n++) {
-		int b = _CoresBusAgent.get(n, 0);
-		std::cout << std::setw(7) << n << "|" << std::setw(7) << b << "|" << std::setw(8) << Cost1.get(n, 0) << " |" << std::setw(9)
-			<< Cost2.get(n, 0) << "|" << std::setw(9) << Pn.get(n, 0) << "|" << std::setw(11)
+		int bus = _CoresBusAgent.get(n, 0);
+		std::cout << std::setw(7) << n << "|" << std::setw(7) << bus << "|" << std::setw(8) << a.get(n, 0) << " |" << std::setw(9)
+			<< b.get(n, 0) << "|" << std::setw(9) << Pn.get(n, 0) << "|" << std::setw(11)
 			<< Pmin.get(n, 0) << "|" << std::setw(11) << Pmax.get(n, 0) << "|" << std::setw(10) << Pn.get(n + _nAgent, 0)
 			<< "|" << std::setw(11) << Pmin.get(n + _nAgent, 0) << "|" << std::setw(11) << Pmax.get(n + _nAgent, 0) << "|" << std::endl;
 	}
@@ -2295,7 +2290,7 @@ __global__ void updateChatGPU3(float* Chat, float* Y, float* MU, float* nChild, 
 	int beginChild = (bus < (nBus - 1)) ? indiceChildBegin[bus] : 0;
 	int childCount = nChild[bus];
 	int Ai = Ancestor[bus];
-	int nAgent = nAgentByBus[bus];
+	//int nAgent = nAgentByBus[bus];
 	int c = posChild[bus];
 	float var = 0;
 	int borne = 4;

@@ -7,7 +7,7 @@
     #include <unsupported/Eigen/Polynomials>
 #endif
 #include <chrono>
-
+#include "MatrixCPU.h"
 
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV __host__ __device__
@@ -19,11 +19,10 @@
 #define CHECK_LAST_CUDA_ERROR() checkLast(__FILE__, __LINE__)
 
 #define BILLION 1000000000
-
+#define MYMAX(a,b) (a * (a > b) + b * (a <= b))
+#define MYMIN(a,b) (b * (a > b) + a * (a <= b))
 #define MILLION 1000000
 
-float Mymin(float a, float b);
-float Mymax(float a, float b);
 
 // am�lioration : passer MatrixCPU en param�tre (au moins c'est safe)
 

@@ -1,6 +1,6 @@
 #include "../head/ADMMGPUConst5.cuh"
 
-ADMMGPUConst5::ADMMGPUConst5() : MethodP2P()
+ADMMGPUConst5::ADMMGPUConst5() : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "Constructeur ADMMGPUConst5" << std::endl;
@@ -13,7 +13,7 @@ ADMMGPUConst5::ADMMGPUConst5() : MethodP2P()
 }
 
 
-ADMMGPUConst5::ADMMGPUConst5(float rho) : MethodP2P()
+ADMMGPUConst5::ADMMGPUConst5(float rho) : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "Constructeur ADMMGPUConst5 defaut" << std::endl;
@@ -349,8 +349,7 @@ void ADMMGPUConst5::solve(Simparam* result, const Simparam& sim, const StudyCase
 	float resG = 2 * epsG;
 	float epsL2 = epsL * epsL;
 	int iterGlobal = 0;
-	int iterLocal = 0;
-	int realOccurence = 0;
+	
 	
 	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
 	while ((iterGlobal < iterG) && (resG > epsG)) {
@@ -375,7 +374,7 @@ void ADMMGPUConst5::solve(Simparam* result, const Simparam& sim, const StudyCase
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(&resF, &Tlocal, iterGlobal / stepG, &tempNN);
+			resG = updateResEndo(iterGlobal / stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
@@ -399,7 +398,7 @@ void ADMMGPUConst5::solve(Simparam* result, const Simparam& sim, const StudyCase
 	Kappa1.projectNeg(); //delta1
 	Kappa2.projectNeg(); // delta2
 
-	float fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	float fc = calcFc();
 	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
 	MatrixCPU tradeLinCPU;
 	tradeLin.toMatCPU(tradeLinCPU);
@@ -585,44 +584,4 @@ void ADMMGPUConst5::updateGlobalProbGPU()
 #endif // INSTRUMENTATION
 }
 
-
-
-float ADMMGPUConst5::updateRes(MatrixCPU* res, MatrixGPU* Tlocal, int iter, MatrixGPU* tempNN)
-{
-
-	float resS = Tlocal->max2(&tradeLin);
-
-	updateDiffGPU <<<_numBlocksM, _blockSize >> > (tempNN->_matrixGPU, Tlocal->_matrixGPU, CoresLinTrans._matrixGPU, _nAgent);
-	float resR = tempNN->max2();
-
-	// version de l'article
-	/*tempL1.set(&Kappa1);
-	tempL2.set(&Kappa2);
-	Kappa1_pre.projectNeg();
-	Kappa2_pre.projectNeg();
-	tempL1.projectNeg();
-	tempL2.projectNeg();
-	tempL1.subtract(&Kappa1_pre);
-	tempL2.subtract(&Kappa2_pre);
-	tempL1.multiplyT(&tempL1);
-	tempL2.multiplyT(&tempL2);
-	tempL1.add(&tempL2);*/
-	updateResX << <_numBlocksL, _blockSize >> > (tempL1._matrixGPU, Kappa1._matrixGPU, Kappa2._matrixGPU, Kappa1_pre._matrixGPU, Kappa2_pre._matrixGPU, _nLine);
-
-	float resXf = _ratioEps * sqrt(tempL1.max2());
-	res->set(0, iter, resR);
-	res->set(1, iter, resS);
-	res->set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
-
-}
-
-
-
-
-
-void ADMMGPUConst5::display() {
-
-	std::cout << _name << std::endl;
-}
 

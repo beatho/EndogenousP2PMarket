@@ -360,7 +360,7 @@ void testADMMGPUtemp()
 	sys.setIter(iterG, iterL);
 	sys.setRho1(0.8); //10
 	const int nMethode = 5; // 12
-	//std::string methodes[nMethode] = { "ADMMConst", "ADMMConst1","OSQPConst", "ADMMGPUConst1", "ADMMGPUConst1T", "ADMMGPUConst2", "ADMMGPUConst3", "ADMMGPUConst4", "ADMMGPUConstCons", "PAC", "PACConst", "DCOPFOSQP"}; // ADMMGPUConstCons2 ADMMGPUConstCons3
+	//std::string methodes[nMethode] = { "ADMMConst", "ADMMConst","OSQPConst", "ADMMGPUConst1", "ADMMGPUConst1T", "ADMMGPUConst2", "ADMMGPUConst3", "ADMMGPUConst4", "ADMMGPUConstCons", "PAC", "PACConst", "DCOPFOSQP"}; // ADMMGPUConstCons2 ADMMGPUConstCons3
 	std::string methodes[nMethode] = { "ADMMGPUConst1", "ADMMGPUConst1T", "ADMMGPUConst2", "ADMMGPUConst3", "ADMMGPUConst4" };
 	std::cout << "--------------------CAS SANS CONTRAINTE----------------------------- " << std::endl;
 	float fc = -87016;
@@ -505,7 +505,7 @@ void testADMMGPUtemp()
 	std::string name = "France";
 	std::string path = "data/" + name + "/";
 	const int nMethodeBig = 3;
-	std::string methodesBig[nMethodeBig] = { "ADMMConst1", "ADMMGPUConst4", "DCOPFOSQP"};
+	std::string methodesBig[nMethodeBig] = { "ADMMConst", "ADMMGPUConst4", "DCOPFOSQP"};
 	MatrixCPU result4(nMethodeBig, 1, -1);
 	MatrixCPU temps4(nMethodeBig, 1, -1);
 
@@ -672,7 +672,7 @@ void comparaisonArticle()
 	std::string fileName = "CompareArticle2.csv";
 	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 
-	std::string method = "ADMMConst1";
+	std::string method = "ADMMConst";
 	//std::string method = "ADMMGPUConst1T";
 	sys.setMethod(method);
 
@@ -804,7 +804,7 @@ void comparaisonArticle()
 void SimuStatADMMGPU()
 {
 	//std::string fileName = "ADMMGPU5_article_Release.csv";
-	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
+	//std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	std::string methode = "ADMMGPUConst3";
 	float rhoAgent = 0.05;
 	float P = 1000;
@@ -898,14 +898,14 @@ void SimuTemporalLlimit(std::string name) {
 	int nGen;
 	int nCons;
 	int nAgent;
-	int nLine;
+	//int nLine;
 	if (!name.compare("Europe")) {
 		type = 1;
 		path = "data/";
 		nGen = 969;
 		nCons = 1494;
 		nAgent = nGen + nCons;
-		nLine = 2156;
+		//nLine = 2156;
 	}
 	else {
 		path = "data/" + name + "/";
@@ -963,7 +963,7 @@ void SimuTemporalLlimit(std::string name) {
 
 
 	MatrixCPU Param(1, 21);
-	Param.set(0, 0, 0);
+	Param.set(0, 0, nAgent);
 	Param.set(0, 1, epsGC);
 	Param.set(0, 2, epsG);
 	Param.set(0, 3, epsL);
@@ -990,8 +990,7 @@ void SimuTemporalLlimit(std::string name) {
 	int inputUser;
 	std::cin >> inputUser;
 	if (inputUser) {
-		Param.saveCSV(fileName, mode);
-		LilimitTab.saveCSV(fileName, mode);
+		
 	}
 
 
@@ -1027,6 +1026,12 @@ void SimuTemporalLlimit(std::string name) {
 			MatrixCPU tempTab(sys.getTemps());
 
 			if (inputUser) {
+				if(j==0 && i == 0){
+					Param.set(0, 0, sys.getNagent());
+					Param.saveCSV(fileName, mode);
+					LilimitTab.saveCSV(fileName, mode);
+				}
+				
 				iter.saveCSV(fileName, mode);
 				ResR.saveCSV(fileName, mode);
 				ResS.saveCSV(fileName, mode);
@@ -1058,15 +1063,15 @@ void SimuTemporalConvergence(std::string name) {
 	std::string path;
 	int nGen;
 	int nCons;
-	int nAgent;
-	int nLine;
+	//int nAgent;
+	//int nLine;
 	if (!name.compare("Europe")) {
 		type = 1;
 		path = "data/";
 		nGen = 969;
 		nCons = 1494;
-		nAgent = nGen + nCons;
-		nLine = 2156;
+		//nAgent = nGen + nCons;
+		//nLine = 2156;
 	}
 	else {
 		path = "data/" + name + "/";
@@ -1214,13 +1219,13 @@ void SimuTemporal(std::string name)
 	int nGen;
 	int nCons;
 	int nAgent = 0;
-	int nLine;
+	//int nLine;
 	if (!name.compare("Europe")) {
 		type = 1;
 		nGen = 969;
 		nCons = 1494;
 		nAgent = nGen + nCons;
-		nLine = 2156;
+		//nLine = 2156;
 	}
 	
 	path = "data/" + name + "/";
@@ -1229,11 +1234,11 @@ void SimuTemporal(std::string name)
 	std::string fileName = "SimutemporalDCEndoGPURho" + name + "Stock.csv";
 	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	//const int nMethode = 4;
-	//std::string methodes[nMethode] = { "ADMMConst1", "OSQPConst","ADMMGPUConst1T","ADMMGPUConst4" };
+	//std::string methodes[nMethode] = { "ADMMConst", "OSQPConst","ADMMGPUConst1T","ADMMGPUConst4" };
 	const int nMethode = 1;
 	std::string methodes[nMethode] = {"ADMMGPUConst4" };
 	//std::string methodes[nMethode] = { "ADMMGPUConst1","ADMMGPUConst2","ADMMGPUConst3", "ADMMGPUConst4" };
-	//std::string methodes[nMethode] = { "ADMMConst1", "ADMMGPUConst1T","ADMMGPUConst3", "ADMMGPUConst4"};
+	//std::string methodes[nMethode] = { "ADMMConst", "ADMMGPUConst1T","ADMMGPUConst3", "ADMMGPUConst4"};
 	float epsG = 0.01f;
 	float epsGC = 1.0f;
 	float epsL = 0.00001f;
@@ -1260,7 +1265,7 @@ void SimuTemporal(std::string name)
 	float rho1 = 0.001;
 	//float rho1 = 0.0000001;
 	//float rho1 = 125;
-	float rhoL = 125;
+	//float rhoL = 125;
 
 	float stepG = 5;
 	float stepL = 1;
@@ -1356,13 +1361,13 @@ void SimuTemporalWOConstraint(std::string name)
 	int nGen;
 	int nCons;
 	int nAgent = 0;
-	int nLine;
+	//int nLine;
 	if (!name.compare("Europe")) {
 		type = 1;
 		nGen = 969;
 		nCons = 1494;
 		nAgent = nGen + nCons;
-		nLine = 2156;
+		//nLine = 2156;
 	}
 	path = "data/" + name + "/";
 	
@@ -1482,12 +1487,12 @@ void SimuTemporalWOConstraint(std::string name)
 #ifdef INSTRUMENTATION
 		sys.displayTime(fileName);
 #else
-		temps.saveCSV(fileName);
-		iter.saveCSV(fileName);
-		conv.saveCSV(fileName);
-		fc.saveCSV(fileName);
-		ResR.saveCSV(fileName);
-		ResS.saveCSV(fileName);
+		temps.saveCSV(fileName, mode);
+		iter.saveCSV(fileName, mode);
+		conv.saveCSV(fileName, mode);
+		fc.saveCSV(fileName, mode);
+		ResR.saveCSV(fileName, mode);
+		ResS.saveCSV(fileName, mode);
 		iter.display();
 #endif // INSTRUMENTATION
 
@@ -1508,15 +1513,15 @@ void SimuTemporalRho(std::string name)
 	std::string path;
 	int nGen;
 	int nCons;
-	int nAgent;
-	int nLine;
+	//int nAgent;
+	//int nLine;
 	if (!name.compare("Europe")) {
 		type = 1;
 		path = "data/";
 		nGen = 969;
 		nCons = 1494;
-		nAgent = nGen + nCons;
-		nLine = 2156;
+		//nAgent = nGen + nCons;
+		//nLine = 2156;
 	}
 	else {
 		path = "data/" + name + "/";
@@ -1602,7 +1607,7 @@ void SimuTemporalRho(std::string name)
 			sys.setRho(rho);
 			for (int j = 0; j < nRho; j++) {
 				float rho1 = rhoTab.get(1, j);
-				float rhoL = 1 * MAX(rho, rho1);
+				float rhoL = 1 * MYMAX(rho, rho1);
 				sys.setRho1(rho1);
 				sys.setRhoL(rhoL);
 
@@ -1649,11 +1654,11 @@ void SimuTemporal()
 	std::string fileName = "SimutemporalCompareMethodeJDD.csv";
 	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	const int nMethode = 4;
-	std::string methodes[nMethode] = { "ADMMConst1", "OSQPConst","ADMMGPUConst1T","ADMMGPUConst4" };
+	std::string methodes[nMethode] = { "ADMMConst", "OSQPConst","ADMMGPUConst1T","ADMMGPUConst4" };
 	//const int nMethode = 1;
 	//std::string methodes[nMethode] = { "ADMMGPUConst1T"};
 	//std::string methodes[nMethode] = { "ADMMGPUConst1","ADMMGPUConst1T","ADMMGPUConst2", "ADMMGPUConst3", "ADMMGPUConst4", "ADMMGPUConst5", "ADMMGPUConst5a" };
-	//std::string methodes[nMethode] = { "ADMMConst1", "ADMMGPUConst1T" };
+	//std::string methodes[nMethode] = { "ADMMConst", "ADMMGPUConst1T" };
 	float epsG = 0.01f;
 	float epsGC = 5.0f;
 	float epsL = 0.001f;
@@ -1808,7 +1813,6 @@ void SimuCompare()
 	float da = 0.1;
 	float b = 2;
 	float db = 1;
-	int agents = 30;
 	float gamma = 2;
 	float dGamma = 1;
 	float propCons = 0.3;
@@ -1848,7 +1852,7 @@ void SimuCompare()
 
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
-	int million = 1000000;
+	
 
 	MatrixCPU Param(1, 25);
 	Param.set(0, 0, nAgentMax);
@@ -2149,7 +2153,7 @@ void SimuCompareParra()
 
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
-	int million = 1000000;
+	
 
 	MatrixCPU Param(1, 25);
 	Param.set(0, 0, nAgentMax);
@@ -2223,11 +2227,13 @@ void SimuCompareParra()
 						methodes[indices[i]]->setBestParam(cas);
 					}
 					sys.setMethod(methodes[indices[i]]);
-					clock_t t = clock();
+					t1 = std::chrono::high_resolution_clock::now();
 					Simparam res = sys.solve();
-					float temp = clock() - t;
+					t2 = std::chrono::high_resolution_clock::now();
+					//clock_t temp = clock() - t;
 					int iter = res.getIter();
-					temps.set(indices[i] * nSimu + j, agent, temp / CLOCKS_PER_SEC);
+
+					temps.set(indices[i] * nSimu + j, agent, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / BILLION);
 					iters.set(indices[i] * nSimu + j, agent, iter);
 					fcs.set(indices[i] * nSimu + j, agent, res.getFc());
 					ResF = res.getRes();
@@ -2257,7 +2263,7 @@ void SimuStatPowerTech()
 	std::string fileName = "PowerTechSizeEvolutionReduceOffsetCPU2.csv";
 	std::string fileName2 = "PowerTechSizeEvolutionReduceOffsetCPUFB2.csv";
 	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
-	std::string methode = "ADMMConst1";
+	std::string methode = "ADMMConst";
 	std::string path = "data/";
 	float rhoAgent = 10;
 	float rhoLine = 0.0005;
@@ -2341,7 +2347,7 @@ void SimuStatPowerTech()
 	for (int line = 0; line < nNLine; line++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
 
-		int lines = line * (nLineMax - offsetLine) / Mymax((nNLine - 1), 1) + offsetLine;
+		int lines = line * (nLineMax - offsetLine) / MYMAX((nNLine - 1), 1) + offsetLine;
 		std::cout << lines << std::endl;
 		//std::cout << "--------- --------- --------- --------- ----------" << std::endl;
 		Lines.set(0, line, lines);
@@ -2357,7 +2363,7 @@ void SimuStatPowerTech()
 				StudyCase cas;
 				std::cout << "-";
 				cas.genGridFromFile(path);
-				cas.genAgents(agents, Propcons, Pconso, dPconso, bProd, bProd, Pprod, dPprod, gamma, dgamma); // gamma = -1 distance ?
+				cas.genAgents(agents, Propcons, Pconso, dPconso, bProd, dbProd, Pprod, dPprod, gamma, dgamma); // gamma = -1 distance ?
 				cas.genLinkGridAgent();
 				cas.genLineLimit(lines, limit, dlimit);
 				cas.setReduce(true);
@@ -2581,7 +2587,7 @@ void SimuStatPFSGE() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / MYMAX(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		for (int casBus = 0; casBus < nCasBuses; casBus++) {
 			int nDeep = 0;
@@ -2810,7 +2816,7 @@ void SimuStatPFTransport() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / MYMAX(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		for (int casBus = 0; casBus < nCasBuses; casBus++) {
 			int nLines = 0;
@@ -3035,7 +3041,7 @@ void SimuStatPFCompare() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / MYMAX(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		
 		int nDeep = 2 * buses;
@@ -3308,7 +3314,7 @@ void SimuStatOPF() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / MYMAX(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		for (int casBus = 0; casBus < nCasBuses; casBus++) {
 			int nDeep = 0;
@@ -3353,8 +3359,8 @@ void SimuStatOPF() {
 					float rho = rhoAgent * agents;
 					sys.setRho(rho);
 					std::random_shuffle(indices.begin(), indices.end());
-					for (int i = 0; i < nMethode; i++) {
-						sys.setMethod(methodes[indices[i]]);
+					for (int m = 0; m < nMethode; m++) {
+						sys.setMethod(methodes[indices[m]]);
 
 						t1 = std::chrono::high_resolution_clock::now();
 						Simparam res = sys.solve();
@@ -3363,13 +3369,13 @@ void SimuStatOPF() {
 						int iter = res.getIter();
 						t2 = std::chrono::high_resolution_clock::now();
 
-						PResult.set(i + indices[i], j, Pn.get(1,0));
-						QResult.set(i + indices[i], j, Pn.get(1 + agents, 0));
-						temps.set(i + indices[i], j, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
-						temps2.set(i + indices[i], j, res.getTime());
-						iters.set(i + indices[i], j, iter);
-						Residuals.set(i + indices[i], j, Residuals.get(0, (iter - 1) / stepG));
-						Residuals2.set(i + indices[i], j, Residuals.get(1, (iter - 1) / stepG));
+						PResult.set(i + indices[m], j, Pn.get(1,0));
+						QResult.set(i + indices[m], j, Pn.get(1 + agents, 0));
+						temps.set(i + indices[m], j, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+						temps2.set(i + indices[m], j, res.getTime());
+						iters.set(i + indices[m], j, iter);
+						Residuals.set(i + indices[m], j, Residuals.get(0, (iter - 1) / stepG));
+						Residuals2.set(i + indices[m], j, Residuals.get(1, (iter - 1) / stepG));
 					}
 				}
 			}
@@ -3448,7 +3454,7 @@ void SimuStatOPFCompare() {
 	int million = 1000000;
 	int nCasAgent = 1;
 	int nCasBuses = 1;
-	int nCas = nCasAgent * nCasBuses;
+	//int nCas = nCasAgent * nCasBuses;
 	
 
 	// simulation
@@ -3515,7 +3521,7 @@ void SimuStatOPFCompare() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / MYMAX(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 
 		int nDeep = 2 * buses;
@@ -3583,7 +3589,7 @@ void SimuStatOPFCompare() {
 }
 
 void SimuCompareISGT() {
-	//std::string fileName = "ComparaisonOPFISGT200.csv";
+	std::string fileName = "ComparaisonOPFISGT200.csv";
 	std::string fileName2 = "Residuals400bis";
 	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	/*const int nMethode = 5;
@@ -3630,7 +3636,7 @@ void SimuCompareISGT() {
 	int million = 1000000;
 	int nCasAgent = 1;
 	int nCasBuses = 1;
-	int nCas = nCasAgent * nCasBuses;
+	//int nCas = nCasAgent * nCasBuses;
 
 
 	// simulation
@@ -3698,7 +3704,7 @@ void SimuCompareISGT() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / MYMAX(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 
 		int nDeep = 2 * buses;
@@ -3730,7 +3736,7 @@ void SimuCompareISGT() {
 				MatrixCPU ResF = res.getRes();
 				int iter = res.getIter();
 				ResF.saveCSV(fileName2 + methodesName[indices[i]] + ".csv");
-				std::cout << indices[i] << " " << iter << ", ";
+				std::cout << indices[i] << " " << iter << ", " << (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million ;
 				//PResult.set(k, j, Pn.get(1, 0));
 				//QResult.set(k, j, Pn.get(agents + 2, 0));
 				//temps.set(k, j, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
@@ -3752,7 +3758,7 @@ void SimuCompareISGT() {
 	}
 
 
-	/*Buses.saveCSV(fileName, mode);
+	Buses.saveCSV(fileName, mode);
 
 	PResult.saveCSV(fileName, mode);
 	QResult.saveCSV(fileName, mode);
@@ -3761,7 +3767,7 @@ void SimuCompareISGT() {
 	ResR.saveCSV(fileName, mode);
 	ResS.saveCSV(fileName, mode);
 	//ResV.saveCSV(fileName, mode);
-	Fc.saveCSV(fileName, mode);*/
+	Fc.saveCSV(fileName, mode);/**/
 	//CountRelax.saveCSV(fileName, mode);
 	iters.display();
 
@@ -3796,7 +3802,7 @@ void SimuStatMarketEndo() {
 
 	methodes[0] = new MarketEndoDirect;
 	methodes[1] = new MarEndoCons;
-	methodes[2] = new ADMMConst1;
+	methodes[2] = new ADMMConst;
 	methodes[3] = new EndoPF;
 	methodes[4] = new MarketEndoDirectGPU;
 	methodes[5] = new MarEndoConsGPU;
@@ -3833,7 +3839,7 @@ void SimuStatMarketEndo() {
 	int million = 1000000;
 	int nCasAgent = 1;
 	int nCasBuses = 1;
-	int nCas = nCasAgent * nCasBuses;
+	//int nCas = nCasAgent * nCasBuses;
 
 
 	// simulation
@@ -3904,7 +3910,7 @@ void SimuStatMarketEndo() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / MYMAX(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 
 		int nDeep = 2 * buses;
@@ -4044,10 +4050,10 @@ void SimuStatMarketEndoAC() {
 	int nBusMax = 800;
 	const int offsetBus = 0;
 	int nSimu = 50;
-	int million = 1000000;
+	//int million = 1000000;
 	int nCasAgent = 1;
 	int nCasBuses = 1;
-	int nCas = nCasAgent * nCasBuses;
+	//int nCas = nCasAgent * nCasBuses;
 
 
 	// simulation
@@ -4119,7 +4125,7 @@ void SimuStatMarketEndoAC() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / MYMAX(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 
 		int nDeep = 2 * buses;
@@ -4273,7 +4279,7 @@ void SimuStatMarketEndoACAgent() {
 	int nSimu = 50;
 	int nCasAgent = 1;
 	int nCasBuses = 1;
-	int nCas = nCasAgent * nCasBuses;
+	//int nCas = nCasAgent * nCasBuses;
 
 
 	// simulation
@@ -4344,7 +4350,7 @@ void SimuStatMarketEndoACAgent() {
 
 	for (int agent = 0; agent < nNAgent; agent++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int agents = offsetAgent > 0 ? agent * (nAgentMax - offsetAgent) / Mymax(nNAgent - 1, 1) + offsetAgent : (agent + 1) * nAgentMax / nNAgent;
+		int agents = offsetAgent > 0 ? agent * (nAgentMax - offsetAgent) / MYMAX(nNAgent - 1, 1) + offsetAgent : (agent + 1) * nAgentMax / nNAgent;
 		Agents.set(0, agent, agents);
 
 		int nDeep = 2 * nBus;
@@ -4579,7 +4585,7 @@ void SimuTemporalTestFeederEndoAll()  {
 	methodes[0] = new MarketEndoDirect;
 	methodes[1] = new MarEndoCons;
 	methodes[2] = new EndoPF;
-	methodes[3] = new ADMMConst1;
+	methodes[3] = new ADMMConst;
 	methodes[4] = new MarketEndoDirectGPU;
 	methodes[5] = new MarEndoConsGPU;
 	methodes[6] = new EndoPFGPU;
@@ -4733,7 +4739,7 @@ void SimuStatMarketEndoGrid() {
 	int nBusMax = 100;
 	const int offsetBus = 0;
 	int nSimu = 50;
-	int million = 1000000;
+	//int million = 1000000;
 	int nCasAgent = 4;
 	int nCasBuses = 4;
 	int nCas = nCasAgent * nCasBuses;
@@ -4804,7 +4810,7 @@ void SimuStatMarketEndoGrid() {
 
 	for (int bus = 0; bus < nNBus; bus++) {
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
-		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / Mymax(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
+		int buses = offsetBus > 0 ? bus * (nBusMax - offsetBus) / MYMAX(nNBus - 1, 1) + offsetBus : (bus + 1) * nBusMax / nNBus;
 		Buses.set(0, bus, buses);
 		for (int casBus = 0; casBus < nCasBuses; casBus++) {
 			int nBranch = buses;
@@ -5391,7 +5397,7 @@ void testOPF()
 	int choseCase = 2;// rxRX
 	std::string fileName = "OPFISGTResidualscase85.csv"; //"TimeByBlockPF";
 	std::string chosenCase = "";
-	float Power = 0;
+	
 	int nMethode = 6;
 	bool methodeToCompute[] = { false, false, true, true, true, true };
 	int nMethodeReal = 6;
@@ -5703,7 +5709,7 @@ void testMarket()
 	int choseCase = 4;
 	std::string fileName = "MarketTimeByBlock"; //MarketTimeByBlock
 	std::string chosenCase = "";
-	float Power = 0;
+	
 	int nMethode = 8;
 	bool methodeToSimule[10] = { true, true, true, true, true, true, true, true, false, false };
 
@@ -5736,11 +5742,11 @@ void testMarket()
 	std::string nameP0 = path + "Europe/load/Month/2012-01.txt";
 	P0Global.setFromFile(nameP0, 1);
 	P0Global.getBloc(&P0, 0, nCons, 0, 1); // 1ere heure de l'ann�e
-	int nStep = 1; // WIP
-	int nSimu = 1; // WIP
+	//int nStep = 1; // WIP
+	//int nSimu = 1; // WIP
 
 	float rho = 10;
-	float factor = 0.9;
+	//float factor = 0.9;
 
 
 	
@@ -5830,7 +5836,7 @@ void testMarket()
 	PAC pac;
 	PACGPU pacGPU;
 	PACOpenMP pacOpenMP;
-	ADMMConst1 admmMarketEndo;
+	ADMMConst admmMarketEndo;
 	ADMMGPUConst4 admmMarketEndoGPU;
 
 	Simparam param(cas.getNagent(), cas.getNLine(true), cas.getNLine(), AC);
@@ -6179,7 +6185,7 @@ void testMarketEndo()
 	EndoPF* endoPF = new EndoPF;
 	EndoPFGPU* endoPFGPU = new EndoPFGPU;
 
-	ADMMConst1* endoDCPF = new ADMMConst1;
+	ADMMConst* endoDCPF = new ADMMConst;
 	ADMMGPUConst4* endoDCPFGPU = new ADMMGPUConst4;
 
 	StudyCase cas;

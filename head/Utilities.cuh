@@ -2,6 +2,8 @@
 
 
 #include <cuda_runtime.h>
+#include "MatrixGPU.cuh"
+#include "MatrixGPUD.cuh"
 
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV __host__ __device__
@@ -15,6 +17,9 @@
 template <typename T>
 void check(T err, const char* const func, const char* const file, const int line);
 void checkLast(const char* const file, const int line);
+
+
+
 
 __device__ int resolveRealPolynome3without2termGPU( double* root,  double p,  double q);
 

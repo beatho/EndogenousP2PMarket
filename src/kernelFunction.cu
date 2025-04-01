@@ -1321,8 +1321,7 @@ __global__ void updateXPnOPFADMMCons(float* X, float* Pn, float* Chat, float* nA
 
 	int begining = indiceBusBegin[bus];
 	int beginChat = CoresChatBegin[bus];
-	bool goodSol = false;
-	
+		
 	if (bus < nBus) {
 		int nb = nAgentByBus[bus];
 		int beginAgent = CoresAgentBusBegin[bus];
@@ -1597,6 +1596,7 @@ __global__ void initECar(float* VoltageRealIm, float* E, int B) {
 		VoltageRealIm[i + B] = V0 * sin(theta0);
 	}
 }
+
 
 __global__ void initECar(float* VoltageRealImD, float v0, float w0, int B) {
 

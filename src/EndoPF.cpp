@@ -1,5 +1,5 @@
 #include "../head/EndoPF.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
 EndoPF::EndoPF() : MethodP2P()
@@ -143,7 +143,7 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResBis(&resF, (_iterGlobal / _stepG), &tempNN);
+			resG = updateResEndo(_iterGlobal / _stepG);
 			//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG)
 			//	<< " " << resF.get(1, iterGlobal / stepG) << " " << resF.get(2, iterGlobal / stepG) << std::endl;
 #ifdef INSTRUMENTATION
@@ -185,7 +185,7 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 
 		}
 	}
-	updatePn(&Pn, &P, &nVoisin);
+	updatePn();
 
 	/*pf->display2(true);
 	std::cout << " Y " << std::endl;
@@ -204,7 +204,7 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	Pmax.display();
 	*/
 
-	fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	fc = calcFc();
 
 	// FB 5
 	
@@ -526,7 +526,7 @@ void EndoPF::updateGlobalProb() {
 #endif // INSTRUMENTATION
 	//std::cout << "*************" << std::endl;
 	Pn.swap(&Pnpre);
-	updatePn(&Pn,&Tmoy,&nVoisin);
+	updatePn();
 	//std::cout << " Tmoy " << std::endl;
 	//Tmoy.display();
 	
@@ -645,15 +645,6 @@ void EndoPF::updateLocalProb() {
 	
 }
 
-void EndoPF::updateLambda()
-{
-	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
-		float lamb = 0.5 * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
-		LAMBDALin.set(t, 0, LAMBDALin.get(t,0) + lamb);
-	}
-}
-
 
 void EndoPF::updateBt1()
 {
@@ -757,21 +748,14 @@ void EndoPF::updateDelta()
 	delta2.add(&Y);*/
 }
 
-float EndoPF::calcRes()
-{
-	float d1 = Tlocal.max2(&Tlocal_pre);
-	float d2 = Tmoy.max2(&P);
 
-	return MAX(d1, d2);
-}
-
-float EndoPF::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
+float EndoPF::updateResEndo(int iter)
 {
 	for (int t = 0; t < _nTrade; t++) {
 		int k = CoresLinTrans.get(t, 0);
-		tempNN->set(t, 0, tradeLin.get(t, 0) + tradeLin.get(k, 0));
+		tempNN.set(t, 0, tradeLin.get(t, 0) + tradeLin.get(k, 0));
 	}
-	float resR = tempNN->max2();
+	float resR = tempNN.max2();
 	float resS = Tlocal.max2(&tradeLin);
 
 	// Residus reseau
@@ -780,10 +764,10 @@ float EndoPF::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
 	tempL1.projectNeg();
 
 	float resXf = _ratioEps * tempL1.max2();
-	res->set(0, iter, resR);
-	res->set(1, iter, resS);
-	res->set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
+	resF.set(0, iter, resR);
+	resF.set(1, iter, resS);
+	resF.set(2, iter, resXf);
+	return MYMAX(MYMAX(resXf, resS), resR);
 }
 
 void EndoPF::updateP()

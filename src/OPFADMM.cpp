@@ -1,5 +1,5 @@
 #include "../head/OPFADMM.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
 OPFADMM::OPFADMM() : MethodOPF()
@@ -1190,7 +1190,7 @@ void OPFADMM::updateX()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = Mymin(gamma, lambdaLo);
+					bestGamma = MYMIN(gamma, lambdaLo);
 					BestRoot = n;
 				}
 
@@ -1224,7 +1224,7 @@ void OPFADMM::updateX()
 					}
 					if (gamma > bestGamma && lambdaLo > bestGamma) {
 						typeSol = 3;
-						bestGamma = Mymin(gamma, lambdaLo);
+						bestGamma = MYMIN(gamma, lambdaLo);
 						BestRoot = n;
 					}
 				}
@@ -1257,7 +1257,7 @@ void OPFADMM::updateX()
 						break;
 					}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 						typeSol = 4;
-						bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
+						bestGamma = MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min));
 						BestRoot = n;
 					}
 				}
@@ -1623,7 +1623,7 @@ float OPFADMM::updateRes(int indice)
 	
 
 
-	return MAX(MAX(resV, oldrho *resS),  resR);
+	return MYMAX(MYMAX(resV, oldrho *resS),  resR);
 }
 
 int OPFADMM::feasiblePoint()
@@ -1744,7 +1744,7 @@ void OPFADMM::display() {
 	std::cout << "     Constraints                                                                                        |" << std::endl;
 	std::cout << "========================================================================================================|" << std::endl;
 	std::cout << " Bus | Voltage | Voltage | Voltage |        Power Injection          |          Power Injection         |" << std::endl;
-	std::cout << "  #  | Mag(pu) | MIN(pu) |  MAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
+	std::cout << "  #  | Mag(pu) | MIN(pu) |  MYMAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
 	std::cout << "-----|---------|---------|---------|---------|-----------|-----------|----------|-----------|-----------|" << std::endl;
 	
 

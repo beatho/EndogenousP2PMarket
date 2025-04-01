@@ -8,7 +8,7 @@
 
 #define NSTEPLOCAL 5
 #define NMAXPEERPERTRHREAD 5
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+
 
 ////IMPLEMENTATION APPEL KERNEL avec template
 
@@ -1062,7 +1062,7 @@ __global__ void updateAlpha(float* alpha, float* u, float* pas, float* c, float*
 	// mono-block
 	int thIdx = threadIdx.x;
 	int step = blockDim.x;
-	int m = blockIdx.x;
+	//int m = blockIdx.x;
 	float min = 1;
 	__shared__ float sdata[blockSize];
 	for (int i = thIdx; i < L2; i += step) {

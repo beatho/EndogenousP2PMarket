@@ -251,9 +251,14 @@ bool testADMMGPUConst1Kappa()
 	MatrixCPU Kappa1(_nLine, 1, value3);
 	MatrixCPU Kappa2(_nLine, 1, value4);
 	
+	Kappa1.projectNeg();
+	Kappa1.add(&Llimit);
+	Kappa1.subtract(&Qtot);
+	
+	Kappa2.projectNeg();
+	Kappa2.add(&Llimit);
+	Kappa2.add(&Qtot);
 
-	ADMMGPUConst1 a;
-	a.updateKappa(&Kappa1, &Kappa2, &Llimit, &Qtot);
 
 	MatrixGPU QtotGPU(_nLine, 1, value1, 1);
 	MatrixGPU LlimitGPU(_nLine, 1, value2, 1);
@@ -490,10 +495,7 @@ bool testADMMGPUConst1Q()
 	int _nLine = 7;
 
 	float value1 = 2;
-	float value2 = 3;
-	float value3 = 1;
-	float value4 = -2;
-
+	
 	int _blockSize = 256;
 	int _numBlocksL = ceil((_nLine + _blockSize - 1) / _blockSize);
 
@@ -587,7 +589,23 @@ bool testADMMGPUConst1CP()
 
 
 	ADMMGPUConst1 a;
-	a.updateCp2(&Cp2, _rho1, &Kappa1, &Kappa2, &G, &tempL1, &Qpart, &nVoisin, _nLine, _nAgent);
+	tempL1.subtractAbs(&Kappa1, &Kappa2);
+	//Cp2->multiplyTrans(G, tempL1, 0);
+
+	float r = 0;
+	for (int i = 0; i < _nAgent; i++)
+	{
+		r = 0;
+		for (int k = 0; k < _nLine; ++k)
+		{
+			r +=  G.get(k, i) * (tempL1.get(k, 0) + 2 * Qpart.get(k, i));
+		}
+		Cp2.set(i, 0, r);
+	}
+
+	Cp2.multiply(_rho1);
+	Cp2.multiplyT(&nVoisin);
+
 	Cp.add(&Cp1, &Cp2);
 	
 
@@ -623,13 +641,9 @@ bool testADMMGPUConstCpb()
 
 	float value1 = 2;
 	float value2 = 3;
-	float value3 = 1;
-	float value4 = -2;
-
 	int _blockSize = 256;
 	int numBlocks = _nAgent;
 
-	
 	
 	MatrixCPU Qpart(_nLine, _nAgent, value1);
 	MatrixCPU G(_nLine, _nAgent, value2);
@@ -687,7 +701,6 @@ bool testADMMGPUConst1UpdateRes()
 
 
 	return resR * (resR > resS) + resS * (resR <= resS);*/
-	int nAgent = 3;
 	int ntrade = 4;
 	int blockSize = 15;
 	int numBlocks = ceil((ntrade + blockSize - 1) / blockSize);
@@ -722,8 +735,7 @@ bool testADMMGPUConst1UpdateRes()
 
 	res2.set(0, 0, sqrtf((value1 + value3) * (value1 + value3) ));
 	res2.set(1, 0, sqrtf((value1 - value2) * (value1 - value2) ));
-	int iter = 0;
-
+	
 	Tlocal.transferGPU();
 	Tlocal_pre.transferGPU();
 	CoresLinTrans.transferGPU();
@@ -799,7 +811,7 @@ void testADMMGPUConst1TimeLAMBDA()
 	const int nNAgent = 7;
 	const int nSimu = 100;
 	const int nRepet = 10;
-	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la dernière veleur ne "marche" pas (trop rapide)
+	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la derniï¿½re veleur ne "marche" pas (trop rapide)
 	int ntrade[nNAgent];
 	int blockSize = 256;
 	float values1[nSimu];
@@ -892,7 +904,7 @@ void testADMMGPUConst1TimeBt1()
 	const int nNAgent = 7;
 	const int nSimu = 100;
 	const int nRepet = 10;
-	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la dernière veleur ne "marche" pas (trop rapide)
+	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la derniï¿½re veleur ne "marche" pas (trop rapide)
 	int ntrade[nNAgent];
 	int blockSize = 256;
 	float values1[nSimu];
@@ -1005,8 +1017,7 @@ void testADMMGPUConst1TimeTradeP() {
 
 		ntrade[i] = nAgent[i] * nAgent[i] / 2;
 		std::cout << "iteration " << i << " nAgent " << nAgent[i] << " ntrade " << ntrade[i] << std::endl;
-		int numBlocks = nAgent[i];
-
+	
 		MatrixGPU Tlocal(ntrade[i], 1, 0, 1);
 		MatrixGPU CoresLinVoisin(ntrade[i], 1);
 		MatrixGPU CoresAgentLin(nAgent[i] + 1, 1);
@@ -1109,7 +1120,7 @@ void testADMMGPUConst1TimeUpdateRes() {
 	const int nNAgent = 7;
 	const int nSimu = 100;
 	const int nRepet = 10;
-	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la dernière veleur ne "marche" pas (trop rapide)
+	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la derniï¿½re veleur ne "marche" pas (trop rapide)
 	int ntrade[nNAgent];
 	int blockSize = 256;
 	float values1[nSimu];
@@ -1206,7 +1217,7 @@ void testADMMGPUConst1TimeCalcRes() {
 	const int nNAgent = 7;
 	const int nSimu = 100;
 	const int nRepet = 10;
-	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la dernière veleur ne "marche" pas (trop rapide)
+	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la derniï¿½re veleur ne "marche" pas (trop rapide)
 	int ntrade[nNAgent];
 	int blockSize = 256;
 	float values1[nSimu];

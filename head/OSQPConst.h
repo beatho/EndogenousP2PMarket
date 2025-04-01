@@ -1,6 +1,6 @@
 
 #pragma once
-#include "MethodP2P.cuh"
+#include "MethodP2P.h"
 #include <iostream>
 #include <string>
 
@@ -23,7 +23,6 @@ public:
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
 	virtual void updateP0(const StudyCase& cas);
 	virtual void init(const Simparam& sim, const StudyCase& cas);
-	virtual void updatePn();
 	virtual void updateLAMBDA();
 	float updateResBis(MatrixCPU* res, int iter);
 	void updatePhi();

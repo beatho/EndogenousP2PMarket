@@ -10,7 +10,7 @@
 #include "GPUPFdistPQ.cuh"
 #include "ADMMMarketGPU.cuh"
 
-class EndoPFGPU : public MethodP2P
+class EndoPFGPU : public MethodP2PGPU
 {
 public:
 	EndoPFGPU();
@@ -27,7 +27,7 @@ public:
 	
 	void updateCp2();
 	void updateSensi();
-	float updateResBis(MatrixCPU* res, MatrixGPU* Tlocal, int iter, MatrixGPU* tempNN);
+	virtual float updateResEndo(int iter);
 	
 	
 	void display();
@@ -35,84 +35,28 @@ public:
 	bool initWithMarketClear = true;
 private:
 	// ne change pas avec P0
-	float _mu = 40;
-	float _tau = 2;
-
-	int _blockSize = 256;
-	int _numBlocksN = 0;
-	int _numBlocksM = 0;
-	int _numBlocksL = 0;
 	int _numBlocksBL = 0;
 
-	float _rho = 0;
-	float _rhol = 0;
-	int _nAgent = 0;
 	int _nAgentTrue = 0; // _nAgent = _nAgentTrue + (isAc)*_nAgent
-	int _nTrade = 0;
 	int _nTradeP = 0;
 	int _nTradeQ = 0;
-	float _rhog = 0;
-	float _at1 = 0;
-	float _at2 = 0;
+	
 	int _iterGlobal = 0;
 	int _iterG = 0;
 	int _stepG = 0;
 	clock_t timeEndoPF = 0;
 
-	MatrixGPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempN1; // plut�t que de re-allouer de la m�moire � chaque utilisation
-
-
-	MatrixGPU Tlocal;
-	MatrixGPU P; // moyenne des trades
-	MatrixGPU Pn; // somme des trades
 	MatrixGPU Pnpre;
 	MatrixGPU dP;
 
-	MatrixGPU a;
-	MatrixGPU Ap1;
-	MatrixGPU Ap2;
-	MatrixGPU Ap12;
-	MatrixGPU Bt1;
 	MatrixGPU Bt2;
 	MatrixGPU Bp1;
-	MatrixGPU Ct;
-	MatrixGPU matUb;
-
-	MatrixGPU nVoisin;
-	MatrixGPU tradeLin;
-	MatrixGPU Tmoy;
-	MatrixGPU LAMBDALin;
-	MatrixGPU Tlocal_pre;
-	MatrixGPU MU;
-
-	MatrixGPU CoresMatLin;
-	MatrixGPU CoresLinAgent;
-	MatrixGPU CoresAgentLin;
-	MatrixGPU CoresLinVoisin;
-	MatrixGPU CoresLinTrans;
-
-	// Matrices for the result
-	MatrixCPU LAMBDA;
-	MatrixCPU trade;
-	MatrixCPU resF;
-	MatrixCPU resX;
-	MatrixCPU nVoisinCPU;
+	
 
 
-
-	// change avec P0
-	MatrixGPU b;
-	MatrixGPU matLb;
-	MatrixGPU Cp;
-	MatrixGPU Pmin;
-	MatrixGPU Pmax;
-
-	// Pour le r�seau
-	int _nLine;
-	int _nBus;
+	// Pour le reseau
+	
 	int _nVarPF; // _nLine + 2 * _nBus
-	float _rho1;
 	bool isRadial;
 		
 	MatrixGPU delta1; // \delta_1^ { k + 1 } = \delta_1^ { k } - G(P) + \overline{ l } - z_1
@@ -121,13 +65,11 @@ private:
 	MatrixGPU Z2; //z_2^ { k + 1 } = max(0,  Y + \overline{ Y } + \delta_2)
 	MatrixGPU Y;
 	MatrixGPU Ypre;
-	MatrixGPU Cp1;
-	MatrixGPU Cp2;
+	
+
 
 	GPUPF* pf = nullptr;
 
-	MatrixGPU tempL1;
-	MatrixGPU G;
 	MatrixGPU Ylimit;
 	MatrixGPU dY;
 	MatrixGPU SensiBis; // (z_1^ k - z_2 ^ k + \delta_2 ^ k - \delta_1 ^ k + 2 Y ^ k)

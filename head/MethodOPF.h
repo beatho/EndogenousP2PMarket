@@ -17,6 +17,25 @@ public:
 	virtual MatrixCPU getPb() = 0;
 	virtual MatrixCPU getPhi() = 0;
 	virtual MatrixCPU getE() = 0;
+	double calcFc(MatrixCPUD* cost1, MatrixCPUD* cost2, MatrixCPUD* Pn, MatrixCPUD* tempN1)
+	{
+		tempN1->set(cost1);
+		tempN1->multiply(0.5);
+		tempN1->multiplyT(Pn);
+		tempN1->add(cost2);
+		tempN1->multiplyT(Pn);
+		return tempN1->sum();
+	};
+	float calcFc(MatrixCPU* cost1, MatrixCPU* cost2, MatrixCPU* Pn, MatrixCPU* tempN1)
+	{
+		tempN1->set(cost1);
+		tempN1->multiply(0.5);
+		tempN1->multiplyT(Pn);
+		tempN1->add(cost2);
+		tempN1->multiplyT(Pn);
+
+		return tempN1->sum();
+	};
 	virtual int feasiblePoint() {
 		return 0;
 	};

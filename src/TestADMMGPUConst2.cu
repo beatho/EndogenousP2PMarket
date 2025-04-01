@@ -379,7 +379,7 @@ bool testADMMGPUConst2UpdateRes()
 
 
 	return resR * (resR > resS) + resS * (resR <= resS);*/
-	int nAgent = 3;
+	
 	int ntrade = 4;
 	int blockSize = 15;
 	int numBlocks = ceil((ntrade + blockSize - 1) / blockSize);
@@ -414,8 +414,7 @@ bool testADMMGPUConst2UpdateRes()
 
 	res2.set(0, 0, sqrtf((value1 + value3) * (value1 + value3) ));
 	res2.set(1, 0, sqrtf((value1 - value2) * (value1 - value2) ));
-	int iter = 0;
-
+	
 	Tlocal.transferGPU();
 	Tlocal_pre.transferGPU();
 	CoresLinTrans.transferGPU();
@@ -491,7 +490,7 @@ void testADMMGPUConst2TimeLAMBDA()
 	const int nNAgent = 7;
 	const int nSimu = 100;
 	const int nRepet = 10;
-	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la dernière veleur ne "marche" pas (trop rapide)
+	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la derniï¿½re veleur ne "marche" pas (trop rapide)
 	int ntrade[nNAgent];
 	int blockSize = 256;
 	float values1[nSimu];
@@ -584,7 +583,7 @@ void testADMMGPUConst2TimeBt1()
 	const int nNAgent = 7;
 	const int nSimu = 100;
 	const int nRepet = 10;
-	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la dernière veleur ne "marche" pas (trop rapide)
+	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la derniï¿½re veleur ne "marche" pas (trop rapide)
 	int ntrade[nNAgent];
 	int blockSize = 256;
 	float values1[nSimu];
@@ -809,7 +808,7 @@ void testADMMGPUConst2TimeUpdateRes() {
 	const int nNAgent = 7;
 	const int nSimu = 100;
 	const int nRepet = 10;
-	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la dernière veleur ne "marche" pas (trop rapide)
+	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la derniï¿½re veleur ne "marche" pas (trop rapide)
 	int ntrade[nNAgent];
 	int blockSize = 256;
 	float values1[nSimu];
@@ -906,7 +905,7 @@ void testADMMGPUConst2TimeCalcRes() {
 	const int nNAgent = 7;
 	const int nSimu = 100;
 	const int nRepet = 10;
-	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la dernière veleur ne "marche" pas (trop rapide)
+	int nAgent[nNAgent] = { 10, 100, 500, 1000, 5000, 10000, 40000 }; // autant conso que de prod, la derniï¿½re veleur ne "marche" pas (trop rapide)
 	int ntrade[nNAgent];
 	int blockSize = 256;
 	float values1[nSimu];

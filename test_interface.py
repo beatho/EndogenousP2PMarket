@@ -366,7 +366,7 @@ class TestInterfaceMethod(unittest.TestCase):
         test = EndoCuda.interface(2,1,0)
         Pmin = [-30, 0]
         Pmax = [0, 60]
-        Cost1 = [1, 1]
+        Cost1 = [1, 1] 
         Cost2 = [8, 4]
         Beta = [0, -1, 1, 0]
         methodes = ["ADMM", "ADMMMP", "ADMMGPU"]

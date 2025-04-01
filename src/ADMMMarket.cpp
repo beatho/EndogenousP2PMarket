@@ -1,5 +1,5 @@
 #include "../head/ADMMMarket.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
 ADMMMarket::ADMMMarket() : MethodP2P()
@@ -134,7 +134,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 			
-			resG = updateResBis(&resF, (_iterGlobal / _stepG), &tempNN);
+			resG = updateRes((_iterGlobal / _stepG));
 			
 			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, _iterGlobal / _stepG) << " " << resF.get(1, _iterGlobal / _stepG) << std::endl;
 #ifdef INSTRUMENTATION
@@ -174,7 +174,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 			
 		}
 	}
-	updatePn(&Pn, &P, &nVoisin);
+	updatePn();
 	/*trade.display();
 	std::cout << "Trade" << std::endl;
 	tradeLin.display();
@@ -186,7 +186,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	//std::cout << "lambda" << std::endl;
 	//LAMBDALin.display();
 
-	fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	fc = calcFc();
 	// FB 5
 	
 	
@@ -519,14 +519,7 @@ void ADMMMarket::updateLocalProb() {
 #endif // INSTRUMENTATION
 }
 
-void ADMMMarket::updateLambda()
-{
-	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
-		float lamb = 0.5 * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
-		LAMBDALin.set(t, 0, LAMBDALin.get(t, 0) + lamb);
-	}
-}
+
 
 
 void ADMMMarket::updateBt1()
@@ -576,52 +569,6 @@ void ADMMMarket::updateTl()
 	Tlocal.project(&matLb, &matUb);
 }
 
-float ADMMMarket::calcRes()
-{
-	float d1 = Tlocal.max2(&Tlocal_pre);
-	float d2 = Tmoy.max2(&P);
-	
-
-	return d1 * (d1 > d2) + d2 * (d2 >= d1);
-}
-
-float ADMMMarket::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
-{
-	//std::cout << "tradeLin" << std::endl;
-	//tradeLin.display();
-	
-	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
-		tempNN->set(t, 0, tradeLin.get(t, 0) + tradeLin.get(k, 0));
-	}
-	//std::cout << "tempNN" << std::endl;
-	//tempNN->display();
-	float resR = tempNN->max2();
-
-
-	float resS = Tlocal.max2(&tradeLin);
-	//std::cout << iter << " " << resR << " " << resS << std::endl;
-	if (iter > 0) {
-		if (resR > _mu * resS) {
-			_rhog = _tau * _rhog;
-			_at1 = _rhog;
-			
-			//std::cout << iter << ", rho augmente :" << _rhog << std::endl;
-		}
-		else if (resS > _mu * resR) {// rho = rho / tau_inc;
-			_rhog = _rhog / _tau;
-			_at1 = _rhog;
-			//std::cout << iter << ", rho diminue :" << _rhog << std::endl;
-		}
-	}/**/
-	
-	
-	res->set(0, iter, resR);
-	res->set(1, iter, resS);
-	
-	return MAX(resS, resR);
-}
-
 
 void ADMMMarket::updateP()
 {
@@ -659,7 +606,7 @@ void ADMMMarket::display() {
 	std::cout << "      System Summary                                           |" << std::endl;
 	std::cout << "===============================================================|" << std::endl;
 	std::cout << "Agent            " << _nAgentTrue << std::endl;
-	std::cout << "Nombre d'�change " << _nTrade << std::endl;
+	std::cout << "Nombre d'echange " << _nTrade << std::endl;
 
 	std::cout << std::endl << std::endl;
 

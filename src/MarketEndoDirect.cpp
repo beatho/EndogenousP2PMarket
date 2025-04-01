@@ -1,8 +1,8 @@
 #include "../head/MarketEndoDirect.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
-MarketEndoDirect::MarketEndoDirect() : Method()
+MarketEndoDirect::MarketEndoDirect() : MethodP2P()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << " MarketEndoDirect Constructor" << std::endl;
@@ -14,7 +14,7 @@ MarketEndoDirect::MarketEndoDirect() : Method()
 }
 
 
-MarketEndoDirect::MarketEndoDirect(float rho) : Method()
+MarketEndoDirect::MarketEndoDirect(float rho) : MethodP2P()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "default MarketEndoDirect Constructor" << std::endl;
@@ -124,7 +124,7 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 		/*std::cout << "---------------------------------" << std::endl;
 		LAMBDALin.display();
 		Bt1.display();
-		TradeLin.display();
+		tradeLin.display();
 		for (int i = 0; i < 2; i++) {
 			
 			std::cout << " X " << i << std::endl;
@@ -225,7 +225,7 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 		int Nvoisinmax = nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, TradeLin.get(indice, 0));
+			trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
 			LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
 			indice = indice + 1;
 		}
@@ -233,7 +233,7 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) {
 		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
 			if (idVoisin != (idAgent - _nAgentTrue)) {
-				trade.set(idAgent, idVoisin, TradeLin.get(indice, 0));
+				trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
 				LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
 				indice = indice + 1;
 			}
@@ -263,12 +263,11 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 		Pn.set(_nAgentTrue, 0, X[_nBus].get(1, 0));
 		break;
 	}
-	/**/
-
+	
 	//Ct.display();
 	//Tlocal.display();
 
-	fc = calcFc(&Cost1, &Cost2, &Tlocal, &Pn, &Ct, &tempN1, &tempNN);
+	fc = calcFc();
 	// FB 5
 	
 	result->setResF(&resF);
@@ -276,7 +275,7 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 	/*std::cout << " Power : Trade Qloss" << std::endl;
 	std::cout << P.get(_nAgentTrue, 0) * nVoisin.get(_nAgentTrue, 0) << " :  ";
 	for (int j = 0; j < _nAgentTrue - 1; j++) {
-		std::cout << TradeLin.get(_nTradeP + j, 0) << " ";
+		std::cout << tradeLin.get(_nTradeP + j, 0) << " ";
 	}
 	std::cout << std::endl;
 	Pmin.display();
@@ -286,7 +285,7 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 
 	/* // Que pour cas 2 noeuds
 	std::cout << " Power : Trade Ploss, max, min" << std::endl;
-	std::cout << P.get(0, 0) * nVoisin.get(0, 0) << " :  " << TradeLin.get(0, 0)
+	std::cout << P.get(0, 0) * nVoisin.get(0, 0) << " :  " << tradeLin.get(0, 0)
 		<< " " << matUb.get(0, 0) << " " << matLb.get(0, 0) << std::endl;*/
 	 
 
@@ -353,7 +352,7 @@ void MarketEndoDirect::updateP0(const StudyCase& cas)
 	Pmax.set(_nAgentTrue, 0, POWERLIMIT);
 	Pmin.set(_nAgentTrue, 0, -POWERLIMIT);
 
-	Cost2 = cas.getb();
+	b = cas.getb();
 	Cp = cas.getb();
 
 	MatrixCPU Lb(cas.getLb());
@@ -362,7 +361,7 @@ void MarketEndoDirect::updateP0(const StudyCase& cas)
 	int indice = 0;
 
 	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		int Nvoisinmax = (int) nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			matLb.set(indice, 0, Lb.get(idAgent, 0));
 			matUb.set(indice, 0, Ub.get(idAgent, 0));
@@ -385,10 +384,10 @@ void MarketEndoDirect::updateP0(const StudyCase& cas)
 	
 
 	for (int b = 0; b < _nBus; b++) {
-		int Nb = _nAgentByBus.get(b, 0);
-		int begin = _CoresAgentBusBegin.get(b, 0);
+		int Nb = (int) _nAgentByBus.get(b, 0);
+		int begin = (int) _CoresAgentBusBegin.get(b, 0);
 		for (int In = 0; In < Nb; In++) {
-			int n = _CoresAgentBus.get(In + begin, 0);
+			int n = (int) _CoresAgentBus.get(In + begin, 0);
 			Pb.increment(b, 0, Pn.get(n, 0));
 			Pb.increment(b + _nBus, 0, Pn.get(n + _nAgentTrue, 0));
 			Pbmax.increment(b, 0, Pmax.get(n, 0));
@@ -418,10 +417,10 @@ void MarketEndoDirect::updateP0(const StudyCase& cas)
 		X[i].set(3, 0, Si / X[i].get(2, 0)); // li = Si^2/vi
 	}
 	for (int i = 0; i < _nBus; i++) {
-		int m = nChild.get(i, 0);
-		int Nb = _nAgentByBus.get(i, 0);
+		int m = (int) nChild.get(i, 0);
+		int Nb = (int) _nAgentByBus.get(i, 0);
 		for (int j = 0; j < m; j++) {// (Pci, Qci, lci) for all child Ci
-			int c = Childs[i].get(j, 0);
+			int c = (int) Childs[i].get(j, 0);
 			X[i].set(5 + 2 * Nb + 3 * j, 0, X[c].get(0, 0));
 			X[i].set(6 + 2 * Nb + 3 * j, 0, X[c].get(1, 0));
 			X[i].set(7 + 2 * Nb + 3 * j, 0, X[c].get(3, 0));
@@ -437,8 +436,8 @@ void MarketEndoDirect::updateP0(const StudyCase& cas)
 	{
 	case LossType::POWER:
 		for (int n = 1; n < _nAgentTrue; n++) {
-			int bus = _CoresBusAgent.get(n, 0);
-			int In = PosAgent.get(n, 0);
+			int bus = (int) _CoresBusAgent.get(n, 0);
+			int In  = (int) PosAgent.get(n, 0);
 
 			X[_nBus].set(n, 0, X[bus].get(5 + 2 * In, 0));
 			X[_nBus].set(n + _nAgentTrue, 0, X[bus].get(6 + 2 * In, 0));
@@ -533,7 +532,7 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 	for (int lold = 0; lold < _nLine; lold++) {
 		int l = lold + 1;
 		int busTo = l ;
-		int busFrom = CoresLineBus.get(lold, 0);
+		int busFrom = (int) CoresLineBus.get(lold, 0);
 		Ancestor.set(busTo, 0, busFrom);
 		nChild.increment(busFrom, 0, 1);
 		ZsNorm.set(lold, 0, ZsRe.get(lold, 0) * ZsRe.get(lold, 0) + ZsIm.get(lold, 0) * ZsIm.get(lold, 0));
@@ -551,7 +550,6 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 
 	//std::cout << " local resolution " << std::endl;
 	// local resolution
-	tempN2 = MatrixCPU(_nAgent, 1);
 	tempB2 = MatrixCPU(2 * _nBus, 1);
 
 	Pbmax = MatrixCPU(2 * _nBus, 1);
@@ -575,8 +573,6 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 	
 	Mu = new MatrixCPU[_nBusWLoss];
 	
-	tempN1 = MatrixCPU(_nAgent, 1);
-	tempNN = MatrixCPU(_nTrade, 1);
 	//tempM1 = new MatrixCPU[_nAgent];
 	tempM = new MatrixCPU[_nBusWLoss];
 	
@@ -603,16 +599,16 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 	int indice = 0;
 	MatrixCPU nChildTemp(_nBus, 1, 0);
 	for (int i = 0; i < _nBus; i++) {
-		int Nb = _nAgentByBus.get(i, 0);
+		int Nb = (int) _nAgentByBus.get(i, 0);
 		VoltageLimitReal.set(i, 0, lowerBound.get(_nBus + i, 0));
 		VoltageLimitReal.set(i, 1, upperBound.get(_nBus + i, 0));
 		VoltageLimit.set(i, 0, lowerBound.get(_nBus + i, 0) * lowerBound.get(_nBus + i, 0) * sqrt((nChild.get(i, 0) + 1) / 2));
 		VoltageLimit.set(i, 1, upperBound.get(_nBus + i, 0) * upperBound.get(_nBus + i, 0) * sqrt((nChild.get(i, 0) + 1) / 2));
 		
 
-		Childs[i] = MatrixCPU(nChild.get(i, 0), 1);
+		Childs[i] = MatrixCPU((int) nChild.get(i, 0), 1);
 		
-		int sizeOPF = 3 * nChild.get(i, 0) + 5 + 2 * Nb;
+		int sizeOPF = 3 * (int) nChild.get(i, 0) + 5 + 2 * Nb;
 		sizeMarketEndoDirect.set(i, 0, sizeOPF);
 
 		X[i] = MatrixCPU(sizeOPF, 1); // {Pi, Qi, vi, li, vAi, (pn, qn), (Pci, Qci, lci) for all child Ci}
@@ -629,8 +625,8 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 	}
 	for (int i = 0; i < _nBus; i++) {
 		if (i > 0) {
-			int Ai = Ancestor.get(i, 0);
-			Childs[Ai].set(nChildTemp.get(Ai, 0), 0, i);
+			int Ai = (int) Ancestor.get(i, 0);
+			Childs[Ai].set((int) nChildTemp.get(Ai, 0), 0, i);
 			PosChild.set(i, 0, nChildTemp.get(Ai, 0));
 			nChildTemp.increment(Ai, 0, 1);
 		}
@@ -671,10 +667,10 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 		X[i].set(4, 0, 1);
 
 		// pi & qi
-		int Nb = _nAgentByBus.get(i, 0);
-		int begin = _CoresAgentBusBegin.get(i, 0);
+		int Nb = (int) _nAgentByBus.get(i, 0);
+		int begin = (int) _CoresAgentBusBegin.get(i, 0);
 		for (int In = 0; In < Nb; In++) {
-			int n = _CoresAgentBus.get(In + begin, 0);
+			int n = (int) _CoresAgentBus.get(In + begin, 0);
 			PosAgent.set(n, 0, In);
 			Pb.increment(i, 0, Pn.get(n, 0) );
 			Pb.increment(i + _nBus, 0, Pn.get(n + _nAgentTrue, 0) );
@@ -704,12 +700,12 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 		X[i].set(3, 0, Si / X[i].get(2, 0)); // li = Si^2/vi
 	}
 	for (int i = 0; i < _nBus; i++) {
-		int m = nChild.get(i, 0);
-		int Ni = _nAgentByBus.get(i, 0);
+		int m = (int) nChild.get(i, 0);
+		int Ni = (int) _nAgentByBus.get(i, 0);
 		for (int j = 0; j < m; j++) {
 			// (Pci, Qci, lci) for all child Ci
 			
-			int c = Childs[i].get(j, 0);
+			int c = (int) Childs[i].get(j, 0);
 			X[i].set(5 + 2 * Ni + 3 * j, 0, X[c].get(0, 0));
 			X[i].set(6 + 2 * Ni + 3 * j, 0, X[c].get(1, 0));
 			X[i].set(7 + 2 * Ni + 3 * j, 0, X[c].get(3, 0));
@@ -723,8 +719,8 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 	{
 	case LossType::POWER:
 		for (int n = 1; n < _nAgentTrue; n++) {
-			int bus = _CoresBusAgent.get(n, 0);
-			int In = PosAgent.get(n, 0);
+			int bus = (int) _CoresBusAgent.get(n, 0);
+			int In = (int) PosAgent.get(n, 0);
 
 			X[_nBus].set(n, 0, X[bus].get(5 + 2 * In, 0));
 			X[_nBus].set(n + _nAgentTrue, 0, X[bus].get(6 + 2 * In, 0));
@@ -782,7 +778,7 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 
 	//std::cout << " Hinv " << std::endl;
 	for (int i = 0; i < _nBus; i++) {
-		int Ni = _nAgentByBus.get(i, 0);
+		int Ni = (int) _nAgentByBus.get(i, 0);
 		if (i > 0) {
 			A[i].set(2, 0, 2 * ZsRe.get(i - 1, 0));
 			A[i].set(2, 1, 2 * ZsIm.get(i - 1, 0));
@@ -802,7 +798,7 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 		
 		
 		for (int j = 0; j < nChild.get(i, 0); j++) {
-			int c = Childs[i].get(j, 0);
+			int c = (int) Childs[i].get(j, 0);
 			A[i].set(0, 5 + 2 * Ni + 3 * j, 1); // Pci
 			A[i].set(1, 6 + 2 * Ni + 3 * j, 1); // Qci
 			A[i].set(0, 7 + 2 * Ni + 3 * j, -ZsRe.get(c - 1, 0)); // -R l
@@ -810,8 +806,8 @@ void MarketEndoDirect::init(const Simparam& sim, const StudyCase& cas)
 		}
 		//A[i].display();
 		MatrixCPU temp33(2 + 1 * (i > 0), 2 + 1 * (i > 0));
-		MatrixCPU temp3M(2 + 1 * (i > 0), sizeMarketEndoDirect.get(i, 0));
-		MatrixCPU tempMM(sizeMarketEndoDirect.get(i, 0), sizeMarketEndoDirect.get(i, 0));
+		MatrixCPU temp3M(2 + 1 * (i > 0), (int) sizeMarketEndoDirect.get(i, 0));
+		MatrixCPU tempMM((int) sizeMarketEndoDirect.get(i, 0), (int) sizeMarketEndoDirect.get(i, 0));
 		temp33.multiplyTrans(&A[i], &A[i]); // (3*o_b) * (o_b*3) -> 9 * o_b^2
 		temp33.invertGaussJordan(&temp33); // 3^3 = 27 (fixe !!!)
 		temp3M.MultiplyMatMat(&temp33, &A[i]); // (3*3) * (3*o_b) -> 27 *o_b
@@ -907,7 +903,7 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 
 	
 	nVoisin = cas.getNvoi();
-	_nTrade = nVoisin.sum();
+	_nTrade = (int) nVoisin.sum();
 	_nTradeP = 0;
 
 	if (_rhol == 0) {
@@ -915,7 +911,7 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 	}
 
 	for (int n = 0; n < _nAgentTrue; n++) {
-		_nTradeP += nVoisin.get(n, 0);
+		_nTradeP += (int) nVoisin.get(n, 0);
 	}
 	_nTradeQ = _nTrade - _nTradeP;
 	if (_nTradeQ != (_nAgentTrue * (_nAgentTrue - 1))) {
@@ -946,7 +942,7 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 
 	Tlocal_pre = MatrixCPU(_nTrade, 1);
 	Tlocal = MatrixCPU(_nTrade, 1);
-	TradeLin = MatrixCPU(_nTrade, 1);
+	tradeLin = MatrixCPU(_nTrade, 1);
 	LAMBDALin = MatrixCPU(_nTrade, 1);
 
 	matLb = MatrixCPU(_nTrade, 1);
@@ -959,9 +955,9 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 
 	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) { // P
 		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		int Nvoisinmax = (int) nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
+			int idVoisin = (int) omega.get(voisin, 0);
 			if(Lb.getNCol()==1){
 				matLb.set(indice, 0, Lb.get(idAgent, 0));
 				matUb.set(indice, 0, Ub.get(idAgent, 0));
@@ -970,7 +966,7 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
 			}
 			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-			TradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
+			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
 			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
 			CoresLinAgent.set(indice, 0, idAgent);
@@ -986,7 +982,7 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 			if (idVoisin != (idAgent - _nAgentTrue)) {
 				matLb.set(indice, 0, Lb.get(idAgent, 0));
 				matUb.set(indice, 0, Ub.get(idAgent, 0));
-				TradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
+				tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
 				Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
 				LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
 				CoresLinAgent.set(indice, 0, idAgent);
@@ -999,13 +995,13 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 		CoresAgentLin.set(idAgent + 1, 0, indice);
 	}
 	for (int lin = 0; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
+		int i = (int) CoresLinAgent.get(lin, 0);
+		int j = (int) CoresLinVoisin.get(lin, 0);
 		if (lin >= _nTradeP) {
 			i -= _nAgentTrue;
 		}
 
-		int k = CoresMatLin.get(j, i);
+		int k = (int) CoresMatLin.get(j, i);
 		CoresLinTrans.set(lin, 0, k);
 	}
 
@@ -1023,16 +1019,16 @@ void MarketEndoDirect::initMarket(const Simparam& sim, const StudyCase& cas)
 	P.divideT(&nVoisin);
 
 
-	Cost1 = MatrixCPU(cas.geta());
-	Cost2 = MatrixCPU(cas.getb());
+	a = cas.geta();
+	b = cas.getb();
 	Ap1 = nVoisin;
 	Ap2 = nVoisin;
-	Ap3 = Cost1;	
+	Ap3 = a;	
 	Ap123 = MatrixCPU(_nAgent, 1, 0);
 
 	
 	
-	Cp = Cost2;
+	Cp = b;
 	Bp1 = MatrixCPU(_nAgent, 1, 0);
 	Bp2 = MatrixCPU(_nAgent, 1, 0);
 
@@ -1209,7 +1205,7 @@ void MarketEndoDirect::updateX()
 			}
 			else if (gamma > bestGamma && lambdaUp > bestGamma && delta > bestGamma) {
 				typeSol = 5;
-				bestGamma = Mymin(Mymin(gamma, lambdaUp), delta);
+				bestGamma = MYMIN(MYMIN(gamma, lambdaUp), delta);
 			}
 		}
 		if (!goodSol) {
@@ -1233,7 +1229,7 @@ void MarketEndoDirect::updateX()
 			if (gamma > bestGamma && lambdaUp > bestGamma && delta > bestGamma) {
 				typeSol = 5;
 				neg = true;
-				bestGamma = Mymin(Mymin(gamma, lambdaUp), delta);
+				bestGamma = MYMIN(MYMIN(gamma, lambdaUp), delta);
 			}
 		}
 		//x3 = x3min
@@ -1261,7 +1257,7 @@ void MarketEndoDirect::updateX()
 			}
 			else if (gamma > bestGamma && lambdaLo > bestGamma && delta > bestGamma) {
 				typeSol = 6;
-				bestGamma = Mymin(Mymin(gamma, lambdaLo), delta);
+				bestGamma = MYMIN(MYMIN(gamma, lambdaLo), delta);
 			}
 		}
 		if (!goodSol) {
@@ -1286,7 +1282,7 @@ void MarketEndoDirect::updateX()
 			}
 			else if (gamma > bestGamma && lambdaLo > bestGamma && delta > bestGamma) {
 				typeSol = 6;
-				bestGamma = Mymin(Mymin(gamma, lambdaLo), delta);
+				bestGamma = MYMIN(MYMIN(gamma, lambdaLo), delta);
 				neg = true;
 			}
 		}
@@ -1326,7 +1322,7 @@ void MarketEndoDirect::updateX()
 					}
 					if (gamma > bestGamma && delta > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 						typeSol = 7;
-						bestGamma = Mymin(Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min)), delta);
+						bestGamma = MYMIN(MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min)), delta);
 						BestRoot = n;
 					}
 				}
@@ -1366,7 +1362,7 @@ void MarketEndoDirect::updateX()
 					}
 					if (gamma > bestGamma && delta > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 						typeSol = 8;
-						bestGamma = Mymin(Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min)), delta);
+						bestGamma = MYMIN(MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min)), delta);
 						BestRoot = n;
 						neg = true;
 					}
@@ -1407,7 +1403,7 @@ void MarketEndoDirect::updateX()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 2;
-					bestGamma = Mymin((x4max - x4), Mymin(gamma, lambdaUp));
+					bestGamma = MYMIN((x4max - x4), MYMIN(gamma, lambdaUp));
 					BestRoot = n;
 				}
 
@@ -1443,7 +1439,7 @@ void MarketEndoDirect::updateX()
 				}
 				if (gamma > bestGamma && lambdaLo > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 3;
-					bestGamma = Mymin((x4max - x4), Mymin(gamma, lambdaLo));
+					bestGamma = MYMIN((x4max - x4), MYMIN(gamma, lambdaLo));
 					BestRoot = n;
 				}
 			}
@@ -1477,7 +1473,7 @@ void MarketEndoDirect::updateX()
 					break;
 				}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 4;
-					bestGamma = Mymin((x4max - x4), Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min)));
+					bestGamma = MYMIN((x4max - x4), MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min)));
 					BestRoot = n;
 				}
 			}
@@ -1671,7 +1667,7 @@ void MarketEndoDirect::updateXWOCurrent()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = Mymin(gamma, lambdaLo);
+					bestGamma = MYMIN(gamma, lambdaLo);
 					BestRoot = n;
 				}
 
@@ -1705,7 +1701,7 @@ void MarketEndoDirect::updateXWOCurrent()
 					}
 					if (gamma > bestGamma && lambdaLo > bestGamma) {
 						typeSol = 3;
-						bestGamma = Mymin(gamma, lambdaLo);
+						bestGamma = MYMIN(gamma, lambdaLo);
 						BestRoot = n;
 					}
 				}
@@ -1738,7 +1734,7 @@ void MarketEndoDirect::updateXWOCurrent()
 						break;
 					}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 						typeSol = 4;
-						bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
+						bestGamma = MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min));
 						BestRoot = n;
 					}
 				}
@@ -1843,12 +1839,12 @@ void MarketEndoDirect::updatePMarket()
 	
 	
 	Tlocal_pre.swap(&Tlocal);
-	TradeLin.swap(&Tlocal);
+	tradeLin.swap(&Tlocal);
 	/*std::cout << Ap1.get(0, 0) << " " << Bp1.get(0, 0) << std::endl;
 	std::cout << " P" << std::endl;
 	P.display();
 	Tmoy.display();
-	TradeLin.display();*/
+	tradeLin.display();*/
 
 	Pn.multiplyT(&P, &nVoisin);
 	for (int b = 0; b < _nBus; b++) {
@@ -2075,14 +2071,14 @@ float MarketEndoDirect::updateRes(int indice)
 {
 	for (int t = 0; t < _nTrade; t++) {
 		int k = CoresLinTrans.get(t, 0);
-		tempNN.set(t, 0, TradeLin.get(t, 0) + TradeLin.get(k, 0));
+		tempNN.set(t, 0, tradeLin.get(t, 0) + tradeLin.get(k, 0));
 	}
 	float resR = tempNN.max2();
 
 	
 
 	
-	float resS = TradeLin.max2(&Tlocal);
+	float resS = tradeLin.max2(&Tlocal);
 
 
 	float resV = 0;
@@ -2140,17 +2136,17 @@ float MarketEndoDirect::updateRes(int indice)
 	}*/
 
 
-	return MAX(MAX(resV, resS), resR);
+	return MYMAX(MYMAX(resV, resS), resR);
 }
 
 float MarketEndoDirect::updateResRhoFixe(int indice)
 {
 	for (int t = 0; t < _nTrade; t++) {
 		int k = CoresLinTrans.get(t, 0);
-		tempNN.set(t, 0, TradeLin.get(t, 0) + TradeLin.get(k, 0));
+		tempNN.set(t, 0, tradeLin.get(t, 0) + tradeLin.get(k, 0));
 	}
 	float resR = tempNN.max2();
-	float resS = TradeLin.max2(&Tlocal);
+	float resS = tradeLin.max2(&Tlocal);
 
 
 	float resV = 0;
@@ -2172,7 +2168,7 @@ float MarketEndoDirect::updateResRhoFixe(int indice)
 	resF.set(1, indice, resS);
 	resF.set(2, indice, resV);
 
-	return MAX(MAX(resV, resS), resR);
+	return MYMAX(MYMAX(resV, resS), resR);
 }
 
 int MarketEndoDirect::feasiblePoint()
@@ -2235,7 +2231,7 @@ void MarketEndoDirect::updateLambda()
 {
 	for (int t = 0; t < _nTrade; t++) {
 		int k = CoresLinTrans.get(t, 0);
-		float lamb = 0.5 * _rho * (TradeLin.get(t, 0) + TradeLin.get(k, 0));
+		float lamb = 0.5 * _rho * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
 		LAMBDALin.set(t, 0, LAMBDALin.get(t, 0) + lamb);
 	}
 }
@@ -2247,13 +2243,13 @@ void MarketEndoDirect::updateBt1()
 	// subtractTrans
 	for (int t = 0; t < _nTrade; t++) {
 		int k = CoresLinTrans.get(t, 0);
-		Bt1.set(t, 0, TradeLin.get(t, 0) - TradeLin.get(k, 0));
+		Bt1.set(t, 0, tradeLin.get(t, 0) - tradeLin.get(k, 0));
 	}
 	Bt1.multiply(0.5 * _rho);
 	Bt1.subtract(&LAMBDALin);
 	Bt1.divide(_rho);
 	
-	/*TradeLin.display();
+	/*tradeLin.display();
 	LAMBDALin.display();
 	Bt1.display();
 	std::cout << "*************" << std::endl;*/
@@ -2367,8 +2363,8 @@ float MarketEndoDirect::calcRes()
 void MarketEndoDirect::updateP()
 {
 	P.multiplyT(&Ap1, &Bp1);
-	tempN2.multiplyT(&Ap2, &Bp2);
-	P.add(&tempN2);
+	tempN1.multiplyT(&Ap2, &Bp2);
+	P.add(&tempN1);
 	P.subtract(&Cp);
 
 	P.divideT(&Ap123);
@@ -2498,7 +2494,7 @@ void MarketEndoDirect::display() {
 	std::cout << "     Constraints                                                                                        |" << std::endl;
 	std::cout << "========================================================================================================|" << std::endl;
 	std::cout << " Bus | Voltage | Voltage | Voltage |        Power Injection          |          Power Injection         |" << std::endl;
-	std::cout << "  #  | Mag(pu) | MIN(pu) |  MAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
+	std::cout << "  #  | Mag(pu) | MIN(pu) |  MYMAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
 	std::cout << "-----|---------|---------|---------|---------|-----------|-----------|----------|-----------|-----------|" << std::endl;
 	
 
@@ -2520,9 +2516,9 @@ void MarketEndoDirect::display() {
 	std::cout << "-------|-------|---------|---------|---------|-----------|-----------|----------|-----------|-----------|" << std::endl;
 
 	for (int n = 0; n < _nAgentTrue; n++) {
-		int b = _CoresBusAgent.get(n, 0);
-		std::cout << std::setw(7) << n << "|" << std::setw(7) << b << "|" << std::setw(8) << Cost1.get(n,0) << " |" << std::setw(9)
-			<< Cost2.get(n, 0) << "|" << std::setw(9) << Pn.get(n,0) << "|" << std::setw(11)
+		int bus = _CoresBusAgent.get(n, 0);
+		std::cout << std::setw(7) << n << "|" << std::setw(7) << bus << "|" << std::setw(8) << a.get(n,0) << " |" << std::setw(9)
+			<< b.get(n, 0) << "|" << std::setw(9) << Pn.get(n,0) << "|" << std::setw(11)
 			<< Pmin.get(n, 0) * nVoisin.get(n, 0) << "|" << std::setw(11) << Pmax.get(n, 0) * nVoisin.get(n, 0) << "|" << std::setw(10) << Pn.get(n + _nAgentTrue, 0)
 			<< "|" << std::setw(11) << Pmin.get(n + _nAgentTrue, 0) * nVoisin.get(n + _nAgentTrue, 0) << "|" << std::setw(11) << Pmax.get(n + _nAgentTrue, 0) * nVoisin.get(n + _nAgentTrue, 0) << "|" << std::endl;
 	}

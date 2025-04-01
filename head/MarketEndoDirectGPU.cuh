@@ -1,6 +1,6 @@
 #pragma once
 #include <device_launch_parameters.h>
-#include "Method.h"
+#include "MethodP2PGPU.cuh"
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -12,7 +12,7 @@
 #include "kernelFunction.cuh"
 
 
-class MarketEndoDirectGPU : public Method // OPFADMMCons mais on met des trades sur le bus fictif
+class MarketEndoDirectGPU : public MethodP2PGPU // OPFADMMCons mais on met des trades sur le bus fictif
 {
 public:
 
@@ -41,7 +41,7 @@ public:
 	void updateMu();
 	void updateChat();
 	void CommunicationX();
-	float updateRes(int indice);
+	virtual float updateResEndo(int indice);
 	float updateResRhoFixe(int indice);
 	virtual int feasiblePoint();
 	void ComputePFromAgentToBus();
@@ -63,23 +63,21 @@ public:
 private:
 
 	// ne change pas avec P0
-	int _blockSize = 256;
+	
 	int _blockSizeSmall = 32;
 	int _numBlocksB;
-	int _numBlocksN;
-	int _numBlocksM;
 	int _numBlocksH;
+
 	int _nBus = 0;
 	int _nBusWLoss = 0;
-	int _nLine = 0;
-	int _nAgent = 0;
+	
 	int _nAgentOn0 = 0;
 	int _sizeEndoMarketTotal = 0;
 	int _debutloss = 0;
 	int _sizeEndoMarketMax = 0;
 	int _sizeChat = 0;
 	int _numLineByBlockY = 1;
-	float _rho = 0;
+	
 	float _rhoInv = 0;
 	
 	double coefPoly2[2];
@@ -95,78 +93,42 @@ private:
 	int _stepG = 0;
 	float _epsL = 0;
 	int _nIterL = 0;
-	float _mu = 40;
-	float _tau = 2;
+
+	
 	float _Ploss = 0;
 	float _Qloss = 0;
 	clock_t timeMarketEndo = 0;
 
 	// market
 	int _nAgentTrue = 0; // _nAgent = _nAgentTrue + (isAc)*_nAgent
-	int _nTrade = 0;
 	int _nTradeP = 0;
 	int _nTradeQ = 0;
-	float _rhol = 0;
-	float _at1 = 0;
-	float _at2 = 0;
-	
+
 	
 	LossType losstype = LossType::CURRENT;
 
 	// Reste sur CPU
-	MatrixCPU LAMBDA;
-	MatrixCPU trade;
+	
 	MatrixCPU _nAgentByBusCPU;
 	MatrixCPU resF;
 	MatrixCPU nChildCPU;
 	MatrixCPU CoresLineBusCPU;
-	MatrixCPU nVoisinCPU;
+	
 	MatrixCPU ZsNorm;
 	MatrixCPU indiceBusBeginCPU;
 	MatrixCPU CoresChatBeginCPU;
 	MatrixCPU VoltageLimitCPU;
 
-
-	MatrixGPU Tlocal;
-	MatrixGPU Tlocal_pre;
-	MatrixGPU TradeLin;
-	MatrixGPU P; // moyenne des trades
-	MatrixGPU Pn; // somme des trades
-	MatrixGPU tempN2; // size : (_nAgent*2, 1)
 	MatrixGPU tempB2; // size : (_nBus  *2, 1)
 
-	MatrixGPU Pmin;
-	MatrixGPU Pmax;
-	MatrixGPU Ap1;
-	MatrixGPU Ap2;
+
 	MatrixGPU Ap3;
 	MatrixGPU Ap123;
-	MatrixGPU Bt1;
+
 	MatrixGPU Bt2;
 	MatrixGPU Bp1;
 	MatrixGPU Bp2;
-	MatrixGPU Ct;
-	MatrixGPU Cp;
-	MatrixGPU matUb;
-	MatrixGPU matLb;
-
-	MatrixGPU nVoisin;
-	MatrixGPU Tmoy;
-	MatrixGPU LAMBDALin;
 	
-	MatrixGPU MU;
-
-	//corespondance
-	MatrixGPU CoresMatLin;
-	MatrixGPU CoresLinAgent;
-	MatrixGPU CoresAgentLin;
-	MatrixGPU CoresLinVoisin;
-	MatrixGPU CoresLinTrans;
-
-
-	MatrixGPU tempN1; // Matrix temporaire pour aider les calculs
-	MatrixGPU tempNN; // plut�t que de re-allouer de la m�moire � chaque utilisation
-
 
 	// Reseau
 	MatrixGPU tempM1; //
@@ -176,8 +138,6 @@ private:
 	MatrixGPU Pb;
 	MatrixGPU CoresSoloBusAgent;
 
-	MatrixGPU Cost1;
-	MatrixGPU Cost2;
 	MatrixGPU _CoresBusAgent;
 	
 

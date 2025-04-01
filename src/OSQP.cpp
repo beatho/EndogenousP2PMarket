@@ -1,6 +1,6 @@
 #ifdef OSQP
 #include "../head/OSQP.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 OSQP::OSQP() : MethodP2P()
 {
@@ -184,9 +184,9 @@ void OSQP::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	result->setIter(iterGlobal);
 	
 
-	updatePn(&Pn, &trade);
+	updatePn();
 	result->setPn(&Pn);
-	fc = calcFc(&a, &b, &trade, &Pn, &GAMMA,&tempN1,&tempNN);
+	fc = calcFc();
 	result->setFc(fc);
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
@@ -225,7 +225,7 @@ float OSQP::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempM)
 	res->set(0, iter, resR);
 	res->set(1, iter, resS);
 
-	return MAX(resS, resR);
+	return MYMAX(resS, resR);
 }
 void OSQP::updateTrade(c_float* xResult, int agent) {
 
@@ -576,32 +576,6 @@ void OSQP::updateLAMBDA()
 	}
 }
 
-float OSQP::calcFc(MatrixCPU* cost1, MatrixCPU* cost2, MatrixCPU* trade, MatrixCPU* Pn, MatrixCPU* BETA, MatrixCPU* tempN1, MatrixCPU* tempNN)
-{
-	float fc = 0;
-	tempN1->set(cost1);
-	tempN1->multiply(0.5);
-	tempN1->multiplyT(Pn);
-	tempN1->add(cost2);
-	tempN1->multiplyT(Pn);
-
-	fc = fc + tempN1->sum();
-	for (int i = 0; i < _nAgentTrue; i++) {
-		for (int j = 0; j < _nAgentTrue; j++) {
-			tempNN->set(i,j, trade->get(i, j) * BETA->get(i, j));
-		}
-	}
-	for (int i = _nAgentTrue; i < _nAgent; i++) {
-		for (int j = 0; j < _nAgentTrue; j++) {
-			tempNN->set(i, j, 0);
-		}
-	}
-
-
-	fc = fc + tempNN->sum();
-
-	return fc;
-}
 
 
 

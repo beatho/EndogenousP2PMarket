@@ -419,19 +419,17 @@ void MatrixGPUD::setSize(int row, int column)
  void MatrixGPUD::setEyes(double value)
  {
      if (!_GPU) {
-         int N = _row * (_row < _column) + _column * (_column <= _row);
-
-         for (int i = 0; i < _row; i++) {
-             for (int j = 0; j < _column; j++)
-             {
-                 if (i == j) {
-                     set(i, j, value);
-                 }
-                 else {
-                     set(i, j, 0);
-                 }  
-             }
-         }
+        for (int i = 0; i < _row; i++) {
+            for (int j = 0; j < _column; j++)
+            {
+                if (i == j) {
+                    set(i, j, value);
+                }
+                else {
+                    set(i, j, 0);
+                }  
+            }
+        }
      }
      else {
          setEyesGPU<<< _numBlocks, _blockSize >>>(_matrixGPU, value, _column, _row);
@@ -2385,7 +2383,7 @@ double MatrixGPUD::sum(int begin, int end)
         //std::cout << "sum " << odata << " " <<_blockSize << " " << numBlocks << std::endl;
         return odata;
     }
-    else if (!_GPU)
+    else
     {
         double d = 0;
         double r = 0;
@@ -2527,7 +2525,7 @@ double MatrixGPUD::distance2() {
         }
         return sqrtf(odata);
     }
-    else if (!_GPU)// && !(m->getPos()))
+    else
     {
         double d = 0;
         double r = 0;
@@ -2816,7 +2814,7 @@ __global__ void setGPU(double* mat1, const double value, int N) {
 }
 __global__ void setGPUunique(double* mat1, const double value, int pos) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int step = blockDim.x * gridDim.x;
+
     if (index == 0) {
         mat1[pos] = value;
     }
@@ -3614,7 +3612,6 @@ __global__ void initPermMatr(double* P, const int N) {
 
 __global__ void updatePermMatr(double* P, const int line1, const int line2, const int N) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int step = blockDim.x * gridDim.x;
     if (index == 0) {
         int inter = P[line1];
         P[line1] = P[line2];
@@ -3672,7 +3669,7 @@ __global__ void solveLowSys(double* A, double* y, const int iter, const int N) {
     __syncthreads();
     for (int i = index + iter + 1; i < N; i += step)
     {
-        y[i] = y[i] - y[iter] * A[i * N + iter]; // moche ne faudrait-il pas stocker A^T ?
+        y[i] = y[i] - yiter * A[i * N + iter]; // moche ne faudrait-il pas stocker A^T ?
 
     }
 

@@ -483,7 +483,7 @@ void ADMMGPUConstCons::solve(Simparam* result, const Simparam& sim, const StudyC
 	
 	
 
-	float fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	float fc = calcFc();
 	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
 	MatrixCPU tradeLinCPU;
 	tradeLin.toMatCPU(tradeLinCPU);
@@ -656,7 +656,7 @@ float ADMMGPUConstCons::updateRes(MatrixCPU* res, MatrixGPU* Tlocal, int iter, M
 	res->set(0, iter, resR);
 	res->set(1, iter, resS);
 	res->set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
+	return MYMAX(MYMAX(resXf, resS), resR);
 
 }
 

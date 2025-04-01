@@ -1,6 +1,6 @@
 #include "../head/ADMMGPUConst4.cuh"
 
-ADMMGPUConst4::ADMMGPUConst4() : MethodP2P()
+ADMMGPUConst4::ADMMGPUConst4() : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "Constructeur ADMMGPUConst4" << std::endl;
@@ -9,7 +9,7 @@ ADMMGPUConst4::ADMMGPUConst4() : MethodP2P()
 }
 
 
-ADMMGPUConst4::ADMMGPUConst4(float rho) : MethodP2P()
+ADMMGPUConst4::ADMMGPUConst4(float rho) : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "Constructeur ADMMGPUConst4 defaut" << std::endl;
@@ -446,7 +446,6 @@ void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase
 	float resG = 2 * epsG;
 	float epsL2 = epsL * epsL;
 	int iterGlobal = 0;
-	int iterLocal = 0;
 	
 	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
 	while ((iterGlobal < iterG) && (resG>epsG)) {
@@ -470,7 +469,7 @@ void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 
-			resG = updateRes(&resF, &Tlocal, iterGlobal / stepG, &tempNN);
+			resG = updateResEndo(iterGlobal / stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
@@ -498,7 +497,7 @@ void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase
 	Kappa1.projectNeg(); //delta1
 	Kappa2.projectNeg(); // delta2
 
-	float fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	float fc = calcFc();
 	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
 	MatrixCPU tradeLinCPU;
 	tradeLin.toMatCPU(tradeLinCPU);
@@ -709,140 +708,5 @@ void ADMMGPUConst4::updateGlobalProbGPU()
 
 }
 
-
-
-float ADMMGPUConst4::updateRes(MatrixCPU* res, MatrixGPU* Tlocal, int iter, MatrixGPU* tempNN)
-{
-	float resS = Tlocal->max2(&tradeLin);
-
-	updateDiffGPU <<<_numBlocksM, _blockSize >>> (tempNN->_matrixGPU, Tlocal->_matrixGPU, CoresLinTrans._matrixGPU, _nTrade);
-	float resR = tempNN->max2();
-	// version de l'article
-	/*tempL1.set(&Kappa1);
-	tempL2.set(&Kappa2);
-	Kappa1_pre.projectNeg();
-	Kappa2_pre.projectNeg();
-	tempL1.projectNeg();
-	tempL2.projectNeg();
-	tempL1.subtract(&Kappa1_pre);
-	tempL2.subtract(&Kappa2_pre);
-	tempL1.multiplyT(&tempL1);
-	tempL2.multiplyT(&tempL2);
-	tempL1.add(&tempL2);*/
-	updateResX << <_numBlocksL, _blockSize >> > (tempL1._matrixGPU, Kappa1._matrixGPU, Kappa2._matrixGPU, Kappa1_pre._matrixGPU, Kappa2_pre._matrixGPU, _nLine);
-
-	float resXf = _ratioEps * sqrt(tempL1.max2());/**/
-
-	// ma version se basant sur la th�orie pour 1 et 2
-	// r = x-z = l-Qtot -max(0,Kappa1) 
-	// s = -rho (z^k-z^{k-1}) = max(0,Kappa1^k) - max(0,Kappa1^{k-1})
-	/*MatrixGPU KappaPos(Kappa1);
-	MatrixGPU KappaPos2(Kappa2);
-	MatrixGPU tempL(Kappa1_pre);
-	MatrixGPU tempL2(Kappa2_pre);
-	KappaPos.projectPos();
-	KappaPos2.projectPos();
-	tempL.projectPos();
-	tempL2.projectPos();
-	tempL.subtract(&KappaPos);
-	tempL2.subtract(&KappaPos2);
-	tempL.multiplyT(&tempL);
-	tempL2.multiplyT(&tempL2);
-
-	float s1 = sqrt(tempL.max2()); // aie aie aie si rho est grand !!!!!!!!!!!!!!!
-	float s2 = sqrt(tempL2.max2()); // manque le *rho, est ce grave ?
-	float resXf = MAX(s1,s2);
-
-	tempL1.set(&lLimit);
-	tempL1.subtract(&Qtot);
-	tempL1.subtract(&KappaPos);
-	tempL1.multiplyT(&tempL1);
-	float r1 = sqrt(tempL1.max2());
-
-	tempL1.set(&lLimit);
-	tempL1.add(&Qtot);
-	tempL1.subtract(&KappaPos2);
-	tempL1.multiplyT(&tempL1);
-	float r2 = sqrt(tempL1.max2());
-
-	//std::cout << s1 << " " << s2 << " " << r1 << " " << r2 << std::endl;
-	//std::cout << s1 << " " << s2 << " " << r1 << " " << r2 << std::endl;
-
-	resXf = _ratioEps * (MAX(MAX(resXf, r1), r2));
-	resX.set(0, iter, r1);
-	resX.set(1, iter, r2);
-	resX.set(2, iter, s1);
-	resX.set(3, iter, s1);*/
-
-
-	res->set(0, iter, resR);
-	res->set(1, iter, resS);
-	res->set(2, iter, resXf);
-
-	/*if (iter != 0) {
-		if (resR > _mu * resS) {
-			_mu = _mu * 2;
-			_rhog = _tau * _rhog;
-			_at1 = _rhog;
-			//std::cout << "rho augmente :" << _rhog << std::endl;
-			//std::cout << iter << " " << resR << " " << resS << " " << resXf << std::endl;
-		}
-		else if (resS > _mu * resR) {// rho = rho / tau_inc;
-			_mu = _mu * 2;
-			_rhog = _rhog / _tau;
-			_at1 = _rhog;
-			//std::cout << "rho diminue :" << _rhog << std::endl;
-			//std::cout << iter << " " << resR << " " << resS << " " << resXf << std::endl;
-		}
-		else if (resXf > _mu1 * resR) {
-			_mu1 = _mu1*2;
-			_rho1 = _tau * _rho1;
-			Ap2b.multiply(_tau);
-			Ap2.add(&Ap2a, &Ap2b);
-			Ap12.add(&Ap1, &Ap2);
-			//std::cout << "_rho1 augmente :" << _rho1 << std::endl;
-			//std::cout << iter << " " << resR << " " << resS << " " << resXf << std::endl;
-		}
-		else if (resS > _mu1 * resXf) {
-			_mu1 = _mu1 * 2;
-			_rho1 = _rho1 / _tau;
-			Ap2b.divide(_tau);
-			Ap2.add(&Ap2a, &Ap2b);
-			Ap12.add(&Ap1, &Ap2);
-			//std::cout << "_rho1 diminue :" << _rho1 << std::endl;
-			//std::cout << iter << " " << resR << " " << resS << " " << resXf << std::endl;
-		}
-
-		if ((r1 + r2) > 2 * _mu * (s1 + s2)) {
-
-			_rho1 = _tau * _rho1;
-			Ap2b.multiply(_tau);
-			Ap2.add(&Ap2a, &Ap2b);
-			Ap12.add(&Ap1, &Ap2);
-			std::cout << "_rho1 augmente :" << _rho1 << std::endl;
-			std::cout << iter << " " << resR << " " << resS << " " << r1 << " " << r2 << " " << s1 << " " << s2 << std::endl;
-		}
-		else if ((s1 + s2) > 2 * _mu * (r1 + r2)) {// rho = rho / tau_inc;
-			_rho1 = _rho1 / _tau;
-			Ap2b.divide(_tau);
-			Ap2.add(&Ap2a, &Ap2b);
-			Ap12.add(&Ap1, &Ap2);
-			std::cout << "_rho1 diminue :" << _rho1 << std::endl;
-			std::cout << iter << " " << resR << " " << resS << " " << r1 << " " << r2 << " " << s1 << " " << s2 << std::endl;
-		}
-	}*/
-	
-
-	return MAX(MAX(resXf, resS), resR);
-}
-
-
-
-
-
-void ADMMGPUConst4::display() {
-
-	std::cout << _name << std::endl;
-}
 
 

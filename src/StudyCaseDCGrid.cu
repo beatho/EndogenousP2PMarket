@@ -292,7 +292,7 @@ void StudyCaseDCGrid::genGridFromFile(std::string path, bool alreadyDefine)
 	// grid 
 	_nBus = 1494;
 	_nLine = 2156;
-	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
+	//std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	std::string fileName = path + "SensiBusLineEurope.txt";
 	std::string fileName2 = path + "lineLimitEurope.txt";
 	std::string fileName3 = path + "SensiBusLineReduceEurope.txt";
@@ -497,7 +497,7 @@ void StudyCaseDCGrid::Set3Bus(std::string path) {
 	_CoresLineBus = MatrixCPU(_nLine, 2); // from, to
 	_lineLimits = MatrixCPU(_nLine, 1);
 	_SensiBusLine = MatrixCPU(_nLine, _nBus); // A
-	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
+	//std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	
 	MatrixCPU fileCoresBus(_nBus, 1);
 	for (int i = 0; i < _nBus; i++) {
@@ -534,7 +534,7 @@ void StudyCaseDCGrid::Set4nodeBis(std::string path)
 	_lineLimits = MatrixCPU(_nLine, 1);
 	//_CoresBusAgent = MatrixCPU(_nBus, _nAgent);
 	_SensiBusLine = MatrixCPU(_nLine, _nBus); // A
-	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
+	//std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 
 
 
@@ -756,7 +756,7 @@ void StudyCaseDCGrid::setFromInterface(StudyCaseInterface* interface){
 	_zoneBus = MatrixCPU(_nBus, 1);
 	_CoresLineBus = MatrixCPU(_nLine, 2);
 	
-	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
+	//std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	
 	MatrixCPU branchCase = interface->getBranchCase();
 	MatrixCPU busCase    = interface->getBusCase();

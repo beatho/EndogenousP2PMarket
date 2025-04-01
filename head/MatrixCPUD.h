@@ -38,7 +38,7 @@ public:
     MatrixCPUD& operator= (const MatrixCPUD& m);
 
    
-    inline double get(int i, int j) const;
+    double get(int i, int j) const;
     
     int getNCol() const;
     int getNLin() const;
@@ -52,7 +52,7 @@ public:
     
    
     void setSize(int l, int c);
-    inline void set(int i, int j, double value);
+    void set(int i, int j, double value);
     void set(MatrixCPUD* m);
     void set(double value);
     void setTrans(MatrixCPUD* m);

@@ -1,6 +1,6 @@
 #include "../head/MatrixGPU.cuh" 
 
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 const int warpSize = 32;
 
 #define CHECK_CUDA_ERROR_MAT(val) checkMat((val), #val, __FILE__, __LINE__);
@@ -47,7 +47,7 @@ MatrixGPU::MatrixGPU() {
     _row = 0;
     _column = 0;
     _N = _row * _column;
-     _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize),1);
+     _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize),1);
 }
 
 MatrixGPU::MatrixGPU(int l, int c, float value, bool pos)
@@ -59,7 +59,7 @@ MatrixGPU::MatrixGPU(int l, int c, float value, bool pos)
     _row = l;
     _column = c;
     _N = _row * _column;
-    _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+    _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
     if (pos) {
         if (_N > 0) {
             cudaMalloc((void**)&_matrixGPU, sizeof(float) * _N);
@@ -89,7 +89,7 @@ MatrixGPU::MatrixGPU(int l, int c, double value, bool pos)
     _row = l;
     _column = c;
     _N = _row * _column;
-    _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+    _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
     if (pos) {
         if (_N > 0) {
             cudaMalloc((void**)&_matrixGPU, sizeof(float) * _N);
@@ -121,7 +121,7 @@ MatrixGPU::MatrixGPU(int l, int c, int value, bool pos)
     _row = l;
     _column = c;
     _N = _row * _column;
-    _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+    _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
     if (pos) {
         if (_N > 0) {
             cudaMalloc((void**)&_matrixGPU, sizeof(float) * _N);
@@ -148,7 +148,7 @@ MatrixGPU::MatrixGPU(const MatrixCPU& m, bool pos)
     _row = m.getNLin();
     _column = m.getNCol();
     _N = _row * _column;
-    _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+    _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
 
     if (pos) {
         _GPU = true;
@@ -174,7 +174,7 @@ MatrixGPU::MatrixGPU(const MatrixGPU & m)
     _row = m.getNLin();
     _column = m.getNCol();
     _N = _row * _column;
-    _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+    _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
 
     if (m.getPos()) {
         if (_N > 0) {
@@ -196,7 +196,7 @@ MatrixGPU::MatrixGPU(const MatrixGPUD& m)
     _row = m.getNLin();
     _column = m.getNCol();
     _N = _row * _column;
-    _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+    _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
 
     if (m.getPos()) {
         if (_N > 0) {
@@ -252,7 +252,7 @@ MatrixGPU& MatrixGPU::operator=(const MatrixGPU& m)
         _row = m.getNLin();
         _column = m.getNCol();
         _N = _row * _column;
-        _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+        _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
         _GPU = false;
         if (_matrixGPU) {
             cudaFree(_matrixGPU);
@@ -321,7 +321,7 @@ MatrixGPU& MatrixGPU::operator=(const MatrixGPUD& m)
         _row = m.getNLin();
         _column = m.getNCol();
         _N = _row * _column;
-        _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
+        _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize), 1);
         if (_matrixGPU) {
             cudaFree(_matrixGPU);
             _matrixGPU = nullptr;
@@ -364,7 +364,7 @@ MatrixGPU& MatrixGPU::operator=(const MatrixCPU& m)
         _row = m.getNLin();
         _column = m.getNCol();
         _N = _row * _column;
-        _numBlocks = MAX(ceil((_N + _blockSize - 1) / _blockSize),1);
+        _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize),1);
         if (_matrixGPU) {
             cudaFree(_matrixGPU);
             _matrixGPU = nullptr;
@@ -681,18 +681,16 @@ void MatrixGPU::set(int i, int j, double value, bool force)
  void MatrixGPU::setEyes(float value)
  {
      if (!_GPU) {
-         int N = _row * (_row < _column) + _column * (_column <= _row);
-
-         for (int i = 0; i < _row; i++) {
-             for (int j = 0; j < _column; j++)
-             {
-                 if (i == j) {
-                     set(i, j, value);
-                 }
-                 else {
-                     set(i, j, 0);
-                 }  
-             }
+        for (int i = 0; i < _row; i++) {
+            for (int j = 0; j < _column; j++)
+            {
+                if (i == j) {
+                    set(i, j, value);
+                }
+                else {
+                    set(i, j, 0);
+                }  
+            }
          }
      }
      else {
@@ -946,8 +944,6 @@ void MatrixGPU::setBloc(int iBegin, int iEnd, int jBegin, int jEnd, float value)
         throw std::invalid_argument("setBloc : xBegin must be smaller than xEnd");
     } 
     if (!_GPU) {
-        int row = 0;
-
         for (int i = iBegin; i < iEnd; i++) {
             for (int j = jBegin; j < jEnd; j++) {
                 set(i, j, value);
@@ -955,7 +951,6 @@ void MatrixGPU::setBloc(int iBegin, int iEnd, int jBegin, int jEnd, float value)
         }
     }
     else if (getPos()) {
-       
         SetBlocGPU << <_numBlocks, _blockSize >> > (_matrixGPU, value, iBegin, iEnd, jBegin, jEnd, _column);
     }
     else {
@@ -2714,7 +2709,7 @@ float MatrixGPU::sum() const
         //std::cout << "sum " << odata << " " <<_blockSize << " " << numBlocks << std::endl;
         return odata;
     }
-    else if (!_GPU)
+    else
     {
         float d = 0;
         float r = 0;
@@ -2809,7 +2804,7 @@ float MatrixGPU::sum(int begin, int end)
         //std::cout << "sum " << odata << " " <<_blockSize << " " << numBlocks << std::endl;
         return odata;
     }
-    else if (!_GPU)
+    else 
     {
         float d = 0;
         float r = 0;
@@ -2950,7 +2945,7 @@ float MatrixGPU::distance2() {
         }
         return sqrtf(odata);
     }
-    else if (!_GPU)// && !(m->getPos()))
+    else // && !(m->getPos()))
     {
         float d = 0;
         float r = 0;
@@ -3697,15 +3692,15 @@ __global__ void sumMonoBlock(float* g_idata, float* g_odata, unsigned int n) {
         }
         __syncthreads();
     }
-    //if (blockSize >= 64) {
-    //    if (thIdx < 32) {
-            warpReduce<blockSize>(r, thIdx);
-    //    }
-    // }
-    //else if (blockSize >= 32) { // cas blockSize = 32
-       // warpReduce<blockSize>(r, thIdx);
-   // }
-    __syncthreads;
+    if (blockSize >= 64) {
+        if (thIdx < 32) {
+            warpReduce<64>(r, thIdx);
+        }
+     }
+    else if (blockSize >= 32) { // cas blockSize = 32
+         warpReduce<32>(r, thIdx);
+    }
+    __syncthreads();
     if (thIdx == 0) {
          *g_odata = r[0];
     }
@@ -3908,16 +3903,18 @@ __global__ void maxMonoBlock(float* g_idata, float* g_odata, unsigned int n) {
     }
     if (blockSize >= 64) {
         if (thIdx < 32) {
-            warpReduceMax<blockSize>(shArr, thIdx);
+            warpReduceMax<64>(shArr, thIdx);
         }
     }
     if (blockSize >= 32 && blockSize < 64) {
-       warpReduceMax<blockSize>(shArr, thIdx);
+       warpReduceMax<32>(shArr, thIdx);
     }
-    __syncthreads;
+    __syncthreads();
 
-    if (thIdx == 0)
-        *g_odata = shArr[0];
+    if (thIdx == 0){
+        g_odata[0] = shArr[0];
+    }
+       
     
 }
 
@@ -4159,7 +4156,7 @@ __global__ void initPermMatr(float* P, const int N) {
 
 __global__ void updatePermMatr(float* P, const int line1, const int line2, const int N) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int step = blockDim.x * gridDim.x;
+    //int step = blockDim.x * gridDim.x;
     if (index == 0) {
         int inter = P[line1];
         P[line1] = P[line2];

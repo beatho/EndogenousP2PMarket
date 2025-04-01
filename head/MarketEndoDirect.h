@@ -1,5 +1,5 @@
 #pragma once
-#include "Method.h"
+#include "MethodP2P.h"
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -9,7 +9,7 @@
 
 
 
-class MarketEndoDirect : public Method // OPFADMMCons mais on met des trades sur le bus fictif
+class MarketEndoDirect : public MethodP2P // OPFADMMCons mais on met des trades sur le bus fictif
 {
 public:
 
@@ -69,12 +69,7 @@ private:
 	float DFSQ(int j); // P and Q flows
 
 	// ne change pas avec P0
-	int _nBus = 0;
 	int _nBusWLoss = 0;
-	int _nLine = 0;
-	int _nAgent = 0;
-	
-	float _rho = 0;
 	float _rhoInv = 0;
 	
 	double coefPoly2[2];
@@ -88,69 +83,31 @@ private:
 	int _iterGlobal = 0;
 	int _iterG = 0;
 	int _stepG = 0;
-	float _mu = 40;
-	float _tau = 2;
+
 	float _Ploss = 0;
 	float _Qloss = 0;
 	clock_t timeMarketEndo = 0;
 
 	// market
 	int _nAgentTrue = 0; // _nAgent = _nAgentTrue + (isAc)*_nAgent
-	int _nTrade = 0;
+
 	int _nTradeP = 0;
 	int _nTradeQ = 0;
-	float _rhol = 0;
-	float _at1 = 0;
-	float _at2 = 0;
+	
 	float _epsL = 0;
 	int _stepL = 0;
 	int _iterL = 0;
 	
+	// problem : TradeLin tempN2 cost1 cost2
 	LossType losstype = LossType::CURRENT;
 
-	
-	MatrixCPU LAMBDA;
-	MatrixCPU trade;
-
-	MatrixCPU Tlocal;
-	MatrixCPU Tlocal_pre;
-	MatrixCPU TradeLin;
-	MatrixCPU P; // moyenne des trades
-	MatrixCPU Pn; // somme des trades
-	MatrixCPU tempN2; // size : (_nAgent*2, 1)
 	MatrixCPU tempB2; // size : (_nBus  *2, 1)
 
-	MatrixCPU Pmin;
-	MatrixCPU Pmax;
-	MatrixCPU Ap1;
-	MatrixCPU Ap2;
+	
 	MatrixCPU Ap3;
 	MatrixCPU Ap123;
-	MatrixCPU Bt1;
-	MatrixCPU Bt2;
-	MatrixCPU Bp1;
 	MatrixCPU Bp2;
-	MatrixCPU Ct;
 	MatrixCPU Cp;
-	MatrixCPU matUb;
-	MatrixCPU matLb;
-
-	MatrixCPU nVoisin;
-	MatrixCPU Tmoy;
-	MatrixCPU LAMBDALin;
-	
-	MatrixCPU MU;
-
-	//corespondance
-	MatrixCPU CoresMatLin;
-	MatrixCPU CoresLinAgent;
-	MatrixCPU CoresAgentLin;
-	MatrixCPU CoresLinVoisin;
-	MatrixCPU CoresLinTrans;
-
-
-	MatrixCPU tempN1; // Matrix temporaire pour aider les calculs
-	MatrixCPU tempNN; // plut�t que de re-allouer de la m�moire � chaque utilisation
 
 
 	// Reseau
@@ -160,8 +117,6 @@ private:
 	MatrixCPU Pbmin;
 	MatrixCPU Pb;
 
-	MatrixCPU Cost1;
-	MatrixCPU Cost2;
 	MatrixCPU _CoresBusAgent;
 	MatrixCPU _CoresAgentBus;
 	MatrixCPU _CoresAgentBusBegin;
@@ -195,9 +150,6 @@ private:
 	MatrixCPU CoresLineBus;
 
 	MatrixCPU sizeMarketEndoDirect;
-
-	MatrixCPU resF;
-
 
 };
 

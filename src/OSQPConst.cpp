@@ -1,6 +1,6 @@
 #ifdef OSQP
 #include "../head/OSQPConst.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 OSQPConst::OSQPConst() : MethodP2P()
 {
@@ -203,7 +203,7 @@ void OSQPConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	
 	updatePn();
 	result->setPn(&Pn);
-	fc = calcFc(&a, &b, &trade, &Pn, &Beta, &tempN1,&tempNN);
+	fc = calcFc();
 	result->setFc(fc);
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
@@ -246,6 +246,7 @@ void OSQPConst::init(const Simparam& sim, const StudyCase& cas)
 
 
 	Beta = cas.getBeta();
+	Ct = Beta;
 	
 	MatrixCPU connect(cas.getC());
 	a = cas.geta();
@@ -488,7 +489,7 @@ float OSQPConst::updateResBis(MatrixCPU* res, int iter)
 	res->set(0, iter, resR);
 	res->set(1, iter, resS);
 	res->set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
+	return MYMAX(MYMAX(resXf, resS), resR);
 }
 
 void OSQPConst::updatePhi()

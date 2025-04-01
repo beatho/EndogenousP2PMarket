@@ -1,6 +1,6 @@
 
 #pragma once
-#include "MethodP2P.cuh"
+#include "MethodP2P.h"
 #include <iostream>
 #include <string>
 
@@ -27,7 +27,6 @@ public:
 	void updateTrade(c_float* xResult, int agent);
 	void updateQ(c_float* Q, int agent);
 	void updateLAMBDA();
-	float calcFc(MatrixCPU* cost1, MatrixCPU* cost2, MatrixCPU* trade, MatrixCPU* Pn, MatrixCPU* BETA, MatrixCPU* tempN1, MatrixCPU* tempNN);
 	float updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN);
 
 	std::string NAME = "OSQP";

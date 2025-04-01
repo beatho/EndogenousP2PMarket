@@ -1,11 +1,11 @@
 #pragma once
-#include "Method.h"
+#include "MethodP2P.h"
 #include <iostream>
 #include <string>
 #include <chrono>
 
 
-class PACConst : public Method
+class PACConst : public MethodP2P
 {
 public:
 	PACConst();
@@ -53,18 +53,13 @@ private:
 	float _theta = 0.2f;
 	
 
-	MatrixCPU tempN1; // Matrix temporaire pour aider les calculs
-	MatrixCPU tempNN; // plut�t que de re-allouer de la m�moire � chaque utilisation
 	MatrixCPU* tempM1 = nullptr; //
 	MatrixCPU* tempM = nullptr;; //
 	MatrixCPU tempL;
 
-	MatrixCPU Cost1;
-	MatrixCPU Cost2;
 	MatrixCPU BETA;
-	MatrixCPU G;
 	MatrixCPU Phi;
-	MatrixGPU lLimit;
+
 
 	MatrixCPU* X = nullptr;;
 	MatrixCPU* Xpre = nullptr;;
@@ -89,11 +84,7 @@ private:
 
 	// Matrices for the result
 	MatrixCPU Pn;
-	MatrixCPU trade;
-	MatrixCPU resF;
-	MatrixCPU resX;
-
-
+	
 
 	// change avec P0
 	

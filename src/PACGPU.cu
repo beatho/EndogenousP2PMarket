@@ -1,8 +1,8 @@
 	#include "../head/PACGPU.cuh"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 // betaLin, CoresAgentLinBig, indiceNu
 
-PACGPU::PACGPU() : MethodP2P()
+PACGPU::PACGPU() : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << " PACGPU Constructor" << std::endl;
@@ -11,7 +11,7 @@ PACGPU::PACGPU() : MethodP2P()
 }
 
 
-PACGPU::PACGPU(float rho) : MethodP2P()
+PACGPU::PACGPU(float rho) : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "default PACGPU Constructor" << std::endl;
@@ -133,7 +133,7 @@ void PACGPU::updateCoef()
 	throw std::runtime_error("updateCoef : WIP not implemented");
 	/*if (augmente) {
 
-		_rho = MAX(0.99 * _rho, 0.1);
+		_rho = MYMAX(0.99 * _rho, 0.1);
 		_rhoInv = 1 / _rho;
 		for (int i = 0; i < _nAgent; i++) {
 			H[i].set(0, 0, Cost1.get(i, 0) + _rhoInv);
@@ -987,7 +987,7 @@ float PACGPU::updateRes(int indice)
 	resF.set(0, indice, resR);
 	resF.set(1, indice, resS);
 	resF.set(2, indice, resV);
-	return MAX(MAX(resV, resS), resR);
+	return MYMAX(MYMAX(resV, resS), resR);
 }
 
 
@@ -1142,7 +1142,7 @@ __global__ void updateP0PAC(float* matLb, float* matUb, float* Q, float* Qinit, 
 	int begin = CoresAgentLin[agent];
 	int Mn = nVoisin[agent];
 
-	for (int lin = thI; lin < Mn; lin++) {
+	for (int lin = thI; lin < Mn; lin+=step) {
 		int i = lin + begin;
 		matLb[i] = Lb[agent];
 		matLb[i + Mn] = -Ub[agent];

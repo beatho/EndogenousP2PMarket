@@ -1,8 +1,8 @@
 #include "../head/PACConst.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
 
 
-PACConst::PACConst() : Method()
+
+PACConst::PACConst() : MethodP2P()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << " PACConst Constructor" << std::endl;
@@ -11,7 +11,7 @@ PACConst::PACConst() : Method()
 }
 
 
-PACConst::PACConst(float rho) : Method()
+PACConst::PACConst(float rho) : MethodP2P()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "default PACConst Constructor" << std::endl;
@@ -95,14 +95,14 @@ void PACConst::updateCoef()
 {
 	if (augmente) {
 
-		_rho = MAX(0.99 * _rho, 0.1);
+		_rho = MYMAX(0.99f * _rho, 0.1f);
 		_rhoInv = 1 / _rho;
 		for (int i = 0; i < _nAgent; i++) {
-			H[i].set(0, 0, Cost1.get(i, 0) + _rhoInv);
+			H[i].set(0, 0, a.get(i, 0) + _rhoInv);
 			if (augmente) {
 				H[i].increment(0, 0, _rho * _gamma);
 			}
-			int M = nVoisin.get(i, 0);
+			int M = (int) nVoisin.get(i, 0);
 			for (int m = 0; m < M; m++) {
 
 				H[i].set(m + 1, m + 1, _rhoInv); // diag tnm
@@ -230,16 +230,16 @@ void PACConst::solve(Simparam* result, const Simparam& sim, const StudyCase& cas
 	int indice = 0;
 	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
 		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		int Nvoisinmax = (int) nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
+			int idVoisin = (int) omega.get(voisin, 0);
 			trade.set(idAgent, idVoisin, X[idAgent].get(voisin + 1, 0));
 		}
 		Pn.set(idAgent, 0, X[idAgent].get(0, 0));
 	}
 	//std::cout << "Pn :" << std::endl;
 	//Pn.display();
-	fc = calcFc(&Cost1, &Cost2, &trade, &Pn, &BETA, &tempN1, &tempNN);
+	fc = calcFc();
 	// FB 5
 	
 	result->setResF(&resF);
@@ -274,17 +274,17 @@ void PACConst::updateP0(const StudyCase& cas)
 
 	MatrixCPU Pmin(cas.getPmin());
 	MatrixCPU Pmax(cas.getPmax());
-	MatrixCPU Cost2(cas.getb());
+	MatrixCPU b(cas.getb());
 
 	MatrixCPU Lb(cas.getLb());
 
 	for (int i = 0; i < _nAgent; i++) {
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		matLb[i].set(0, 0, Pmin.get(i, 0));
 		matUb[i].set(0, 0, Pmax.get(i, 0));
 		
-		Q[i].set(0, 0, Cost2.get(i, 0) + Mu[i].get(0, 0) - _rhoInv * X[i].get(0, 0));
-		Qinit[i].set(0, 0, Cost2.get(i, 0));
+		Q[i].set(0, 0, b.get(i, 0) + Mu[i].get(0, 0) - _rhoInv * X[i].get(0, 0));
+		Qinit[i].set(0, 0, b.get(i, 0));
 		
 		for (int m = 0; m < M; m++) {
 			matLb[i].set(m + 1, 0, Lb.get(i, 0));
@@ -314,7 +314,7 @@ void PACConst::init(const Simparam& sim, const StudyCase& cas)
 	_nAgent = sim.getNAgent();
 	nVoisin = cas.getNvoi();
 	_nLine = cas.getNLine();
-	_nTrade = nVoisin.sum();
+	_nTrade = (int) nVoisin.sum();
 	_sizePACConst = _nAgent + 2 * _nTrade;
 
 
@@ -326,8 +326,8 @@ void PACConst::init(const Simparam& sim, const StudyCase& cas)
 	MatrixCPU Lb(cas.getLb());
 	MatrixCPU Pmin(cas.getPmin());
 	MatrixCPU Pmax(cas.getPmax());
-	Cost1 = MatrixCPU(cas.geta());
-	Cost2 = MatrixCPU(cas.getb());
+	a = MatrixCPU(cas.geta());
+	b = MatrixCPU(cas.getb());
 
 	trade = sim.getTrade();
 	Pn = sim.getPn();
@@ -371,7 +371,7 @@ void PACConst::init(const Simparam& sim, const StudyCase& cas)
 	int indice = 0;
 	for (int i = 0; i < _nAgent; i++) {
 		// def
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		MatrixCPU omega(cas.getVoisin(i));
 		X[i] = MatrixCPU(1 + 2 * M, 1);
 		Xpre[i] = MatrixCPU(1 + 2 * M, 1);
@@ -396,15 +396,15 @@ void PACConst::init(const Simparam& sim, const StudyCase& cas)
 		X[i].set(0, 0, Pn.get(i, 0));
 		matLb[i].set(0, 0, Pmin.get(i, 0));
 		matUb[i].set(0, 0, Pmax.get(i, 0));
-		H[i].set(0, 0, Cost1.get(i, 0) + _rhoInv);
+		H[i].set(0, 0, a.get(i, 0) + _rhoInv);
 		if (augmente) {
 			H[i].increment(0, 0, _rho * _gamma);
 		}
 				
-		Qinit[i].set(0, 0, Cost2.get(i, 0));
+		Qinit[i].set(0, 0, b.get(i, 0));
 		
 		for (int m = 0; m < M; m++) {
-			int j = omega.get(m, 0);
+			int j = (int) omega.get(m, 0);
 			X[i].set(m + 1, 0, trade.get(i, j)); // tnm
 			X[i].set(M + m + 1, 0, trade.get(j, i)); //amn
 			if(Lb.getNCol()==1){
@@ -482,20 +482,20 @@ void PACConst::init(const Simparam& sim, const StudyCase& cas)
 	//std::cout << "mise sous forme lin�aire" << std::endl;
 	
 	for (int lin = 0; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
-		int k = CoresMatLin.get(j, i);
+		int i = (int) CoresLinAgent.get(lin, 0);
+		int j = (int) CoresLinVoisin.get(lin, 0);
+		int k = (int) CoresMatLin.get(j, i);
 		CoresLinTrans.set(lin, 0, k);
 	}
 
 	for (int i = 0; i < _nAgent; i++) {
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
-			int p = CoresLinVoisin.get(lin, 0); // valeur de p
+			int lin = (int) CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
+			int p = (int) CoresLinVoisin.get(lin, 0); // valeur de p
 
-			int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
-			int linLoc = lin2 - CoresAgentLin.get(p, 0); //indice local de tpi
+			int lin2 = (int) CoresLinTrans.get(lin, 0); // indice global de tpi
+			int linLoc =  lin2 - (int) CoresAgentLin.get(p, 0); //indice local de tpi
 
 			CoresLinTransLocal.set(lin, 0, linLoc);
 		}
@@ -581,7 +581,7 @@ void PACConst::updateMu()
 	for (int i = 0; i < _nAgent; i++) {
 		tempM1[i].set(&Mu[i]); // mu^k
 		double pSum = 0;
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {// Gn*xhat
 			pSum += Xhat[i].get(1 + m, 0);
 			//Mu[i].set(m + 1, 0, (Xhat[i].get(1 + m, 0) - Xhat[i].get(1 + m + M, 0)) / 2 - Xpre[i].get(1 + m, 0)); ne marche pas ?
@@ -615,15 +615,15 @@ void PACConst::updateNu()
 	tempN1.set(&Nu[_nAgent]); // nu^k
 	for (int i = 0; i < _nAgent; i++) {
 		tempM[i].set(&Nu[i]); // nu^k
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		if (i < _nAgent) {
 			for (int m = 0; m < M; m++) {
 				// find t^[p]mi ???
-				int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
-				int p = CoresLinVoisin.get(lin, 0); // valeur de p
+				int lin = (int) CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
+				int p = (int) CoresLinVoisin.get(lin, 0); // valeur de p
 
-				int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
-				int linLoc = lin2 - CoresAgentLin.get(p, 0); //indice local de tpi
+				int lin2 = (int) CoresLinTrans.get(lin, 0); // indice global de tpi
+				int linLoc = lin2 - (int) CoresAgentLin.get(p, 0); //indice local de tpi
 
 				float tpi = Xhat[p].get(linLoc + 1, 0);
 				// Bj aj
@@ -670,13 +670,13 @@ void PACConst::updateQ()
 		Q[i].set(&Qinit[i]);
 		Q[i].increment(0, 0, Muhat[i].get(0, 0) - _rhoInv * Xhat[i].get(0, 0) - Nuhat[_nAgent].get(i,0));
 
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
-			int p = CoresLinVoisin.get(lin, 0); // valeur de p
+			int lin = (int) CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
+			int p = (int) CoresLinVoisin.get(lin, 0); // valeur de p
 
-			int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
-			int linLoc = lin2 - CoresAgentLin.get(p, 0); //indice local de tpi
+			int lin2 = (int) CoresLinTrans.get(lin, 0); // indice global de tpi
+			int linLoc = lin2 - (int) CoresAgentLin.get(p, 0); //indice local de tpi
 
 			float tpi = Xhat[p].get(linLoc + 1, 0);
 
@@ -713,8 +713,8 @@ void PACConst::updateDelta()
 	tempL.set(&delta);
 
 	for (int l = 0; l < _nLine; l++) {
-		delta.set(l, 0, MAX((Phi.get(l, 0) - lLimit.get(l, 0)), 0));
-		delta.set(_nLine + l, 0, MAX((-Phi.get(l, 0) - lLimit.get(l, 0)), 0));
+		delta.set(l, 0, MYMAX((Phi.get(l, 0) - lLimit.get(l, 0)), 0));
+		delta.set(_nLine + l, 0, MYMAX((-Phi.get(l, 0) - lLimit.get(l, 0)), 0));
 	}
 
 	if (augmente) {
@@ -758,20 +758,20 @@ float PACConst::updateRes(int indice)
 		//std::cout << resTempS << " " << resTempR << " " << resTempV << " ";
 		// est �gale � la puissance �chang�, petit probl�me quelque part...
 		double pSum = 0;
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
 			pSum += Xhat[i].get(1 + m, 0);
 			tempM1[i].set(m + 1, 0, Xhat[i].get(1 + m, 0) + Xhat[i].get(1 + m + M, 0));
 
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
-			int p = CoresLinVoisin.get(lin, 0); // valeur de p
-			int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
-			int linLoc = lin2 - CoresAgentLin.get(p, 0); //indice local de tpi
+			int lin = (int) CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
+			int p = (int) CoresLinVoisin.get(lin, 0); // valeur de p
+			int lin2 = (int) CoresLinTrans.get(lin, 0); // indice global de tpi
+			int linLoc = lin2 - (int) CoresAgentLin.get(p, 0); //indice local de tpi
 			float tpi = Xhat[p].get(linLoc + 1, 0);
 			tempM[i].set(m, 0, Xhat[i].get(1 + m + M, 0) - tpi); // 
 		}
 		tempM1[i].set(0, 0, Xhat[i].get(0, 0) - pSum);
-		resTempR = MAX(tempM1[i].max2(), abs(Xhat[_nAgent].get(i, 0) - Xhat[i].get(0, 0))); // Bx = 0
+		resTempR = MYMAX(tempM1[i].max2(), abs(Xhat[_nAgent].get(i, 0) - Xhat[i].get(0, 0))); // Bx = 0
 		resTempV = tempM[i].max2(); // Gx = 0
 		resTempS = X[i].max2(&Xpre[i]); // x^{k+1} = x^k
 		//std::cout << resTempS << " " << resTempR << " " << resTempV;
@@ -786,16 +786,16 @@ float PACConst::updateRes(int indice)
 			resV = resTempV;
 		}
 	}
-	resS = MAX(resS, Xhat[_nAgent].max2(&X[_nAgent]));
-	resS = MAX(resS, Xpre[_nAgent].max2(&X[_nAgent]));
-	resR = MAX(resR, deltahat.max2(&delta));
-	resV = MAX(resV, Nuhat[_nAgent].max2(&Nu[_nAgent]));
+	resS = MYMAX(resS, Xhat[_nAgent].max2(&X[_nAgent]));
+	resS = MYMAX(resS, Xpre[_nAgent].max2(&X[_nAgent]));
+	resR = MYMAX(resR, deltahat.max2(&delta));
+	resV = MYMAX(resV, Nuhat[_nAgent].max2(&Nu[_nAgent]));
 	//std::cout << resS << " " << resR << " " << resV << std::endl;
 
 	resF.set(0, indice, resR);
 	resF.set(1, indice, resS);
 	resF.set(2, indice, resV);
-	return MAX(MAX(resV, resS), resR);
+	return MYMAX(MYMAX(resV, resS), resR);
 }
 
 

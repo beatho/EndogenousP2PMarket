@@ -134,7 +134,7 @@ void GPUPF::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD* PQD, bool useD
     occurencePerBlock = MatrixCPU(1, 9);; //nb de fois utilis� pendant la simu
 #endif // INSTRUMENTATION
    // std::cout << "init PF NR GPU" << std::endl;
-    std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
+    //std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();
     B2 = 2 * Nbus;
@@ -1549,9 +1549,9 @@ __global__ void calcWGPU(float* W, float* W0, float* Pinter, float* Qinter, floa
         }
     }
     else {
-        for (int i = begin + thIdx; i < end; i += blockSize) {
-            sum += Pinter[i];
-            sum2 += Qinter[i];
+        for (int j = begin + thIdx; j < end; j += blockSize) {
+            sum += Pinter[j];
+            sum2 += Qinter[j];
         }
         
 
@@ -1588,9 +1588,9 @@ __global__ void calcWGPU(float* W, float* Pinter, float* Qinter, float* CoresBus
 
     float sum = 0;
     float sum2 = 0;
-    for (int i = begin + thIdx; i < end; i += blockSize) {
-        sum += Pinter[i];
-        sum2 += Qinter[i];
+    for (int j = begin + thIdx; j < end; j += blockSize) {
+        sum += Pinter[j];
+        sum2 += Qinter[j];
     }
 
 

@@ -126,9 +126,9 @@ void OSQPCentralized2::solve(Simparam* result, const Simparam& sim, const StudyC
 	result->setTrade(&trade);
 	result->setIter(iterG);
 	
-	updatePn(&Pn, &trade);
+	updatePn();
 	result->setPn(&Pn);
-	fc = calcFc(&a, &b, &trade, &Pn, &GAMMA,&tempN1,&tempNN);
+	fc = calcFc();
 	result->setFc(fc);
 
 	tall = clock() - tall;
@@ -437,37 +437,17 @@ void OSQPCentralized2::init(const Simparam& sim, const StudyCase& cas)
 	
 }
 
-void OSQPCentralized2::updatePn(MatrixCPU* Pn, MatrixCPU* trade)
+void OSQPCentralized2::updatePn()
 {
-	Pn->set(0.0);
+	Pn.set(0.0);
 	for (int n = 0; n < _nAgent; n++) {
 		for (int m = 0; m < _nAgentTrue; m++) {
-			Pn->increment(n, 0, trade->get(n, m));
+			Pn.increment(n, 0, trade.get(n, m));
 		}
 	}
 
 }
 
-float OSQPCentralized2::calcFc(MatrixCPU* cost1, MatrixCPU* cost2, MatrixCPU* trade, MatrixCPU* Pn, MatrixCPU* BETA, MatrixCPU* tempN1, MatrixCPU* tempNN)
-{
-	float fc = 0;
-	tempN1->set(cost1);
-	tempN1->multiply(0.5);
-	tempN1->multiplyT(Pn);
-	tempN1->add(cost2);
-	tempN1->multiplyT(Pn);
-
-	fc = fc + tempN1->sum();
-
-	for (int n = 0; n < _nAgentTrue; n++) {
-		for (int m = 0; m < _nAgentTrue; m++) {
-			fc += trade->get(n, m) * BETA->get(n, m);
-		}
-	}
-
-
-	return fc;
-}
 
 void OSQPCentralized2::updateP0(const StudyCase& cas)
 {

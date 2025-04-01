@@ -124,7 +124,7 @@ ResultInterface* System::solvePF(ResultInterface* res, ParamInterface* param, St
 
 void System::solveIntervalle(std::string path, MatrixCPU* interval, int nCons, int nGen)
 {
-	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
+	//std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	if (interval->getNCol() != 2 || interval->getNLin() != 4) {
 		throw std::invalid_argument("interval must be 4*2, year, month, day, hour");
 	}
@@ -512,7 +512,7 @@ void System::solveIntervalle(std::string path, int begin, int end, int chosenAge
 	_simparam.setNAgentLine(cas.getNagent(), cas.getNLine(), cas.isAC());
 	_result->setNAgentLine(cas.getNagent(), cas.getNLine(), cas.isAC());
 
-	if (_methode->_name == "ADMMConst1" || _methode->_name == "ADMMGPUConst4") {
+	if (_methode->_name == "ADMMConst" || _methode->_name == "ADMMGPUConst4") {
 		std::cout << "ajout du DC" << std::endl;
 		cas.genDCGridFromAC(); // pour utiliser les m�thodes DC
 		cas.setReduce(true);
@@ -619,127 +619,6 @@ void System::restoreAgent(Agent& agent, bool all)
 	_case.restoreAgent(agent, all);
 }
 
-void System::setBestRho(float rhoMax, bool rhoVar, float rhoTest)
-{
-	int nAgent = _case.getNagent();
-	float rhoMin = 0.01;
-	if (rhoMax == 0) {
-		rhoMax = 0.2 * nAgent;
-	}
-	float epsRho = 0.01;
-	float dRhoMin = 0.005;
-
-	
-
-
-	float rho_a = rhoMin;
-	float rho_b = rhoMax;
-	int multiplieur = 1;
-	while ((rho_b - rho_a) > epsRho) {
-		float dRho = multiplieur * (rho_a + rho_b) / 100;
-		dRho = dRho > dRhoMin ? dRho : dRhoMin;
-		float rho_x = 0.5 * (rho_a + rho_b);
-
-		float rho_c = rho_x - (dRho / 2);
-		float rho_d = rho_x + (dRho / 2);
-		setRho(rho_c);
-		*_result = solve();
-		int iter_c = _result->getIter();
-		int iterL_c = _result->getIterLTot();
-
-		setRho(rho_d);
-		*_result = solve();
-		int iter_d = _result->getIter();
-		int iterL_d = _result->getIterLTot();
-
-		if (iter_d < iter_c) {
-			rho_a = rho_d;
-			multiplieur = 1;
-		}
-		else if (iter_d > iter_c) {
-			rho_b = rho_c;
-			multiplieur = 1;
-		}
-		else {
-			std::cout << iter_d << " " << iter_c << " " << iterL_d << " " << iterL_c << std::endl;
-			multiplieur++;
-		}
-
-	}
-
-	float rho_x = 0.5 * (rho_a + rho_b);
-	setRho(rho_x);
-	*_result = solve();
-	int iter_x = _result->getIter();
-	int iterL_x = _result->getIterLTot();
-	float time_x = _result->getTime();
-
-	float rho_the = nAgent * 0.05;
-	setRho(rho_the);
-	*_result = solve();
-	int iter_the = _result->getIter();
-	int iterL_the = _result->getIterLTot();
-	float time_the = _result->getTime();
-	int iter_test = iter_the + iter_x; 
-	int iterL_test = 0;
-	float time_test = 0;
-	if (rhoTest != 0 && rhoTest != rho_the && rhoTest != rho_x) {
-		setRho(rhoTest);
-		*_result = solve();
-		iter_test = _result->getIter();
-		iterL_test = _result->getIterLTot();
-		time_test = _result->getTime();
-	}
-
-	float rhoBest = 0;
-	if (iter_x < iter_the) {
-		if (iter_x < iter_test) {
-			rhoBest = rho_x;
-		}
-		else if (iter_x > iter_test) {
-			rhoBest = rhoTest;
-		}
-		else {
-			if (iterL_x <= iterL_test) {
-				rhoBest = rho_x;
-			}
-			else {
-				rhoBest = rhoTest;
-			}
-		}
-	} else if (iter_x > iter_the) {
-		if (iter_the < iter_test) {
-			rhoBest = rho_the;
-		}
-		else if (iter_the > iter_test) {
-			rhoBest = rhoTest;
-		}
-		else {
-			if (iterL_the <= iterL_test) {
-				rhoBest = rho_the;
-			}
-			else {
-				rhoBest = rhoTest;
-			}
-		}
-	}
-	else {
-		if (iter_x > iter_test) {
-			rhoBest = rhoTest;	
-		}
-		else {
-			if (iterL_the <= iterL_x) {
-				rhoBest = rho_the;
-			}
-			else {
-				rhoBest = rho_x;
-			}
-		}
-	}
-	setRho(rhoBest);
-	std::cout << "Best rho find is " << rhoBest << std::endl;
-	
-}
 
 void System::setStudyCase(const StudyCase& cas)
 {
@@ -798,8 +677,8 @@ void System::setMethod(std::string nameMethode) {
 	else if (!nameMethode.compare(sADMMConst)) {
 		_methode = new ADMMConst();
 	}
-	else if ((!nameMethode.compare(sADMMConst1))) {
-		_methode = new ADMMConst1;
+	else if ((!nameMethode.compare(sADMMConst))) {
+		_methode = new ADMMConst;
 	}
 	#ifdef OSQP
 	else if ((!nameMethode.compare(sOSQPConst))) {
@@ -1061,14 +940,13 @@ void System::displayTradesAgent()
 {
 	int N = _case.getNagent();
 	int nCons = _case.getNCons();
-	int nGen = N - nCons;
+	//int nGen = N - nCons;
 	MatrixCPU Trade(_result->getTrade());
 	MatrixCPU Pn(_result->getPn());
 	for (int n = 0; n < nCons; n++) {
-		
 		std::cout << "Agent consomateur n " << n << " Puissance echangee " << Pn.get(n,0) *_case.getSbase() << std::endl;
 		for (int i = nCons; i < N; i++) {
-			if (Trade.get(i, n) > 0.0001) { // positif car on regarde ce que le g�n�rateur vend
+			if (Trade.get(i, n) > 0.0001) { // positif car on regarde ce que le generateur vend
 				std::cout << "         achete " << Trade.get(i, n) * _case.getSbase() << " MWh au generateur " << i << std::endl;
 			}
 		}
@@ -1133,7 +1011,7 @@ int System::getNbSimu(MatrixCPU* interval) const
 	}
 
 	int m[12] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
-	int dayMonth[12] = { 31, 28, 31, 30, 31, 30 , 31, 31, 30, 31, 30, 31 };
+	//int dayMonth[12] = { 31, 28, 31, 30, 31, 30 , 31, 31, 30, 31, 30, 31 };
 
 	int yearref = 2012;
 	int dy = (year1 - yearref);

@@ -1,5 +1,5 @@
 #include "../head/OPFADMMGPU.cuh"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 #define NMAXAGENTPERTHREAD 5
 
 OPFADMMGPU::OPFADMMGPU() : MethodOPFGPU()
@@ -110,7 +110,7 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	int stepL = sim.getStepL();
 
 	float epsG = sim.getEpsG();
-	float epsL = Mymin(sim.getEpsL(), epsG / 200);
+	float epsL = MYMIN(sim.getEpsL(), epsG / 200);
 	float rhoInit = sim.getRho();
 
 
@@ -1004,7 +1004,7 @@ float OPFADMMGPU::updateRes(int indice)
 	
 
 
-	return MAX(MAX(resV, oldrho * resS), resR);
+	return MYMAX(MYMAX(resV, oldrho * resS), resR);
 }
 
 int OPFADMMGPU::feasiblePoint()
@@ -1188,7 +1188,7 @@ void OPFADMMGPU::display() {
 	std::cout << "     Constraints                                                                                        |" << std::endl;
 	std::cout << "========================================================================================================|" << std::endl;
 	std::cout << " Bus | Voltage | Voltage | Voltage |        Power Injection          |          Power Injection         |" << std::endl;
-	std::cout << "  #  | Mag(pu) | MIN(pu) |  MAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
+	std::cout << "  #  | Mag(pu) | MIN(pu) |  MYMAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
 	std::cout << "-----|---------|---------|---------|---------|-----------|-----------|----------|-----------|-----------|" << std::endl;
 
 

@@ -1,6 +1,6 @@
 #include "../head/ADMMGPUConstCons3.cuh"
 
-ADMMGPUConstCons3::ADMMGPUConstCons3() : MethodP2P()
+ADMMGPUConstCons3::ADMMGPUConstCons3() : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "Constructeur ADMMGPUConstCons3" << std::endl;
@@ -9,7 +9,7 @@ ADMMGPUConstCons3::ADMMGPUConstCons3() : MethodP2P()
 }
 
 
-ADMMGPUConstCons3::ADMMGPUConstCons3(float rho) : MethodP2P()
+ADMMGPUConstCons3::ADMMGPUConstCons3(float rho) : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "Constructeur ADMMGPUConstCons3 defaut" << std::endl;
@@ -270,7 +270,7 @@ void ADMMGPUConstCons3::init(const Simparam& sim, const StudyCase& cas)
 	
 	
 	
-	updateGlobalProbGPU(epsG);
+	updateGlobalProbGPU();
 
 	
 	
@@ -323,7 +323,7 @@ void ADMMGPUConstCons3::updateP0(const StudyCase& cas)
 	//std::cout << "fin update temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 }
 
-void ADMMGPUConstCons3::solveOPF(float epsOPF)
+void ADMMGPUConstCons3::solveOPF()
 {
 	
 	// update q
@@ -335,8 +335,7 @@ void ADMMGPUConstCons3::solveOPF(float epsOPF)
 	
 	//init
 	int k = 0;
-	int kmax = 1000;
-	
+		
 	float err = 2 * epsOPF;
 	mu = 10;
 	float valMin = 0.0000001;
@@ -431,7 +430,7 @@ void ADMMGPUConstCons3::solveOPF(float epsOPF)
 
 		// update mu
 		mu *= 0.8;
-		mu = MAX(mu, valMin);
+		mu = MYMAX(mu, valMin);
 		//R.transferCPU();
 		err = R.distance2();
 		//R.transferGPU();
@@ -532,18 +531,17 @@ void ADMMGPUConstCons3::solve(Simparam* result, const Simparam& sim, const Study
 	
 	float epsG = sim.getEpsG();
 	float epsL = sim.getEpsL();
-	float epsOPF = epsL / _ratioEps;
+	float epsOPF = sim.getEpsIntern();
 	const int stepL = sim.getStepL();
 	const int stepG = sim.getStepG();
 	const int iterG = sim.getIterG();
 	const int iterL = sim.getIterL();
+	kmax = sim.getIterIntern();
 	
 
 	float resG = 2 * epsG;
 	float epsL2 = epsL * epsL;
 	int iterGlobal = 0;
-	int iterLocal = 0;
-	int realOccurence = 0;
 	
 	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
 	while ((iterGlobal < iterG) && (resG > epsG)) {
@@ -562,14 +560,14 @@ void ADMMGPUConstCons3::solve(Simparam* result, const Simparam& sim, const Study
 		tradeLin.swap(&Tlocal); // echange juste les pointeurs	
 		//std::cout << "-";
 		
-		updateGlobalProbGPU(epsOPF);
+		updateGlobalProbGPU();
 		
 		if (!(iterGlobal % stepG)) {
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(&resF, &Tlocal, iterGlobal / stepG, &tempNN);
+			resG = updateResEndo(iterGlobal / stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
@@ -592,7 +590,7 @@ void ADMMGPUConstCons3::solve(Simparam* result, const Simparam& sim, const Study
 	
 	
 
-	float fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	float fc = calcFc();
 	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
 	std::cout << "valeur finale des contraintes de l'opf : " << std::endl;
 	
@@ -688,7 +686,7 @@ void ADMMGPUConstCons3::updateLocalProbGPU(float epsL, int nIterL) {
 
 
 
-void ADMMGPUConstCons3::updateGlobalProbGPU(float epsOPF)
+void ADMMGPUConstCons3::updateGlobalProbGPU()
 {
 	//Rem : tout calcul qui est de taille N ou M peut �tre fait par les agents
 		// Si le calcul est de taile L, soit c'est calcul� par un/des superviseurs, soit tous les agents le calcul (un peu absurde)
@@ -715,18 +713,14 @@ void ADMMGPUConstCons3::updateGlobalProbGPU(float epsOPF)
 
 	// Resolution de l'OPF
 	if (_nLine) {
-		
-		
 		//std::cout << " Pn :" << std::endl;
 		//Pn.display(true);
 		//std::cout << " etaP :" << std::endl;
 		//etaP.display(true);
 
-		solveOPF(epsOPF);
+		solveOPF();
 		//std::cout << " Pso :" << std::endl;
 		//Pso.display(true);
-		
-		
 	}
 	else {
 		Pso = Pn;
@@ -764,29 +758,21 @@ void ADMMGPUConstCons3::updateGlobalProbGPU(float epsOPF)
 
 
 
-float ADMMGPUConstCons3::updateRes(MatrixCPU* res, MatrixGPU* Tlocal, int iter, MatrixGPU* tempNN)
+float ADMMGPUConstCons3::updateResEndo(int iter)
 {
 
-	float resS = Tlocal->max2(&tradeLin);
+	float resS = Tlocal.max2(&tradeLin);
 
-	updateDiffGPU <<<_numBlocksM, _blockSize >> > (tempNN->_matrixGPU, Tlocal->_matrixGPU, CoresLinTrans._matrixGPU, _nAgent);
-	float resR = tempNN->max2();
+	updateDiffGPU <<<_numBlocksM, _blockSize >> > (tempNN._matrixGPU, Tlocal._matrixGPU, CoresLinTrans._matrixGPU, _nAgent);
+	float resR = tempNN.max2();
 
 	float resXf = _ratioEps * Pso.max2(&Pn);
-	res->set(0, iter, resR);
-	res->set(1, iter, resS);
-	res->set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
+	resF.set(0, iter, resR);
+	resF.set(1, iter, resS);
+	resF.set(2, iter, resXf);
+	return MYMAX(MYMAX(resXf, resS), resR);
 
 }
 
-
-
-
-
-void ADMMGPUConstCons3::display() {
-
-	std::cout << _name << std::endl;
-}
 
 

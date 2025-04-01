@@ -1,10 +1,9 @@
 #include "../head/MarEndoConsGPU.cuh"
-#define MAX(X, Y) (X) * ((X) >= (Y)) + (Y) * ((Y) > (X))
 
 
 
 
-MarEndoConsGPU::MarEndoConsGPU() : MethodP2P()
+MarEndoConsGPU::MarEndoConsGPU() : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << " MarEndoConsGPU Constructor" << std::endl;
@@ -16,7 +15,7 @@ MarEndoConsGPU::MarEndoConsGPU() : MethodP2P()
 }
 
 
-MarEndoConsGPU::MarEndoConsGPU(float rho) : MethodP2P()
+MarEndoConsGPU::MarEndoConsGPU(float rho) : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "default MarEndoConsGPU Constructor" << std::endl;
@@ -91,7 +90,7 @@ void MarEndoConsGPU::solve(Simparam* result, const Simparam& sim, const StudyCas
 
 	float fc = 0;
 
-	int iterLocal = 0;
+	
 	_resG = 2 * epsG;
 	float epsL2 = epsL * epsL;
 
@@ -164,8 +163,8 @@ void MarEndoConsGPU::solve(Simparam* result, const Simparam& sim, const StudyCas
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 	
-	fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
-	//Method::calcFc(MatrixGPU* cost1, MatrixGPU* cost2, MatrixGPU* trade, MatrixGPU* Pn, MatrixGPU* BETA, MatrixGPU* tempN1, MatrixGPU* tempNN)
+	fc = calcFc();
+	
 	MatrixCPU tradeLinCPU;
 	tradeLin.toMatCPU(tradeLinCPU);
 	MatrixCPU LAMBDALinCPU;
@@ -625,7 +624,7 @@ void MarEndoConsGPU::updateGlobalProb() {
 #endif // INSTRUMENTATION
 
 	
-	float eps = Mymin(_resG * _delta, _epsLim);
+	float eps = MYMIN(_resG * _delta, _epsLim);
 	
 	
 	//std::cout << "SolveOPF" << std::endl;
@@ -652,7 +651,7 @@ void MarEndoConsGPU::updateGlobalProb() {
 #endif // INSTRUMENTATION
 	//std::cout << "update OPF" << std::endl;
 
-	updatePn(&Pn,&P,&nVoisin);
+	updatePn();
 	CHECK_LAST_CUDA_ERROR();
 	if (OPFonCPU) {
 		Pn.toMatCPU(PnCPU);
@@ -808,8 +807,8 @@ float MarEndoConsGPU::updateResBis(int iter)
 	 
 	float resXf = PSO.max2(&Pn);
 	/*for (int i = 1; i < _nAgentTrue; i++) {
-		resXf = MAX(abs(PSO.get(i,0) - Pn.get(i,0)), resXf);
-		resXf = MAX(abs(PSO.get(i + _nAgentTrue, 0) - Pn.get(i + _nAgentTrue, 0)), resXf);
+		resXf = MYMAX(abs(PSO.get(i,0) - Pn.get(i,0)), resXf);
+		resXf = MYMAX(abs(PSO.get(i + _nAgentTrue, 0) - Pn.get(i + _nAgentTrue, 0)), resXf);
 	}*/
 
 	
@@ -817,7 +816,7 @@ float MarEndoConsGPU::updateResBis(int iter)
 	resF.set(0, iter, resR);
 	resF.set(1, iter, resS);
 	resF.set(2, iter, resXf);
-	return MAX(MAX(resXf * _ratioEps, resS), resR);
+	return MYMAX(MYMAX(resXf * _ratioEps, resS), resR);
 }
 
 

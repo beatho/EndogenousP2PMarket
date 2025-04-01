@@ -198,7 +198,6 @@ bool testADMMGPUConst1TLAMBDA()
 
 bool testADMMGPUConst1TKappa()
 {
-	int _nAgent = 2;
 	int _nLine = 3;
 	
 	float value1 = 2;
@@ -209,17 +208,18 @@ bool testADMMGPUConst1TKappa()
 	int _blockSize = 256;
 	int _numBlocksL = ceil((_nLine + _blockSize - 1) / _blockSize);
 
-	
-	
-	
 	MatrixCPU Qtot(_nLine, 1, value1);
 	MatrixCPU Llimit(_nLine, 1, value2);
 	MatrixCPU Kappa1(_nLine, 1, value3);
 	MatrixCPU Kappa2(_nLine, 1, value4);
 	
 
-	ADMMGPUConst1T a;
-	a.updateKappa(&Kappa1, &Kappa2, &Llimit, &Qtot);
+	Kappa1.projectNeg();
+	Kappa1.add(&Llimit);
+	Kappa1.subtract(&Qtot);
+	Kappa2.projectNeg();
+	Kappa2.add(&Llimit);
+	Kappa2.add(&Qtot);
 
 	MatrixGPU QtotGPU(_nLine, 1, value1, 1);
 	MatrixGPU LlimitGPU(_nLine, 1, value2, 1);
@@ -465,9 +465,6 @@ bool testADMMGPUConst1TQ()
 	int _nLine = 7;
 
 	float value1 = 2;
-	float value2 = 3;
-	float value3 = 1;
-	float value4 = -2;
 
 	int _blockSize = 256;
 	int _numBlocksL = ceil((_nLine + _blockSize - 1) / _blockSize);
@@ -597,13 +594,10 @@ bool testADMMGPUConst1TCpb()
 
 	float value1 = 2;
 	float value2 = 3;
-	float value3 = 1;
-	float value4 = -2;
 
 	int _blockSize = 256;
 	int numBlocks = _nAgent;
 
-	
 	
 	MatrixCPU Qpart(_nAgent, _nLine, value1);
 	MatrixCPU G(_nAgent, _nLine, value2);
@@ -648,7 +642,7 @@ bool testADMMGPUConst1TUpdateRes()
 
 
 	return resR * (resR > resS) + resS * (resR <= resS);*/
-	int nAgent = 3;
+	
 	int ntrade = 4;
 	int blockSize = 15;
 	int numBlocks = ceil((ntrade + blockSize - 1) / blockSize);
@@ -683,7 +677,7 @@ bool testADMMGPUConst1TUpdateRes()
 
 	res2.set(0, 0, sqrtf((value1 + value3) * (value1 + value3) ));
 	res2.set(1, 0, sqrtf((value1 - value2) * (value1 - value2) ));
-	int iter = 0;
+	
 
 	Tlocal.transferGPU();
 	Tlocal_pre.transferGPU();

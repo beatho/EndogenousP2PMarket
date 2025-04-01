@@ -1,5 +1,5 @@
 #include "../head/ADMMMarketOpenMP.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
 ADMMMarketOpenMP::ADMMMarketOpenMP() : MethodP2P()
@@ -179,7 +179,7 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResBis(&resF, (_iterGlobal / _stepG), &tempNN);
+			resG = updateRes(_iterGlobal / _stepG);
 #ifdef INSTRUMENTATION
 			t2 = std::chrono::high_resolution_clock::now();
 			timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
@@ -216,7 +216,7 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 			
 		}
 	}
-	updatePn(&Pn, &P, &nVoisin);
+	updatePn();
 	/*std::cout << "Trade" << std::endl;
 	tradeLin.display();
 	std::cout << "power" << std::endl;
@@ -224,7 +224,7 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 	P.display();
 	Pn.display();*/
 
-	fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	fc = calcFc();
 	// FB 5
 	//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << " " << fc << std::endl;
 
@@ -500,53 +500,6 @@ void ADMMMarketOpenMP::init(const Simparam& sim, const StudyCase& cas)
 	
 
 }
-
-
-
-float ADMMMarketOpenMP::calcRes()
-{
-	MatrixCPU temp(Tlocal);
-	temp.subtract(&Tlocal_pre);
-
-	MatrixCPU temp2(Tmoy);
-	temp2.subtract(&P);
-	float d1 = temp.max2();
-	float d2 = temp2.max2();
-	
-
-	return d1 * (d1 > d2) + d2 * (d2 >= d1);
-}
-
-float ADMMMarketOpenMP::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
-{
-	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
-		tempNN->set(t, 0, tradeLin.get(t, 0) + tradeLin.get(k, 0));
-	}
-	float resR = tempNN->max2();
-
-
-	float resS = Tlocal.max2(&tradeLin); // nomalement * _rhog mais si _rhog est tres grand impossible que cela converge !!!
-	if (iter > 0) {
-		if (resR > _mu * resS) {
-			_rhog = _tau * _rhog;
-			_at1 = _rhog;
-			//std::cout << iter << ", rho augmente :" << _rhog << std::endl;
-		}
-		else if (resS > _mu * resR) {// rho = rho / tau_inc;
-			_rhog = _rhog / _tau;
-			_at1 = _rhog;
-			//std::cout << iter << ", rho diminue :" << _rhog << std::endl;
-		}
-	}
-
-	 
-	res->set(0, iter, resR);
-	res->set(1, iter, resS);
-	
-	return MAX(resS, resR);
-}
-
 
 
 void ADMMMarketOpenMP::display() {

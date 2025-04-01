@@ -1,5 +1,5 @@
 #include "../head/ADMMACConst1.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+
 
 
 ADMMACConst1::ADMMACConst1() : MethodP2P()
@@ -475,7 +475,7 @@ void ADMMACConst1::updateGlobalProb() {
 #endif // INSTRUMENTATION
 	
 
-	updatePn(&PQ,&Tmoy,&nVoisin);
+	updatePn();
 	//if (!(iterGlobal % 50)) {
 		PF.updatePQ(&PQ);
 		PF.solve();
@@ -733,7 +733,7 @@ float ADMMACConst1::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
 	res->set(0, iter, resR);
 	res->set(1, iter, resS);
 	res->set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
+	return MYMAX(MYMAX(resXf, resS), resR);
 }
 
 void ADMMACConst1::updateP()

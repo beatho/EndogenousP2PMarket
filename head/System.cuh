@@ -4,12 +4,10 @@
 #include <device_launch_parameters.h>
 
 #include "Method.h"
-#include "MethodP2P.cuh"
+#include "MethodP2PGPU.cuh"
 /* Market */
 #include "ADMMMarketGPU.cuh"
-#include "PAC.h"
-#include "ADMMConst.h"
-#include "ADMMConst1.h"
+
 #ifdef OSQP
     #include "OSQPConst.h"
 #endif

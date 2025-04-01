@@ -1,7 +1,7 @@
 #pragma once
 #include <device_launch_parameters.h>
 #ifdef OSQP
-#include "MethodP2P.cuh"
+#include "MethodP2P.h"
 #include "MatrixGPU.cuh"
 #include "MatrixCPU.h"
 #include "kernelFunction.cuh"

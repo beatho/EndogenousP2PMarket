@@ -292,7 +292,7 @@ bool testresolveRealPolynome3without2term2() {
 	double c = 3;
 	double d = 1;
 
-	double coef4[4] = { 1, 0, 3, 1 };
+	double coef4[4] = { a, b, c, d };
 	double coef2[2];
 	double root1 = cbrt((-1 + sqrt(5)) / 2) + cbrt((-1 - sqrt(5)) / 2);
 	
@@ -322,7 +322,7 @@ bool testresolveRealPolynome3without2term3() {
 	double c = -12.75;
 	double d = 11.25;
 
-	double coef4[4] = { 1, 2,  -12.75, 11.25 };
+	double coef4[4] = { a, b,  c, d };
 	double coef2[2];
 	double root1 = 1.5;
 	double root2 = -5;
@@ -1300,8 +1300,8 @@ bool testresolveRealPolynome4Newton2()
 
 bool testresolveRealPolynome3Laguerre1() {
 
-	double a = 1;
-	double b = -5;
+	/*double a = 1;
+	double b = -5;*/
 
 	double coef3[3] = { -5, 3, 1 };
 	double root1 = 2 - sqrt(5);
@@ -1346,12 +1346,12 @@ bool testresolveRealPolynome3Laguerre1() {
 }
 bool testresolveRealPolynome3Laguerre2() {
 
-	double a = 1;
+	//double a = 1;
 	double b = 0;
 	double c = 3;
 	double d = 1;
 
-	double coef3[3] = { 0, 3, 1 };
+	double coef3[3] = { b, c, d };
 	double root1 = cbrt((-1 + sqrt(5)) / 2) + cbrt((-1 - sqrt(5)) / 2);
 
 
@@ -1375,12 +1375,12 @@ bool testresolveRealPolynome3Laguerre2() {
 	return true;
 }
 bool testresolveRealPolynome3Laguerre3() {
-	double a = 1;
+	//double a = 1;
 	double b = 2;
 	double c = -12.75;
 	double d = 11.25;
 
-	double coef3[3] = { 2,  -12.75, 11.25 };
+	double coef3[3] = { b,  c, d };
 
 	double root1 = 1.5;
 	double root2 = -5;
@@ -1421,9 +1421,6 @@ bool testresolveRealPolynome3Laguerre3() {
 
 
 bool testresolveRealPolynome3Halley1() {
-
-	double a = 1;
-	double b = -5;
 
 	double coef3[3] = { -5, 3, 1 };
 	double root1 = 2 - sqrt(5);
@@ -1468,12 +1465,12 @@ bool testresolveRealPolynome3Halley1() {
 }
 bool testresolveRealPolynome3Halley2() {
 
-	double a = 1;
+	//double a = 1;
 	double b = 0;
 	double c = 3;
 	double d = 1;
 
-	double coef3[3] = { 0, 3, 1 };
+	double coef3[3] = { b, c, d };
 	double root1 = cbrt((-1 + sqrt(5)) / 2) + cbrt((-1 - sqrt(5)) / 2);
 
 
@@ -1497,13 +1494,12 @@ bool testresolveRealPolynome3Halley2() {
 	return true;
 }
 bool testresolveRealPolynome3Halley3() {
-	double a = 1;
+	//double a = 1;
 	double b = 2;
 	double c = -12.75;
 	double d = 11.25;
 
-	double coef3[3] = { 2,  -12.75, 11.25 };
-
+	double coef3[3] = { b,  c, d };
 	double root1 = 1.5;
 	double root2 = -5;
 

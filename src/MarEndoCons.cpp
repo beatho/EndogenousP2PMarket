@@ -1,5 +1,4 @@
 #include "../head/MarEndoCons.h"
-#define MAX(X, Y) (X) * ((X) >= (Y)) + (Y) * ((Y) > (X))
 
 
 
@@ -193,7 +192,7 @@ void MarEndoCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 	PSO.display();
 	Pn.display();*/
 
-	fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	fc = calcFc();
 	// FB 5
 	MatrixCPU Pb(OPF->getPb());
 	MatrixCPU Phi(OPF->getPhi());
@@ -538,7 +537,7 @@ void MarEndoCons::updateGlobalProb() {
 	std::chrono::high_resolution_clock::time_point t2;
 #endif // INSTRUMENTATION
 	
-	float eps = Mymin(_resG * _delta, _epsLim);
+	float eps = MYMIN(_resG * _delta, _epsLim);
 	
 
 	//std::cout << "SolveOPF" << std::endl;
@@ -563,7 +562,7 @@ void MarEndoCons::updateGlobalProb() {
 	
 	
 
-		updatePn(&Pn,&P,&nVoisin);
+		updatePn();
 		//Pn.display();
 		//PSO.display();
 		OPF->updateConsensus(&Pn);
@@ -747,7 +746,7 @@ float MarEndoCons::calcRes()
 	float d1 = Tlocal.max2(&Tlocal_pre);
 	float d2 = Tmoy.max2(&P);
 
-	return MAX(d1, d2);
+	return MYMAX(d1, d2);
 }
 
 float MarEndoCons::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
@@ -764,8 +763,8 @@ float MarEndoCons::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
 	float resXf = PSO.max2(&Pn);
 	
 	/*for (int i = 1; i < _nAgentTrue; i++) {
-		resXf = MAX(abs(PSO.get(i,0) - Pn.get(i,0)), resXf);
-		resXf = MAX(abs(PSO.get(i + _nAgentTrue, 0) - Pn.get(i + _nAgentTrue, 0)), resXf);
+		resXf = MYMAX(abs(PSO.get(i,0) - Pn.get(i,0)), resXf);
+		resXf = MYMAX(abs(PSO.get(i + _nAgentTrue, 0) - Pn.get(i + _nAgentTrue, 0)), resXf);
 	}*/
 
 	
@@ -773,7 +772,7 @@ float MarEndoCons::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
 	res->set(0, iter, resR);
 	res->set(1, iter, resS);
 	res->set(2, iter, resXf);
-	return MAX(MAX(resXf * _ratioEps, resS), resR);
+	return MYMAX(MYMAX(resXf * _ratioEps, resS), resR);
 }
 
 void MarEndoCons::updateP()

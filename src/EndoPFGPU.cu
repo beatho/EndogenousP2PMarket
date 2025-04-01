@@ -1,10 +1,10 @@
 #include "../head/EndoPFGPU.cuh"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
-// On prend la transpos�e de G !!! (ie G(n,i) = G[n*Nvar + i] )
+// On prend la transpose de G !!! (ie G(n,i) = G[n*Nvar + i] )
 
 
-EndoPFGPU::EndoPFGPU() : MethodP2P()
+EndoPFGPU::EndoPFGPU() : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << " EndoPFGPU Constructor" << std::endl;
@@ -16,7 +16,7 @@ EndoPFGPU::EndoPFGPU() : MethodP2P()
 }
 
 
-EndoPFGPU::EndoPFGPU(float rho) : MethodP2P()
+EndoPFGPU::EndoPFGPU(float rho) : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "default EndoPFGPU Constructor" << std::endl;
@@ -113,7 +113,7 @@ void EndoPFGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResBis(&resF, &Tlocal, _iterGlobal / _stepG, &tempNN);
+			resG = updateResEndo(_iterGlobal / _stepG);
 			//CHECK_LAST_CUDA_ERROR();
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
@@ -134,8 +134,8 @@ void EndoPFGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	cudaDeviceSynchronize();
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	float fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
-	//Method::calcFc(MatrixGPU* cost1, MatrixGPU* cost2, MatrixGPU* trade, MatrixGPU* Pn, MatrixGPU* BETA, MatrixGPU* tempN1, MatrixGPU* tempNN)
+	float fc = calcFc();
+	
 	MatrixCPU tradeLinCPU;
 	tradeLin.toMatCPU(tradeLinCPU);
 	MatrixCPU LAMBDALinCPU;
@@ -554,7 +554,7 @@ void EndoPFGPU::updateGlobalProbGPU() {
 	//std::cout << "*************" << std::endl;
 	
 	Pn.swap(&Pnpre);
-	updatePn(&Pn,&Tmoy,&nVoisin);
+	updatePn();
 	//std::cout << " Tmoy " << std::endl;
 	
 	//std::cout << " Pn " << std::endl;
@@ -777,23 +777,24 @@ void EndoPFGPU::updateSensi()
 
 
 
-float EndoPFGPU::updateResBis(MatrixCPU* res, MatrixGPU* Tlocal, int iter, MatrixGPU* tempNN)
+float EndoPFGPU::updateResEndo(int iter)
 {
 	
-	float resS = Tlocal->max2(&tradeLin);
+	float resS = Tlocal.max2(&tradeLin);
 
-	updateDiffGPU << <_numBlocksM, _blockSize >> > (tempNN->_matrixGPU, tradeLin._matrixGPU, CoresLinTrans._matrixGPU, _nTrade);
-	float resR = tempNN->max2();
+	updateDiffGPU << <_numBlocksM, _blockSize >> > (tempNN._matrixGPU, tradeLin._matrixGPU, CoresLinTrans._matrixGPU, _nTrade);
+	float resR = tempNN.max2();
 	// Residus reseau
 	
 	tempL1.subtract(&Ylimit, &Y);
 	tempL1.projectNeg();
 
 	float resXf = _ratioEps * tempL1.max2();
-	res->set(0, iter, resR);
-	res->set(1, iter, resS);
-	res->set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
+	resF.set(0, iter, resR);
+	resF.set(1, iter, resS);
+	resF.set(2, iter, resXf);
+
+	return MYMAX(MYMAX(resXf, resS), resR);
 }
 
 void EndoPFGPU::display() {

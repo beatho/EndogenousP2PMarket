@@ -36,6 +36,7 @@ public:
 	virtual MatrixGPU getY();
 	
 	virtual void setE(MatrixGPU* Enew);
+	virtual void setE(MatrixGPUD* Enew);
 	virtual void display(bool all = true);
 
 private:

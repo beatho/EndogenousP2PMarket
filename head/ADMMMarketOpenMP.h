@@ -1,5 +1,5 @@
 #pragma once
-#include "MethodP2P.cuh"
+#include "MethodP2P.h"
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -23,9 +23,6 @@ public:
 	virtual void init(const Simparam& sim, const StudyCase& cas);
 	
 	std::string NAME ="ADMMMarketOpenMP";
-	
-	float calcRes();
-	float updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN);
 	
 	void display();
 private:
@@ -52,7 +49,7 @@ private:
 	clock_t tMarket;
 
 	MatrixCPU tempNN; // Matrix temporaire pour aider les calculs
-	MatrixCPU tempN1; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixCPU tempN1; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 
 
 	MatrixCPU Tlocal;

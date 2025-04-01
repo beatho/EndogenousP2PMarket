@@ -472,6 +472,27 @@ void GPUPFdistPQ::setE(MatrixGPU* Enew)
 #endif // INSTRUMENTATION
 }
 
+void GPUPFdistPQ::setE(MatrixGPUD* Enew)
+{
+#ifdef INSTRUMENTATION
+    t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
+    E = *Enew;
+    if (!E.getPos()) {
+        E.transferGPU();
+    }
+    initECar << <numBlock, _blockSize >> > (VoltageRealIm._matrixGPU, E._matrixGPU, Nbus);
+    //CHECK_LAST_CUDA_ERROR();
+    VoltageRealImPre.set(&VoltageRealIm);
+    
+#ifdef INSTRUMENTATION
+    t2 = std::chrono::high_resolution_clock::now();
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    occurencePerBlock.increment(0, 8, 1);
+#endif // INSTRUMENTATION
+}
+
+
 void GPUPFdistPQ::display(bool all)
 {
     std::cout.precision(3);

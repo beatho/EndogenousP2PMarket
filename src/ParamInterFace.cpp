@@ -220,8 +220,8 @@ void ResultInterface::changeIterStep(int iter, int step){
     if(step){
         _results.set(0, stepG2_ind, step);
     }
-    int _iter = _results.get(0, iterMax_ind);
-    int _step = _results.get(0, stepG2_ind);
+    int _iter = (int) _results.get(0, iterMax_ind);
+    int _step = (int) _results.get(0, stepG2_ind);
     if(_step){
         _resF = MatrixCPU(3, _iter/_step + 1);
     }
@@ -337,7 +337,7 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
         }
 
     } else if (type == 2){ // PF
-        int Nbus =  _sizes.get(0, nBusP_ind);
+        int Nbus = (int)  _sizes.get(0, nBusP_ind);
         std::cout << "The error of this state is " << _results.get(0, resR_ind) << std::endl;
         std::cout << "===============================================================|" << std::endl;
         std::cout << "      System Summary                                           |" << std::endl;
@@ -354,7 +354,7 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
 
         //std::cout << 0 << "      " << E.get(Nbus, 0) << "             " << E.get(0, 0) * (abs(E.get(0, 0)) > 0.0001) * 180 / 3.1415 << "              " << (abs(W.get(0, 0)) > 0.0001) * W.get(0, 0) << "         " << (abs(W.get(Nbus, 0)) > 0.0001) * W.get(Nbus, 0) << std::endl;
 
-        float seuil = 0.0001;
+        float seuil = 0.0001f;
         
         std::cout << std::setw(5) << 0 << "|" << std::setw(11) << _E.get(Nbus, 0) << "*|" << std::setw(11) << _E.get(0, 0) * (abs(_E.get(0, 0)) > seuil) * 180 / 3.1415
             << "*|" << std::setw(15) << (abs(_Pb.get(0, 0)) > seuil) * _Pb.get(0, 0) << "|" << std::setw(15) << (abs(_Pb.get(Nbus, 0)) > seuil) * _Pb.get(Nbus, 0)
@@ -377,8 +377,8 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
         std::cout << "                      END PRINT                                                                |" << std::endl;
         std::cout << "===============================================================================================|" << std::endl;
     } else if (type == 3){ // EndoMarket
-        int Nbus =  _sizes.get(0, nBusP_ind);
-        int Nline = _sizes.get(0, nLineP_ind);
+        int Nbus  = (int) _sizes.get(0, nBusP_ind);
+        int Nline = (int) _sizes.get(0, nLineP_ind);
         std::cout << "===============================================================|" << std::endl;
         std::cout << "        Market Simulation result :  System Summary             |" << std::endl;
         std::cout << "===============================================================|" << std::endl;
@@ -422,7 +422,7 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
 
         //std::cout << 0 << "      " << E.get(Nbus, 0) << "             " << E.get(0, 0) * (abs(E.get(0, 0)) > 0.0001) * 180 / 3.1415 << "              " << (abs(W.get(0, 0)) > 0.0001) * W.get(0, 0) << "         " << (abs(W.get(Nbus, 0)) > 0.0001) * W.get(Nbus, 0) << std::endl;
 
-        float seuil = 0.0001;
+        float seuil = 0.0001f;
 
         std::cout << std::setw(5) << "**" << "|" << std::setw(5) << 0 << "|" << std::setw(14) << sqrt(_E.get(Nbus, 0)) << "* |"
             << std::setw(13) << _Pb.get(0, 0) << "|" << std::setw(13) << _Pb.get(Nbus, 0)
@@ -443,8 +443,8 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
     }
     else if (type == 4){ // OPF
         // E = [l_i v_i]
-        int Nbus =  _sizes.get(0, nBusP_ind);
-        int Nline = _sizes.get(0, nLineP_ind);
+        int Nbus  = (int) _sizes.get(0, nBusP_ind);
+        int Nline = (int) _sizes.get(0, nLineP_ind);
         std::cout << "===============================================================|" << std::endl;
         std::cout << "        OPF Simulation result :  System Summary             |" << std::endl;
         std::cout << "===============================================================|" << std::endl;
@@ -488,7 +488,7 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
 
         //std::cout << 0 << "      " << E.get(Nbus, 0) << "             " << E.get(0, 0) * (abs(E.get(0, 0)) > 0.0001) * 180 / 3.1415 << "              " << (abs(W.get(0, 0)) > 0.0001) * W.get(0, 0) << "         " << (abs(W.get(Nbus, 0)) > 0.0001) * W.get(Nbus, 0) << std::endl;
 
-        float seuil = 0.0001;
+        float seuil = 0.0001f;
 
         std::cout << std::setw(5) << "**" << "|" << std::setw(5) << 0 << "|" << std::setw(14) << sqrt(_E.get(Nbus, 0)) << "* |"
             << std::setw(13) << _Pb.get(0, 0) << "|" << std::setw(13) << _Pb.get(Nbus, 0)

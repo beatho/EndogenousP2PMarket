@@ -1,8 +1,3 @@
-#pragma once
-
-
-
-
 // utilile
 #include "MatrixCPU.h"
 #include "MatrixCPUD.h"
@@ -73,7 +68,6 @@
 #include "TestAgent.h"
 #include "TestStudyCase.h"
 #include "TestADMMConst.h"
-#include "TestADMMConst1.h"
 
 #include "TestADMMGPUConst1.cuh"
 #include "TestADMMGPUConst1T.cuh"

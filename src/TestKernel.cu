@@ -1144,7 +1144,6 @@ float testCalculResX(int method)
 				MatrixGPU kappaPre2(nLine[j], 1, values4[j], 1);
 				cudaDeviceSynchronize();
 				time = 0;
-				int numBlocks;
 				for (int repet = 0; repet < nRepet; repet++) {
 					MatrixGPU resCopy(res);
 					MatrixGPU tempL2Copy(tempL2);
@@ -1376,14 +1375,13 @@ float testCalculChat(int method, int blockSize, int repartition) {
 
 	float values[nSimu];
 	float values2[nSimu];
-	float values3[nSimu];
+	
 	float rhos[nSimu];
 	MatrixCPU temps(nNBus, nSimu, 0);
 	MatrixCPU nBusMat(1, nNBus, 0);
 	for (int j = 0; j < nSimu; j++) {
 		values[j] = (float)(rand()) / rand();
 		values2[j] = (float)(rand()) / rand();
-		values3[j] = (float)(rand()) / rand();
 		rhos[j] = (float)(rand() % 100) / rand();
 	}
 	for (int i = 0; i < nNBus; i++) {
@@ -2310,7 +2308,6 @@ __global__ void updatePnPGPUSharedResidualSameThreadTest(float* Pn, float* PnPre
 	if (nAgentShared > 0) { // sinon il n'y a rien � faire
 		const int CoresAgentLinLocal = CoresBusAgentBegin[i];
 		const int j = CoresAgentLinLocal + thIdx;
-		const int endLocal2 = 2 * nAgentShared;
 		double res = 0;
 		if (nAgentShared == 1) { // cas trivial s'il n'y a qu'un agent, la divergence est entre les blocs donc c'est ok
 			if (thIdx == 0) {
@@ -2536,7 +2533,7 @@ float testCalculVGS(int method) {
 		for (int j = 0; j < nNLine; j++) {
 			int nLine = 0;
 			int nLineFully = nBus[i] * (nBus[i] - 1) / 2;
-			nLineFully = Mymin(nLineFully, nLineMax);
+			nLineFully = MYMIN(nLineFully, nLineMax);
 			switch (j)
 			{
 			case 0:

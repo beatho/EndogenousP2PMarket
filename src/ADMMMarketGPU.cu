@@ -1,8 +1,8 @@
 #include "../head/ADMMMarketGPU.cuh"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
-ADMMMarketGPU::ADMMMarketGPU() : MethodP2P()
+ADMMMarketGPU::ADMMMarketGPU() : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << " ADMMMarketGPU Constructor" << std::endl;
@@ -11,7 +11,7 @@ ADMMMarketGPU::ADMMMarketGPU() : MethodP2P()
 }
 
 
-ADMMMarketGPU::ADMMMarketGPU(float rho) : MethodP2P()
+ADMMMarketGPU::ADMMMarketGPU(float rho) : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "default ADMMMarketGPU Constructor" << std::endl;
@@ -88,7 +88,6 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 	float epsL2 = epsL * epsL;
 	float fc = 0;
 
-	int iterLocal = 0;
 	float resG = 2 * epsG;
 	float resL = 2 * epsL;
 	_iterGlobal = 0;
@@ -128,7 +127,7 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(&resF, (_iterGlobal / _stepG), &tempNN);
+			resG = updateRes((_iterGlobal / _stepG));
 #ifdef INSTRUMENTATION
 			t2 = std::chrono::high_resolution_clock::now();
 			timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
@@ -149,7 +148,7 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 #endif // INSTRUMENTATION
 	
 	
-	updatePn(&Pn, &P, &nVoisin);
+	updatePn();
 
 	/*std::cout << "power" << std::endl;
 	Tmoy.display(true);
@@ -159,7 +158,7 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 	std::cout << "lambda" << std::endl;
 	LAMBDALin.display(true);*/
 
-	fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	fc = calcFc();
 	MatrixCPU tradeLinCPU;
 	tradeLin.toMatCPU(tradeLinCPU);
 	MatrixCPU LAMBDALinCPU;
@@ -529,44 +528,6 @@ void ADMMMarketGPU::updateLocalProbGPU(float epsL, int nIterL)
 }
 
 
-
-float ADMMMarketGPU::updateRes(MatrixCPU* res, int iter, MatrixGPU* tempNN)
-{
-	//std::cout << "tradeLin" << std::endl;
-	//tradeLin.display(true);
-	// 
-	updateDiffGPU << <_numBlocksM, _blockSize >> > (tempNN->_matrixGPU, tradeLin._matrixGPU, CoresLinTrans._matrixGPU, _nTrade);
-	
-	
-	//std::cout << "tempNN" << std::endl;
-	//tempNN->display(true);
-	
-	float resR = tempNN->max2();
-
-	float resS = Tlocal.max2(&tradeLin); // nomalement * _rhog mais si _rhog est tres grand impossible que cela converge !!!
-	
-	//std::cout << iter << " " << resR << " " << resS << std::endl;
-	if (iter > 0) {
-		if (resR > _mu * resS) {
-			_rhog = _tau * _rhog;
-			_at1 = _rhog;
-			//std::cout << iter << ", rho augmente :" << _rhog << std::endl;
-		}
-		else if (resS > _mu * resR) {// rho = rho / tau_inc;
-			_rhog = _rhog / _tau;
-			_at1 = _rhog;
-			//std::cout << iter << ", rho diminue :" << _rhog << std::endl;
-		}
-	}/**/
-	
-	
-	res->set(0, iter, resR);
-	res->set(1, iter, resS);
-	
-	return MAX(resS, resR);
-}
-
-
 void ADMMMarketGPU::display() {
 
 	if (_iterGlobal == 0) {
@@ -587,7 +548,7 @@ void ADMMMarketGPU::display() {
 	std::cout << "      System Summary                                           |" << std::endl;
 	std::cout << "===============================================================|" << std::endl;
 	std::cout << "Agent            " << _nAgentTrue << std::endl;
-	std::cout << "Nombre d'�change " << _nTrade << std::endl;
+	std::cout << "Nombre d'echange " << _nTrade << std::endl;
 
 	std::cout << std::endl << std::endl;
 

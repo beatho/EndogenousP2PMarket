@@ -482,6 +482,30 @@ void CPUPFdistPQ::setE(MatrixCPU* Enew)
 #endif // INSTRUMENTATION
 }
 
+void CPUPFdistPQ::setE(MatrixCPUD* Enew)
+{
+#ifdef INSTRUMENTATION
+    t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
+    E = *Enew;
+    for (int i = 0; i < Nbus; i++) {
+        float v = E.get(i + Nbus, 0);
+        float theta = E.get(i, 0);
+        
+        VoltageRealIm.set(i, 0, v * cos(theta));
+        VoltageRealIm.set(i + Nbus, 0, v * sin(theta));
+        
+        VoltageRealImPre.set(i, 0, v * cos(theta));
+        VoltageRealImPre.set(i + Nbus, 0, v * sin(theta));
+
+    }
+#ifdef INSTRUMENTATION
+    t2 = std::chrono::high_resolution_clock::now();
+    timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+    occurencePerBlock.increment(0, 8, 1);
+#endif // INSTRUMENTATION
+}
+
 void CPUPFdistPQ::display(bool all)
 {
     std::cout.precision(3);

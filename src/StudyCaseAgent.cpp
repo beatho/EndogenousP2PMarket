@@ -193,8 +193,8 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 		throw std::invalid_argument("propCons and propPro are proportion <1 and >0");
 	}	
 	_nAgent = nAgent;
-	_nCons = (int) nAgent * propCons;
-	_nPro = (int) nAgent * propPro;
+	_nCons = (int) (nAgent * propCons);
+	_nPro  = (int) (nAgent * propPro);
 	_nGen = nAgent - _nCons - _nPro;
 
 	
@@ -268,9 +268,9 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float Q, float dQ,
 	}
 	_AC = true;
 	_nAgent = nAgent + 1;
-	_nCons = (int) nAgent * propCons + 1;
-	_nPro = (int) nAgent * propPro;
-	_nGenNFle = (int) nAgent * propGenNFle;
+	_nCons = (int) (nAgent * propCons) + 1;
+	_nPro  = (int) (nAgent * propPro);
+	_nGenNFle = (int) (nAgent * propGenNFle);
 	_nGen = _nAgent - _nCons - _nPro;
 	_nGenFle = _nGen - _nGenNFle;
 	
@@ -299,8 +299,8 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float Q, float dQ,
 			Q0 = dQ * 2 * (rand1() - 0.5f);
 			a0 = a + da * 2 * (rand1() - 0.5f);
 			aQ0 = a + da * 2 * (rand1() - 0.5f);
-			pLim1 = -1.1 * P0 / _Sbase;
-			pLim2 = -0.9 * P0 / _Sbase;
+			pLim1 = -1.1f * P0 / _Sbase;
+			pLim2 = -0.9f * P0 / _Sbase;
 			qLim1 = Q0 / _Sbase * (1.05f - 0.1f * (Q0 > 0));
 			qLim2 = Q0 / _Sbase * (0.95f + 0.1f * (Q0 > 0));
 			cost1 = a0 * (_Sbase * _Sbase);
@@ -411,9 +411,9 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 	}
 	_AC = false;
 	_nAgent = nAgent ;
-	_nCons = (int) nAgent * propCons;
-	_nPro = (int) nAgent * propPro;
-	_nGenNFle = (int) nAgent * propGenNFle;
+	_nCons = (int) (nAgent * propCons);
+	_nPro  = (int) (nAgent * propPro);
+	_nGenNFle = (int) (nAgent * propGenNFle);
 	_nGen = _nAgent - _nCons - _nPro;
 	_nGenFle = _nGen - _nGenNFle;
 
@@ -432,8 +432,8 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 		if (id < _nCons) { // consumer
 			P0 = P + dP * 2 * (rand1() - 0.5f);
 			a0 = a + da * 2 * (rand1() - 0.5f);
-			pLim1 = -1.1 * P0 / _Sbase;
-			pLim2 = -0.9 * P0 / _Sbase;
+			pLim1 = -1.1f * P0 / _Sbase;
+			pLim2 = -0.9f * P0 / _Sbase;
 			cost1 = a0 * (_Sbase * _Sbase);
 			cost2 = P0 * a0 * _Sbase;
 			nVoisin = _nGen + _nPro;
@@ -446,8 +446,8 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P, float dP, float a, float da,
 		else if (id < _nCons + _nGenNFle) {
 			P0 = P + dP * 2 * (rand1() - 0.5f);
 			a0 = a + da * 2 * (rand1() - 0.5f);
-			pLim1 = 0.9 * P0 / _Sbase;
-			pLim2 = 1.1 * P0 / _Sbase;
+			pLim1 = 0.9f * P0 / _Sbase;
+			pLim2 = 1.1f * P0 / _Sbase;
 			cost1 = a0 * (_Sbase * _Sbase);
 			cost2 = -P0 * _Sbase * a0;
 			nVoisin = _nCons + _nPro;
@@ -513,7 +513,7 @@ StudyCaseAgent::StudyCaseAgent(int nAgent, float P0, float dP, float b, float db
 		throw std::invalid_argument("propCons is a proportion <1 and >0");
 	}
 	_nAgent = nAgent;
-	_nCons = (int) nAgent * propCons;
+	_nCons = (int) (nAgent * propCons);
 	_nPro = 0;
 	_nGen = nAgent - _nCons - _nPro;
 
@@ -929,11 +929,11 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 			Q0 = dQconso * 2 * (rand1() - 0.5f);
 			pLim1 = 0;
 			pLim2 = P0 / _Sbase;
-			qLim1 = Q0 / _Sbase * (1.05 - 0.1 * (Q0 > 0));
-			qLim2 = Q0 / _Sbase * (0.95 + 0.1 * (Q0 > 0));
-			cost1 = 0.1 * (_Sbase * _Sbase);
-			cost2 = bProd * _Sbase + dbProd * 2 * (rand1() - 0.5) * _Sbase;
-			costQ1 = 0.1 * (_Sbase * _Sbase);
+			qLim1 = Q0 / _Sbase * (1.05f - 0.1f * (Q0 > 0));
+			qLim2 = Q0 / _Sbase * (0.95f + 0.1f * (Q0 > 0));
+			cost1 = 0.1f * (_Sbase * _Sbase);
+			cost2 = bProd * _Sbase + dbProd * 2 * (rand1() - 0.5f) * _Sbase;
+			costQ1 = 0.1f * (_Sbase * _Sbase);
 			costQ2 = -Q0 * costQ1 / _Sbase;
 			nVoisin = _nCons + _nPro;
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 2);
@@ -965,7 +965,7 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 void StudyCaseAgent::genAgentsFullRandom(int nAgent, float aMin, float aMax, float P0Min, float P0Max, float gammaMin, float gammaMax, float propConsoMin, float propConsoMax, float borneMin, float borneMax)
 {
 	clock_t t = clock();
-	srand(time(nullptr));
+	srand((unsigned int) time(nullptr));
 	if (nAgent <= 0) {
 		throw std::invalid_argument("nAgent must be positive");
 	}
@@ -988,7 +988,7 @@ void StudyCaseAgent::genAgentsFullRandom(int nAgent, float aMin, float aMax, flo
 
 	_nAgent = nAgent;
 	float propConso = randabfloat(propConsoMin, propConsoMax);
-	_nCons = Mymin(Mymax(propConso, 1), _nAgent - 1);
+	_nCons = MYMIN(MYMAX((int)(propConso * _nAgent), 1), _nAgent - 1);
 	_nPro = 0;
 	_nGen = _nAgent - _nCons;
 	_nGenFle = _nGen;
@@ -1009,11 +1009,11 @@ void StudyCaseAgent::genAgentsFullRandom(int nAgent, float aMin, float aMax, flo
 	{
 		float P0 = randabfloat(P0Min, P0Max); // objective
 		float borne = randabfloat(borneMin, borneMax);
-		float cost1 = randabfloat(aMin, aMax);
+		cost1 = randabfloat(aMin, aMax);
 		if (id < _nCons) { // consumer
 				
 			pLim1 =  - (1 + borne) * P0;
-			pLim2 = Mymin((1 - borne) * (-P0), 0);
+			pLim2 = MYMIN((1 - borne) * (-P0), 0);
 			cost2 =  P0 / cost1;
 			nVoisin = _nGen + _nPro;
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, nAgent, 1);
@@ -1021,7 +1021,7 @@ void StudyCaseAgent::genAgentsFullRandom(int nAgent, float aMin, float aMax, flo
 			_Lb.set(id, 0, pLim1);
 		}
 		else { // generator
-			pLim1 = Mymax((1 - borne) * (P0), 0);
+			pLim1 = MYMAX((1 - borne) * (P0), 0);
 			pLim2 = (1 + borne) * P0;
 			cost2 = -P0 / cost1;
 			nVoisin = _nCons + _nPro;
@@ -1196,27 +1196,27 @@ void StudyCaseAgent::genBetaRandom(float beta, float dbeta)
 {
 	for (int i = 0; i < _nCons; i++) { // conso
 		for (int j = _nCons; j < _nAgent; j++) { // le reste
-			float betaR = beta + dbeta * 2 * (rand1() - 0.5);
+			float betaR = beta + dbeta * 2 * (rand1() - 0.5f);
 			_BETA.set(i, j, -betaR * _Sbase);
 		}
 	}
 	for (int i = _nCons; i < _nCons + _nGen; i++) { // gen
 		for (int j = 0; j < _nCons; j++) { // conso
-			float betaR = beta + dbeta * 2 * (rand1() - 0.5);
+			float betaR = beta + dbeta * 2 * (rand1() - 0.5f);
 			_BETA.set(i, j, betaR * _Sbase);
 		}
 		for (int j = _nCons + _nGen; j < _nAgent; j++) { // prosumer
-			float betaR = beta + dbeta * 2 * (rand1() - 0.5);
+			float betaR = beta + dbeta * 2 * (rand1() - 0.5f);
 			_BETA.set(i, j, betaR * _Sbase);
 		}
 	}
 	for (int i = _nCons + _nGen; i < _nAgent; i++) { // prosumer
 		for (int j = 0; j < _nCons; j++) { // conso
-			float betaR = beta + dbeta * 2 * (rand1() - 0.5);
+			float betaR = beta + dbeta * 2 * (rand1() - 0.5f);
 			_BETA.set(i, j, betaR * _Sbase);
 		}
 		for (int j = _nCons; j < _nCons + _nGen; j++) { // gen
-			float betaR = beta + dbeta * 2 * (rand1() - 0.5);
+			float betaR = beta + dbeta * 2 * (rand1() - 0.5f);
 			_BETA.set(i, j, -betaR * _Sbase);
 		}
 	}
@@ -1238,11 +1238,13 @@ MatrixCPU StudyCaseAgent::Set29node(bool AC)
 	_nGen = 10;
 	_nCons = 21 + offset;
 	
-	float Plim1[31] = { -146.4, -483, -750, -350.7, -783, -9.8, -12.8, -480, -493.5, -237, -1020, -411, -371.3, -462.9, -336, -208.5, -421.5, -309, -425.3,-13.8, -1656 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	float Plim1[31] = { -146.4f, -483.0f, -750.0f, -350.7f, -783.0f, -9.8f, -12.8f, -480.0f, -493.5f, -237.0f, -1020.0f, -411.0f, -371.3f,
+		 -462.9f, -336.0f, -208.5f, -421.5f, -309.0f, -425.3f, -13.8f, -1656.0f , 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 	float Plim2[31] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1040, 646, 725, 652, 508, 687, 580, 564, 865, 1100 };
 	float Cost1[31] = { 67, 47, 47, 53, 82, 52, 87, 57, 50, 52, 71, 64, 57, 82, 69, 69, 86, 54, 78, 81, 59, 89, 67, 55, 82, 88, 76, 84, 77, 51, 87 };
 	float Cost2[31] = { 64, 79, 71, 62, 65, 83, 63, 81, 73, 69, 62, 79, 60, 80, 78, 70, 62, 70, 66, 70, 71, 18, 21, 37, 25, 17, 38, 28, 36, 38, 19 };
-	float Qobj[31] = { -14, -7, -14, 12, 9.7, 0.58, -0.54, 13, -14, 1.8, 3.5, 8, 8.9, -9.4, -0.3, -1.6, 4.4, 6.2, 7.6, -6.7, 5.4, 4.6, -10, -11, -0.05, 13.8, -4.7, 2.5, 8.3, 7.54, -7.4 };
+	float Qobj[31] = { -14, -7, -14, 12, 9.7f, 0.58f, -0.54f, 13, -14, 1.8f, 3.5f, 8, 8.9f, -9.4f, -0.3f, -1.6f, 4.4f, 6.2f, 7.6f, -6.7f,
+		 5.4f, 4.6f, -10, -11, -0.05f, 13.8f, -4.7f, 2.5f, 8.3f, 7.54f, -7.4f };
 	int BusAgent[31] = { 1, 3, 4, 7, 8, 9, 12, 15, 16, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 31, 39, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 };
 	
 	float gamma = 0;
@@ -1308,14 +1310,14 @@ MatrixCPU StudyCaseAgent::Set29node(bool AC)
 			cost2 = Cost2[id] ;
 			nVoisin = _nGen + _nPro;
 			
-			qLim1 = Qobj[id] * (0.95 + 0.1 * (Qobj[id] < 0));
-			qLim2 = Qobj[id] * (1.05 - 0.2 * (Qobj[id] < 0));
+			qLim1 = Qobj[id] * (0.95f + 0.1f * (Qobj[id] < 0));
+			qLim2 = Qobj[id] * (1.05f - 0.1f * (Qobj[id] < 0));
 			if (qLim1 == 0) {
-				qLim1 = -0.1;
+				qLim1 = -0.1f;
 			} if (qLim2 == 0) {
-				qLim2 = 0.1;
+				qLim2 = 0.1f;
 			}
-			costQ1 = 0.1;
+			costQ1 = 0.1f;
 			costQ2 = -costQ1 * Qobj[id];
 
 			(_agents[AgentIndice]).setAgent(AgentIndice, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 1);
@@ -1339,12 +1341,12 @@ MatrixCPU StudyCaseAgent::Set29node(bool AC)
 			qLim1 = Qobj[id] * 2 * (Qobj[id] < 0);
 			qLim2 = Qobj[id] * 2 * (Qobj[id] > 0);
 
-			costQ1 = 0.1;
+			costQ1 = 0.1f;
 			costQ2 = -costQ1 * Qobj[id];
 			if (qLim1 == 0) {
-				qLim1 = -0.1;
+				qLim1 = -0.1f;
 			} if (qLim2 == 0) {
-				qLim2 = 0.1;
+				qLim2 = 0.1f;
 			}
 			_agents[AgentIndice].setAgent(AgentIndice, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 2);
 			_Ub.set(AgentIndice, 0, pLim2);
@@ -1365,12 +1367,12 @@ MatrixCPU StudyCaseAgent::Set29node(bool AC)
 			qLim1 = Qobj[id] * 2 * (Qobj[id] < 0);
 			qLim2 = Qobj[id] * 2 * (Qobj[id] > 0);
 
-			costQ1 = 0.1;
+			costQ1 = 0.1f;
 			costQ2 = -costQ1 * Qobj[id];
 			if (qLim1 == 0) {
-				qLim1 = -0.1;
+				qLim1 = -0.1f;
 			} if (qLim2 == 0) {
-				qLim2 = 0.1;
+				qLim2 = 0.1f;
 			}
 			_agents[AgentIndice].setAgent(AgentIndice, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 3);
 			_Ub.set(AgentIndice, 0, pLim2);
@@ -1417,10 +1419,10 @@ MatrixCPU StudyCaseAgent::Set3BusOld(bool AC) {
 	_nCons = 1;
 	DELETEA(_agents);
 	_agents = new Agent[_nAgent];
-	float Plim1[3] = { -1.51, 0, 0};
-	float Plim2[3] = { -1.50, 1.00, 2.00};
-	float Cost1[3] = { 1000, 0.01, 0.01 }; // on aimerait a = 0 mais on va �viter
-	float Cost2[3] = { 1.50, 60, 120};
+	float Plim1[3] = { -1.51f, 0, 0};
+	float Plim2[3] = { -1.50f, 1.00f, 2.00f};
+	float Cost1[3] = { 1000, 0.01f, 0.01f }; // on aimerait a = 0 mais on va �viter
+	float Cost2[3] = { 1.50f, 60, 120};
 	
 	int BusAgent[3] = { 0, 1, 2 };
 	MatrixCPU coresBusAgentLin = MatrixCPU(_nAgent, 1);
@@ -1506,8 +1508,8 @@ MatrixCPU StudyCaseAgent::Set3Bus(bool AC)
 	_nCons = 1 + offset; // agent des pertes
 	DELETEA(_agents);
 	_agents = new Agent[_nAgent];
-	float Pobj[3] = { -2.00, 1.30,  0.70 };
-	float Qobj[3] = { -1.20, 0.4137,  0.4701 };
+	float Pobj[3] = { -2.00f, 1.30f,  0.70f };
+	float Qobj[3] = { -1.20f, 0.4137f,  0.4701f };
 	int BusAgent[3] = { 1, 0, 1 }; // avoir 1 bus sans agent et 1 bus avec 2 agents
 	float pLim1, pLim2, cost1, cost2, costQ1, costQ2, qLim1, qLim2;
 	MatrixCPU coresBusAgentLin = MatrixCPU(_nAgent, 1);
@@ -1567,17 +1569,17 @@ MatrixCPU StudyCaseAgent::Set3Bus(bool AC)
 	for (int id = offset; id < _nAgent; id++)
 	{
 		if (id < _nCons) { // consumer
-			pLim1 = Pobj[id - offset] * (0.95 + 0.1 * (Pobj[id - offset] < 0));
-			pLim2 = Pobj[id - offset] * (1.05 - 0.1 * (Pobj[id - offset] < 0));
-			cost1 = 0.1 * _Sbase * _Sbase;
+			pLim1 = Pobj[id - offset] * (0.95f + 0.1f * (Pobj[id - offset] < 0));
+			pLim2 = Pobj[id - offset] * (1.05f - 0.1f * (Pobj[id - offset] < 0));
+			cost1 = 0.1f * _Sbase * _Sbase;
 			cost2 = -cost1 * Pobj[id - offset];
 			nVoisin = _nGen + _nPro;
 
 			
-			qLim1 = Qobj[id - offset] * (0.9 + 0.2 * (Qobj[id - offset] < 0));
-			qLim2 = Qobj[id - offset] * (1.1 - 0.2 * (Qobj[id - offset] < 0));
+			qLim1 = Qobj[id - offset] * (0.9f + 0.2f * (Qobj[id - offset] < 0));
+			qLim2 = Qobj[id - offset] * (1.1f - 0.2f * (Qobj[id - offset] < 0));
 
-			costQ1 = 0.1 * _Sbase * _Sbase;
+			costQ1 = 0.1f * _Sbase * _Sbase;
 			costQ2 = -costQ1 * Qobj[id - offset];
 
 			(_agents[id]).setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 1);
@@ -1595,14 +1597,14 @@ MatrixCPU StudyCaseAgent::Set3Bus(bool AC)
 			pLim1 = 0;
 			pLim2 = 2 * Pobj[id - offset];
 
-			cost1 = 0.1 * _Sbase * _Sbase;
-			cost2 = 0.5 * _Sbase;
+			cost1 = 0.1f * _Sbase * _Sbase;
+			cost2 = 0.5f * _Sbase;
 			nVoisin = _nCons + _nPro;
 
 			qLim1 = Qobj[id - offset] * 2 * (Qobj[id - offset] < 0);
 			qLim2 = Qobj[id - offset] * 2 * (Qobj[id - offset] > 0);
 
-			costQ1 = 0.1 * _Sbase * _Sbase;
+			costQ1 = 0.1f * _Sbase * _Sbase;
 			costQ2 = -costQ1 * Qobj[id - offset];
 
 			_agents[id].setAgent(id, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 2);
@@ -1656,7 +1658,7 @@ MatrixCPU StudyCaseAgent::Set4Agent()
 	}
 	float Plim1[4] = {-30, -30, 0, -20 };
 	float Plim2[4] = { -1, -2, 60, 30 };
-	float Cost1[4] = { 1, 1, 0.7, 0.7 };
+	float Cost1[4] = { 1, 1, 0.7f, 0.7f };
 	float Cost2[4] = { 70, 70, 40, 60 };
 	float pLim1;
 	float pLim2;
@@ -1785,8 +1787,8 @@ MatrixCPU StudyCaseAgent::Set2node(bool AC)
 			cost2 = Cost2[id];
 			nVoisin = _nGen + _nPro;
 
-			qLim1 = Qobj[id] * (0.9 + 0.2 * (Qobj[id] < 0));
-			qLim2 = Qobj[id] * (1.1 - 0.2 * (Qobj[id] < 0));
+			qLim1 = Qobj[id] * (0.9f + 0.2f * (Qobj[id] < 0));
+			qLim2 = Qobj[id] * (1.1f - 0.2f * (Qobj[id] < 0));
 
 			if (qLim1 == 0) {
 				qLim1 = -1;
@@ -1794,7 +1796,7 @@ MatrixCPU StudyCaseAgent::Set2node(bool AC)
 				qLim2 = 1;
 			}
 
-			costQ1 = 0.1;
+			costQ1 = 0.1f;
 			costQ2 = -costQ1 * Qobj[id];
 
 			(_agents[AgentIndice]).setAgent(AgentIndice, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 1);
@@ -1822,7 +1824,7 @@ MatrixCPU StudyCaseAgent::Set2node(bool AC)
 			} if (qLim2 == 0) {
 				qLim2 = 1;
 			}
-			costQ1 = 0.1;
+			costQ1 = 0.1f;
 			costQ2 = -costQ1 * Qobj[id];
 			
 			_agents[AgentIndice].setAgent(AgentIndice, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 2);
@@ -1844,11 +1846,11 @@ MatrixCPU StudyCaseAgent::Set2node(bool AC)
 			qLim1 = Qobj[id] * 2 * (Qobj[id] < 0);
 			qLim2 = Qobj[id] * 2 * (Qobj[id] > 0);
 			if (qLim1 == 0) {
-				qLim1 = -0.1;
+				qLim1 = -0.1f;
 			} if (qLim2 == 0) {
-				qLim2 = 0.1;
+				qLim2 = 0.1f;
 			}
-			costQ1 = 0.1;
+			costQ1 = 0.1f;
 			costQ2 = -costQ1 * Qobj[id];
 			
 			_agents[AgentIndice].setAgent(AgentIndice, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 3);
@@ -1899,10 +1901,10 @@ MatrixCPU StudyCaseAgent::Set4nodeBis(bool AC)
 	_nCons = 2;
 	DELETEA(_agents);
 	_agents = new Agent[_nAgent];
-	float Plim1[4] = { -0.8001, -2.001, 0.4 , 0 };
-	float Plim2[4] = { -0.8, -2, 10, 7 };
-	float Cost1[4] = { 1, 1, 0.0001, 0.0001 };
-	float Cost2[4] = { 0.8, 2, 7, 3 };
+	float Plim1[4] = { -0.8001f, -2.001f, 0.4f , 0 };
+	float Plim2[4] = { -0.8f, -2, 10, 7 };
+	float Cost1[4] = { 1, 1, 0.0001f, 0.0001f };
+	float Cost2[4] = { 0.8f, 2, 7, 3 };
 	int BusAgent[4] = { 1, 2, 0, 1 };
 	MatrixCPU coresBusAgentLin = MatrixCPU(_nAgent, 1);
 
@@ -1985,7 +1987,7 @@ void StudyCaseAgent::SetEuropeP0(const std::string& path, MatrixCPU* P0)
 	_nAgent = _nGen + _nCons;
 	_nPro = 0;
 	_name = "Europe";
-	float dP = 0.1; // P = P0 +/- dP * P0 for the consumers
+	float dP = 0.1f; // P = P0 +/- dP * P0 for the consumers
 
 	initMat();
 	
@@ -2019,7 +2021,7 @@ void StudyCaseAgent::SetEuropeP0(const std::string& path, MatrixCPU* P0)
 
 			pLim1 = 0;
 			pLim2 = Pgen.get(id - _nCons, 0);
-			cost1 = 0.1;
+			cost1 = 0.1f;
 			cost2 = Cost.get(id - _nCons, 0);
 
 			nVoisin = _nCons + _nPro;
@@ -2055,7 +2057,7 @@ void StudyCaseAgent::SetStudyCaseAgent(std::string path, std::string name, Matri
 	_nAgent = _nGen + _nCons;
 	_nPro = 0;
 
-	float dP = 0.1; // P = P0 +/- dP * P0 for the consumers
+	float dP = 0.1f; // P = P0 +/- dP * P0 for the consumers
 	
 	initMat();
 
@@ -2089,7 +2091,7 @@ void StudyCaseAgent::SetStudyCaseAgent(std::string path, std::string name, Matri
 
 			pLim1 = 0;
 			pLim2 = Pgen.get(id - _nCons, 0);
-			cost1 = 0.1;
+			cost1 = 0.1f;
 			cost2 = Cost.get(id - _nCons, 0);
 
 			nVoisin = _nCons + _nPro;
@@ -2115,11 +2117,11 @@ MatrixCPU StudyCaseAgent::SetACFromFile(std::string name, std::string path)
 
 	MatrixCPUD Info(1, 9); // Sbase, Vbase, nAgent, nCons, nGenSup, nBus, nLine, V0, theta0
 	Info.setFromFile(fileName1);
-	_Sbase = Info.get(0, 0);
+	_Sbase = (float) Info.get(0, 0);
 	_AC = true;
 
-	_nAgent = Info.get(0, 2) + 1; // + the loss agent
-	_nCons = Info.get(0, 3) + 1; // + the loss agent
+	_nAgent = (int) Info.get(0, 2) + 1; // + the loss agent
+	_nCons  = (int) Info.get(0, 3) + 1; // + the loss agent
 	_nGen = _nAgent - _nCons;
 	_nPro = 0;
 
@@ -2145,7 +2147,7 @@ MatrixCPU StudyCaseAgent::SetACFromFile(std::string name, std::string path)
 #endif // DEBUG
 
 	for (int i = 1; i < _nAgent; i++) {
-		int bus = Mat.get(i - 1, 0);
+		int bus = (int) Mat.get(i - 1, 0);
 		coresBusAgentLin.set(i, 0, bus - offsetbus);
 		cost1 = Mat.get(i - 1, 1) * (_Sbase * _Sbase);
 		cost2 = Mat.get(i - 1, 2) * _Sbase;
@@ -2175,7 +2177,7 @@ MatrixCPU StudyCaseAgent::SetACFromFile(std::string name, std::string path)
 		_Pmin.set(i, 0, pLim1);
 		_Pmax.set(i, 0, pLim2);
 
-		(_agents[i]).setAgent(i, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 1);
+		(_agents[i]).setAgent(i, (float) pLim1, (float) pLim2, (float) cost1, (float) cost2, nVoisin, &_connect, _nAgent, 1);
 
 		_a.set(i, 0, cost1);
 		_b.set(i, 0, cost2);
@@ -2202,11 +2204,11 @@ MatrixCPU StudyCaseAgent::SetACFromFileSimplify(std::string name, std::string pa
 
 	MatrixCPUD Info(1, 9); // Sbase, Vbase, nAgent, nCons, nGenSup, nBus, nLine, V0, theta0
 	Info.setFromFile(fileName1);
-	_Sbase = Info.get(0, 0);
+	_Sbase = (float) Info.get(0, 0);
 	_AC = true;
 
-	_nAgent = Info.get(0, 2) + 1; // + the loss agent
-	_nCons = Info.get(0, 3) + 1; // + the loss agent
+	_nAgent = (int) Info.get(0, 2) + 1; // + the loss agent
+	_nCons =  (int) Info.get(0, 3) + 1; // + the loss agent
 	_nGen = _nAgent - _nCons;
 	_nPro = 0;
 
@@ -2232,7 +2234,7 @@ MatrixCPU StudyCaseAgent::SetACFromFileSimplify(std::string name, std::string pa
 #endif // DEBUG
 
 	for (int i = 1; i < _nAgent; i++) {
-		int bus = Mat.get(i - 1, 0);
+		int bus = (int) Mat.get(i - 1, 0);
 		coresBusAgentLin.set(i, 0, bus - offsetbus);
 		cost1 = Mat.get(i - 1, 1) * (_Sbase * _Sbase);
 		cost2 = Mat.get(i - 1, 2) * _Sbase;
@@ -2266,7 +2268,7 @@ MatrixCPU StudyCaseAgent::SetACFromFileSimplify(std::string name, std::string pa
 		_Pmin.set(i, 0, pLim1);
 		_Pmax.set(i, 0, pLim2);
 
-		(_agents[i]).setAgent(i, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 1);
+		(_agents[i]).setAgent(i, (float) pLim1, (float) pLim2, (float) cost1, (float) cost2, nVoisin, &_connect, _nAgent, 1);
 
 		_a.set(i, 0, cost1);
 		_b.set(i, 0, cost2);
@@ -2290,20 +2292,20 @@ MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface* interface, bool D
     MatrixCPU Info = interface->getInfoCase();
 	// Sbase, Vbase, nAgent, nCons, nGenSup, nBus, nLine, V0, theta0
 
-	_Sbase = Info.get(0, Sbase_ind);
+	_Sbase = (float) Info.get(0, Sbase_ind);
 	_AC = !DC;
 	int offset = 1 * (_AC);
 	int nLine = interface->getL();
 
-	_nAgent = Info.get(0, nAgent_ind) + offset; // + the loss agent
-	_nCons  = Info.get(0, nCons_ind)  + offset; // + the loss agent
-	if(_nCons < offset+1){
+	_nAgent = (int) Info.get(0, nAgent_ind) + offset; // + the loss agent
+	_nCons  = (int) Info.get(0, nCons_ind)  + offset; // + the loss agent
+	if(_nCons < offset + 1){
 		interface->checkCase(nLine);
 		Info = interface->getInfoCase();
-		_nCons = Info.get(0, nCons_ind) + offset;
+		_nCons = (int) Info.get(0, nCons_ind) + offset;
 	}
 
-	_nGen = Info.get(0, nGen_ind);
+	_nGen = (int) Info.get(0, nGen_ind);
 	_nPro = _nAgent -_nCons - _nGen;
 
 	if(_AC){
@@ -2373,7 +2375,7 @@ MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface* interface, bool D
 #endif // DEBUG
 
 	for (int i = offset; i < _nAgent; i++) {
-		int bus = Mat.get(i - offset, PosBus_ind);
+		int bus = (int) Mat.get(i - offset, PosBus_ind);
 		coresBusAgentLin.set(i, 0, bus);
 		
 		cost1  = Mat.get(i - offset, a_ind) * (_Sbase * _Sbase);
@@ -2406,7 +2408,7 @@ MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface* interface, bool D
 		_Pmin.set(i, 0, pLim1);
 		_Pmax.set(i, 0, pLim2);
 
-		(_agents[i]).setAgent(i, pLim1, pLim2, cost1, cost2, nVoisin, &_connect, _nAgent, 1);
+		(_agents[i]).setAgent(i, (float) pLim1, (float) pLim2, (float) cost1, (float) cost2, nVoisin, &_connect, _nAgent, 1);
 
 		_a.set(i, 0, cost1);
 		_b.set(i, 0, cost2);
@@ -2444,10 +2446,10 @@ MatrixCPU StudyCaseAgent::SetEuropeTestFeeder(std::string path, int beggining)
 
 	MatrixCPUD Info(1, 8); // Sbase, Vbase, Zbase, nAgent, nBus, nLine, V0, theta0
 	Info.setFromFile(fileName1);
-	_Sbase = Info.get(0, 0);
+	_Sbase = (float) Info.get(0, 0);
 
-	_nAgent = Info.get(0, 3) + 2; // + the loss agent + the grid
-	_nCons = Info.get(0, 3) + 1; // + the loss agent
+	_nAgent = (int) Info.get(0, 3) + 2; // + the loss agent + the grid
+	_nCons =  (int) Info.get(0, 3) + 1; // + the loss agent
 	_nGen = 0;
 	_nPro = 1;
 	int nMaxShape = 100;
@@ -2466,7 +2468,7 @@ MatrixCPU StudyCaseAgent::SetEuropeTestFeeder(std::string path, int beggining)
 	MatrixCPU CoresAgentBuslin(_nAgent, 1);
 
 	for (int i = 0; i < _nAgent - 2; i++) {
-		int bus = MatAgent.get(i, 0);
+		int bus = (int) MatAgent.get(i, 0);
 		_factor.set(i, 0, MatAgent.get(i, 1));
 		_PF.set(i, 0, MatAgent.get(i, 2));
 		CoresAgentBuslin.set(i + 1, 0, bus);
@@ -2502,7 +2504,7 @@ MatrixCPU StudyCaseAgent::SetEuropeTestFeeder(std::string path, int beggining)
 	_nVoisin.set(_nCons, 0, _nCons);
 	_nVoisin.set(_nAgent + _nCons, 0, _nAgent - 1);
 
-	(_agents[_nCons]).setAgent(_nCons, -10000, 10000, 0.01, 0.03, _nCons, &_connect, _nAgent, 3);
+	(_agents[_nCons]).setAgent(_nCons, -10000, 10000, 0.01f, 0.03f, _nCons, &_connect, _nAgent, 3);
 
 	std::cout << "fin agent " << std::endl;
 	return CoresAgentBuslin;
@@ -2513,7 +2515,7 @@ MatrixCPU StudyCaseAgent::SetEuropeTestFeeder(std::string path, int beggining)
 void StudyCaseAgent::UpdateP0(MatrixCPU* P0) 
 {
 
-	float dP = 0.1; // P = P0 +/- dP * P0 for the consumers
+	float dP = 0.1f; // P = P0 +/- dP * P0 for the consumers
 	
 	if (P0->getNLin() != _nCons) {
 		throw std::invalid_argument("P0 hasn't the good number of column");
@@ -2705,7 +2707,7 @@ void StudyCaseAgent::removeLink(int i, int j)
 	else if (i >= (_nCons + _nGen)) {
 		type = 2;
 	}
-	_agents[i].setAgent(i, _Pmin.get(i, 0), _Pmax.get(i, 0), _a.get(i, 0), _b.get(i, 0), _nVoisin.get(i, 0), &_connect, _nAgent, type);
+	_agents[i].setAgent(i, _Pmin.get(i, 0), _Pmax.get(i, 0), _a.get(i, 0), _b.get(i, 0), (int) _nVoisin.get(i, 0), &_connect, _nAgent, type);
 	type = 3;
 	
 	if (j < _nCons) {
@@ -2714,7 +2716,7 @@ void StudyCaseAgent::removeLink(int i, int j)
 	else if (j >= (_nCons + _nGen)) {
 		type = 2;
 	}
-	_agents[j].setAgent(j, _Pmin.get(j, 0), _Pmax.get(j, 0), _a.get(j, 0), _b.get(j, 0), _nVoisin.get(j, 0), &_connect, _nAgent, type);
+	_agents[j].setAgent(j, _Pmin.get(j, 0), _Pmax.get(j, 0), _a.get(j, 0), _b.get(j, 0), (int) _nVoisin.get(j, 0), &_connect, _nAgent, type);
 
 }
 
@@ -2755,8 +2757,8 @@ void StudyCaseAgent::addLink(int i, int j)
 	_nVoisin.set(i, 0, _nVoisin.get(i, 0) + 1);
 	_nVoisin.set(j, 0, _nVoisin.get(j, 0) + 1);
 
-	_agents[i].setAgent(i, _Pmin.get(i, 0), _Pmax.get(i, 0), _a.get(i, 0), _b.get(i, 0), _nVoisin.get(i, 0), &_connect, _nAgent, type[0]);
-	_agents[j].setAgent(j, _Pmin.get(j, 0), _Pmax.get(j, 0), _a.get(j, 0), _b.get(j, 0), _nVoisin.get(j, 0), &_connect, _nAgent, type[1]);
+	_agents[i].setAgent(i, _Pmin.get(i, 0), _Pmax.get(i, 0), _a.get(i, 0), _b.get(i, 0), (int) _nVoisin.get(i, 0), &_connect, _nAgent, type[0]);
+	_agents[j].setAgent(j, _Pmin.get(j, 0), _Pmax.get(j, 0), _a.get(j, 0), _b.get(j, 0), (int) _nVoisin.get(j, 0), &_connect, _nAgent, type[1]);
 
 }
 
@@ -2768,9 +2770,9 @@ Agent StudyCaseAgent::removeAgent(int agent)
 	}
 	Agent agentRemove(_agents[agent]);
 	MatrixCPU omega(getVoisin(agent));
-	int Nvoisinmax = _nVoisin.get(agent, 0);
+	int Nvoisinmax =  (int)_nVoisin.get(agent, 0);
 	for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-		int idVoisin = omega.get(voisin, 0);
+		int idVoisin = (int) omega.get(voisin, 0);
 		removeLink(agent, idVoisin);
 	}
 
@@ -2783,7 +2785,7 @@ Agent StudyCaseAgent::removeAgent(int agent)
 	else if (agent >= (_nCons + _nGen)) {
 		type = 2;
 	}
-	_agents[agent].setAgent(agent, _Pmin.get(agent, 0), _Pmax.get(agent, 0), _a.get(agent, 0), _b.get(agent, 0), _nVoisin.get(agent, 0), &_connect, _nAgent, type);
+	_agents[agent].setAgent(agent, _Pmin.get(agent, 0), _Pmax.get(agent, 0), _a.get(agent, 0), _b.get(agent, 0), (int) _nVoisin.get(agent, 0), &_connect, _nAgent, type);
 
 	return agentRemove;
 
@@ -2804,13 +2806,13 @@ void StudyCaseAgent::restoreAgent(Agent& agent, bool all) {
 	}
 	else {
 		MatrixCPU omega(agent.getVoisin());
-		int nVoisin = agent.getNVoisin();
+		int nVoisin = (int) agent.getNVoisin();
 		for (int i = 0;i < nVoisin;i++) {
-			int idVoisin = omega.get(i, 0);
+			int idVoisin = (int) omega.get(i, 0);
 			addLink(id, idVoisin);
 		}
 	}
-	_agents[id].setAgent(id, _Pmin.get(id, 0), _Pmax.get(id, 0), _a.get(id, 0), _b.get(id, 0), _nVoisin.get(id, 0), &_connect, _nAgent, type);
+	_agents[id].setAgent(id, _Pmin.get(id, 0), _Pmax.get(id, 0), _a.get(id, 0), _b.get(id, 0), (int) _nVoisin.get(id, 0), &_connect, _nAgent, type);
 }
 
 void StudyCaseAgent::saveCSV(const std::string& fileName, bool all)

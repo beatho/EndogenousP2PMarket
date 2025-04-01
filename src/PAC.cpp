@@ -1,5 +1,5 @@
 #include "../head/PAC.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
 PAC::PAC() : MethodP2P()
@@ -187,7 +187,7 @@ void PAC::updateCoef()
 {
 	if (augmente) {
 
-		_rho = MAX(0.99 * _rho, 0.1);
+		_rho = MYMAX(0.99 * _rho, 0.1);
 		_rhoInv = 1 / _rho;
 		for (int i = 0; i < _nAgent; i++) {
 			H[i].set(0, 0, Cost1.get(i, 0) + _rhoInv);
@@ -343,7 +343,7 @@ void PAC::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	}
 	//std::cout << "Pn :" << std::endl;
 	//Pn.display();
-	fc = calcFc(&Cost1, &Cost2, &trade, &Pn, &BETA, &tempN1, &tempNN);
+	fc = calcFc();
 	// FB 5
 	
 	//std::cout << "set end" << std::endl;
@@ -676,32 +676,6 @@ void PAC::init(const Simparam& sim, const StudyCase& cas)
 	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 }
 
-float PAC::calcFc(MatrixCPU* cost1, MatrixCPU* cost2, MatrixCPU* trade, MatrixCPU* Pn, MatrixCPU* BETA, MatrixCPU* tempN1, MatrixCPU* tempNN)
-{
-	float fc = 0;
-	tempN1->set(cost1);
-	tempN1->multiply(0.5);
-	tempN1->multiplyT(Pn);
-	tempN1->add(cost2);
-	tempN1->multiplyT(Pn);
-	
-
-	fc = fc + tempN1->sum();
-	for (int i = 0; i < _nAgentTrue; i++) {
-		for (int j = 0; j < _nAgentTrue; j++) {
-			tempNN->set(i, j, trade->get(i, j) * BETA->get(i, j));
-		}
-	}
-	for (int i = _nAgentTrue; i < _nAgent; i++) {
-		for (int j = 0; j < _nAgentTrue; j++) {
-			tempNN->set(i, j, 0);
-		}
-	}
-
-	fc = fc + tempNN->sum();
-
-	return fc;
-}
 
 void PAC::setBestParam(const StudyCase& cas)
 {
@@ -984,7 +958,7 @@ float PAC::updateRes(int indice)
 	resF.set(1, indice, resS);
 	resF.set(2, indice, resV);
 
-	return MAX(MAX(resV, resS), resR);
+	return MYMAX(MYMAX(resV, resS), resR);
 }
 
 

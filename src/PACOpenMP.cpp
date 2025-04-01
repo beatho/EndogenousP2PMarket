@@ -1,5 +1,5 @@
 #include "../head/PACOpenMP.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
 PACOpenMP::PACOpenMP() : MethodP2P()
@@ -92,8 +92,8 @@ void PACOpenMP::setBestRhoGammaHeuristic(const StudyCase& cas)
 {
 	int N = cas.getNagent();
 	int Y = cas.getNCons();
-	float lambdaMax = 1;
-	float lambdaMin = 1;
+	double lambdaMax = 1;
+	double lambdaMin = 1;
 	if (cas.isAC()) {
 		lambdaMax = 0.9995 * N + 2.0455;
 		lambdaMin = (1.9927 - 3.3289 / N) / N;
@@ -114,18 +114,18 @@ void PACOpenMP::setBestRhoGammaHeuristic(const StudyCase& cas)
 
 	MatrixCPU a = cas.geta();
 	//a.display();
-	float alpha = 1 * a.min2Nnull(0.0001);
+	float alpha = 1 * a.min2Nnull(0.0001f);
 	float L = 1 * a.max2();
 
 	//std::cout << "alpha " << alpha << " and L " << L << std::endl;
 
-	_gamma = (2 * alpha * L) / (2 * lambdaMax + lambdaMin);
+	_gamma = (2 * alpha * L) / (2 * (float) lambdaMax + (float) lambdaMin);
 	_gammahat = _gamma;
 	if (augmente && _alpha > 1) {
-		_rho = 1 / (sqrt(_gamma * _alpha * lambdaMax));
+		_rho = 1 / (sqrt(_gamma * _alpha * (float) lambdaMax));
 	}
 	else {
-		_rho = 1 / (sqrt(_gamma * lambdaMax));
+		_rho = 1 / (sqrt(_gamma * (float) lambdaMax));
 	}
 
 	//std::cout << "best gamma " << _gamma << " and rho " << _rho << std::endl;
@@ -136,7 +136,7 @@ void PACOpenMP::updateCoef()
 {
 	if (augmente) {
 
-		_rho = MAX(0.99 * _rho, 0.1);
+		_rho = MYMAX(0.99f * _rho, 0.1f);
 		_rhoInv = 1 / _rho;
 #pragma omp parallel for
 		for (int i = 0; i < _nAgent; i++) {
@@ -144,7 +144,7 @@ void PACOpenMP::updateCoef()
 			if (augmente) {
 				H[i].increment(0, 0, _rho * _gamma);
 			}
-			int M = nVoisin.get(i, 0);
+			int M = (int) nVoisin.get(i, 0);
 			for (int m = 0; m < M; m++) {
 
 				H[i].set(m + 1, m + 1, _rhoInv); // diag tnm
@@ -274,9 +274,9 @@ void PACOpenMP::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 #pragma omp parallel for
 	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
 		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		int Nvoisinmax = (int) nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
+			int idVoisin = (int) omega.get(voisin, 0);
 			trade.set(idAgent, idVoisin, X[idAgent].get(voisin + 1, 0));
 		}
 		Pn.set(idAgent, 0, X[idAgent].get(0, 0));
@@ -295,7 +295,7 @@ void PACOpenMP::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	}
 	//std::cout << "Pn :" << std::endl;
 	//Pn.display();
-	fc = calcFc(&Cost1, &Cost2, &trade, &Pn, &BETA, &tempN1, &tempNN);
+	fc = calcFc();
 	// FB 5
 	
 	//std::cout << "set end" << std::endl;
@@ -336,7 +336,7 @@ void PACOpenMP::updateP0(const StudyCase& cas)
 
 #pragma omp parallel for
 	for (int i = 0; i < _nAgent; i++) {
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		matLb[i].set(0, 0, Pmin.get(i, 0));
 		matUb[i].set(0, 0, Pmax.get(i, 0));
 		
@@ -398,11 +398,11 @@ void PACOpenMP::init(const Simparam& sim, const StudyCase& cas)
 	_nAgentTrue = sim.getNAgent();
 	_nAgent = _nAgentTrue + isAC * _nAgentTrue;
 	nVoisin = cas.getNvoi();
-	_nTrade = nVoisin.sum();
+	_nTrade = (int) nVoisin.sum();
 	_nTradeP = 0;
 	if (isAC) {
 		for (int n = 0; n < _nAgentTrue; n++) {
-			_nTradeP += nVoisin.get(n, 0);
+			_nTradeP += (int) nVoisin.get(n, 0);
 		}
 		_nTradeQ = _nTrade - _nTradeP;
 		if (_nTradeQ != (_nAgentTrue * (_nAgentTrue - 1))) {
@@ -444,9 +444,9 @@ void PACOpenMP::init(const Simparam& sim, const StudyCase& cas)
 
 	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) { // P
 		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		int Nvoisinmax = (int) nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
+			int idVoisin = (int) omega.get(voisin, 0);
 			CoresLinAgent.set(indice, 0, idAgent);
 			CoresLinVoisin.set(indice, 0, idVoisin); // 
 			CoresMatLin.set(idAgent, idVoisin, indice);
@@ -469,13 +469,13 @@ void PACOpenMP::init(const Simparam& sim, const StudyCase& cas)
 
 	//#pragma omp parallel for
 	for (int lin = 0; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
+		int i = (int) CoresLinAgent.get(lin, 0);
+		int j = (int) CoresLinVoisin.get(lin, 0);
 		int k = 0;
 		if(i < _nAgentTrue) // P
-			k = CoresMatLin.get(j, i);
+			k = (int) CoresMatLin.get(j, i);
 		else {
-			k = CoresMatLin.get(j, i - _nAgentTrue);
+			k = (int) CoresMatLin.get(j, i - _nAgentTrue);
 		}
 		
 		//std::cout << " trade num " << lin << " entre " << i % _nAgentTrue << " et " << j;
@@ -485,12 +485,12 @@ void PACOpenMP::init(const Simparam& sim, const StudyCase& cas)
 
 	//#pragma omp parallel for 
 	for (int i = 0; i < _nAgent; i++) {
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
-			int p = CoresLinVoisin.get(lin, 0); // valeur de p
-			int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
-			int linLoc = lin2 - CoresAgentLin.get(p, 0); //indice local de tpi
+			int lin = (int) CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
+			int p = (int) CoresLinVoisin.get(lin, 0); // valeur de p
+			int lin2 = (int) CoresLinTrans.get(lin, 0); // indice global de tpi
+			int linLoc = lin2 - (int) CoresAgentLin.get(p, 0); //indice local de tpi
 			CoresLinTransLocal.set(lin, 0, linLoc);
 			//std::cout << lin << ": trade entre " << i << " et " << p << " num local " << m ;
 			//std::cout << " le symetrique est " << lin2 <<  " ou " << linLoc << std::endl;
@@ -531,8 +531,8 @@ void PACOpenMP::init(const Simparam& sim, const StudyCase& cas)
 	for (int i = 0; i < _nAgent; i++) {
 		//std::cout << "********* Agent " << i << "**********" << std::endl;
 		// def
-		int M = nVoisin.get(i, 0);
-		int begin = CoresAgentLin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
+		int begin = (int) CoresAgentLin.get(i, 0);
 		X[i] = MatrixCPU(1 + 2 * M, 1);
 		Xpre[i] = MatrixCPU(1 + 2 * M, 1);
 		Xhat[i] = MatrixCPU(1 + 2 * M, 1);
@@ -564,7 +564,7 @@ void PACOpenMP::init(const Simparam& sim, const StudyCase& cas)
 		Qinit[i].set(0, 0, Cost2.get(i, 0));
 		
 		for (int m = 0; m < M; m++) {
-			int voisin = CoresLinVoisin.get(begin + m, 0);
+			int voisin = (int) CoresLinVoisin.get(begin + m, 0);
 			//std::cout << "voisin num " << m << " is " << voisin << std::endl;
 			if (i >= _nAgentTrue) {
 				X[i].set(M + m + 1, 0, trade.get(voisin, i - _nAgentTrue)); //amn
@@ -635,32 +635,6 @@ void PACOpenMP::init(const Simparam& sim, const StudyCase& cas)
 	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 }
 
-float PACOpenMP::calcFc(MatrixCPU* cost1, MatrixCPU* cost2, MatrixCPU* trade, MatrixCPU* Pn, MatrixCPU* BETA, MatrixCPU* tempN1, MatrixCPU* tempNN)
-{
-	float fc = 0;
-	/*tempN1->set(cost1);
-	tempN1->multiply(0.5);
-	tempN1->multiplyT(Pn);
-	tempN1->add(cost2);
-	tempN1->multiplyT(Pn);
-	fc = fc + tempN1->sum();*/
-	#pragma omp parallel for reduction (+: fc)
-	for (int i = 0; i < _nAgent; i++) {
-		float p = Pn->get(i, 0);
-		float cost = p * (0.5 * cost1->get(i, 0) * p + cost2->get(i, 0));
-		fc += cost;
-	}
-	
-
-	#pragma omp parallel for reduction (+: fc)
-	for (int i = 0; i < _nAgentTrue; i++) {
-		for (int j = 0; j < _nAgentTrue; j++) {
-			fc += trade->get(i, j) * BETA->get(i, j);
-		}
-	}
-
-	return fc;
-}
 
 void PACOpenMP::setBestParam(const StudyCase& cas)
 {
@@ -794,7 +768,7 @@ void PACOpenMP::updateMu()
 	for (int i = 0; i < _nAgent; i++) {
 		tempM1[i].set(&Mu[i]); // mu^k
 		double pSum = 0;
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {// Gn*xhat
 			pSum += Xhat[i].get(1 + m, 0);
 			//Mu[i].set(m + 1, 0, (Xhat[i].get(1 + m, 0) - Xhat[i].get(1 + m + M, 0)) / 2 - Xpre[i].get(1 + m, 0)); ne marche pas ?
@@ -831,14 +805,14 @@ void PACOpenMP::updateNu()
 		tempM[i].set(&Nu[i]); // nu^k
 		// Gn*xhat
 		
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
 			
 			// find t^[p]mi ???
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
-			int p = CoresLinVoisin.get(lin, 0); // valeur de p
+			int lin = (int) CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
+			int p   = (int) CoresLinVoisin.get(lin, 0); // valeur de p
 
-			int linLoc = CoresLinTransLocal.get(lin, 0);
+			int linLoc = (int) CoresLinTransLocal.get(lin, 0);
 			//int lin2 = CoresLinTrans.get(lin, 0); // indice global de tpi
 			//int linLoc = lin2 - CoresAgentLin.get(p, 0); //indice local de tpi
 
@@ -874,12 +848,12 @@ void PACOpenMP::updateQ()
 		Q[i].set(&Qinit[i]);
 		Q[i].increment(0, 0, Muhat[i].get(0, 0) - _rhoInv * Xhat[i].get(0, 0));
 
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
-			int p = CoresLinVoisin.get(lin, 0); // valeur de p
+			int lin = (int) CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
+			int p = (int) CoresLinVoisin.get(lin, 0); // valeur de p
 
-			int linLoc = CoresLinTransLocal.get(lin, 0);
+			int linLoc = (int) CoresLinTransLocal.get(lin, 0);
 
 			Q[i].increment(m + 1    , 0, Muhat[i].get(m + 1, 0) - Muhat[i].get(0, 0) - Nuhat[p].get(linLoc, 0) - _rhoInv * Xhat[i].get(m + 1, 0));
 			Q[i].increment(M + m + 1, 0, Muhat[i].get(m + 1, 0) + Nuhat[i].get(m, 0) - _rhoInv * Xhat[i].get(M + m + 1, 0));
@@ -922,14 +896,14 @@ float PACOpenMP::updateRes(int indice)
 		//std::cout << "iter : " << indice << " agent " << i << " " << resTempS << " " << resTempR << " " << resTempV << " | ";
 
 		pSum = 0;
-		int M = nVoisin.get(i, 0);
+		int M = (int) nVoisin.get(i, 0);
 		for (int m = 0; m < M; m++) {
 			pSum += X[i].get(1 + m, 0);
 			tempM1[i].set(m + 1, 0, X[i].get(1 + m, 0) + X[i].get(1 + m + M, 0));
 
-			int lin = CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
-			int p = CoresLinVoisin.get(lin, 0); // valeur de p
-			int linLoc = CoresLinTransLocal.get(lin, 0);
+			int lin = (int) CoresAgentLin.get(i, 0) + m; // indice global de tim = tip (m est le num�ro du voisin, p est le num�ro de l'agent)
+			int p = (int) CoresLinVoisin.get(lin, 0); // valeur de p
+			int linLoc = (int) CoresLinTransLocal.get(lin, 0);
 			float tpi = X[p].get(linLoc + 1, 0);
 			tempM[i].set(m, 0, X[i].get(1 + m + M, 0) - tpi); // 
 		}
@@ -961,7 +935,7 @@ float PACOpenMP::updateRes(int indice)
 	resF.set(1, indice, resS);
 	resF.set(2, indice, resV);
 
-	return MAX(MAX(resV, resS), resR); 
+	return MYMAX(MYMAX(resV, resS), resR); 
 	
 }
 

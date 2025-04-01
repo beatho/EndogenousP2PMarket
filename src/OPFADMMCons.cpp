@@ -1,5 +1,5 @@
 #include "../head/OPFADMMCons.h"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
 OPFADMMCons::OPFADMMCons() : MethodOPF()
@@ -1520,7 +1520,7 @@ void OPFADMMCons::updateX()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 2;
-					bestGamma = Mymin((x4max - x4), Mymin(gamma, lambdaUp));
+					bestGamma = MYMIN((x4max - x4), MYMIN(gamma, lambdaUp));
 					BestRoot = n;
 				}
 
@@ -1556,7 +1556,7 @@ void OPFADMMCons::updateX()
 				}
 				if (gamma > bestGamma && lambdaLo > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 3;
-					bestGamma = Mymin((x4max - x4), Mymin(gamma, lambdaLo));
+					bestGamma = MYMIN((x4max - x4), MYMIN(gamma, lambdaLo));
 					BestRoot = n;
 				}
 			}
@@ -1590,7 +1590,7 @@ void OPFADMMCons::updateX()
 					break;
 				}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma && (x4max - x4) > bestGamma) {
 					typeSol = 4;
-					bestGamma = Mymin((x4max - x4), Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min)));
+					bestGamma = MYMIN((x4max - x4), MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min)));
 					BestRoot = n;
 				}
 			}
@@ -1816,7 +1816,7 @@ void OPFADMMCons::updateXWOCurrent()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = Mymin(gamma, lambdaUp);
+					bestGamma = MYMIN(gamma, lambdaUp);
 					BestRoot = n;
 				}
 
@@ -1851,7 +1851,7 @@ void OPFADMMCons::updateXWOCurrent()
 				}
 				if (gamma > bestGamma && lambdaLo > bestGamma) {
 					typeSol = 3;
-					bestGamma = Mymin(gamma, lambdaLo);
+					bestGamma = MYMIN(gamma, lambdaLo);
 					BestRoot = n;
 				}
 			}
@@ -1884,7 +1884,7 @@ void OPFADMMCons::updateXWOCurrent()
 					break;
 				}if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 					typeSol = 4;
-					bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
+					bestGamma = MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min));
 					BestRoot = n;
 				}
 			}
@@ -2234,7 +2234,7 @@ float OPFADMMCons::updateRes(int indice)
 	
 
 
-	return MAX(MAX(resV, oldrho * resS), resR);
+	return MYMAX(MYMAX(resV, oldrho * resS), resR);
 }
 
 float OPFADMMCons::updateResRhoFixe(int indice)
@@ -2259,7 +2259,7 @@ float OPFADMMCons::updateResRhoFixe(int indice)
 	resF.set(1, indice, resS);
 	resF.set(2, indice, resV);
 
-	return MAX(MAX(resV, resS), resR);
+	return MYMAX(MYMAX(resV, resS), resR);
 }
 
 void OPFADMMCons::computePb(){
@@ -2393,7 +2393,7 @@ void OPFADMMCons::display() {
 	std::cout << "     Constraints                                                                                        |" << std::endl;
 	std::cout << "========================================================================================================|" << std::endl;
 	std::cout << " Bus | Voltage | Voltage | Voltage |        Power Injection          |          Power Injection         |" << std::endl;
-	std::cout << "  #  | Mag(pu) | MIN(pu) |  MAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
+	std::cout << "  #  | Mag(pu) | MIN(pu) |  MYMAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
 	std::cout << "-----|---------|---------|---------|---------|-----------|-----------|----------|-----------|-----------|" << std::endl;
 	
 

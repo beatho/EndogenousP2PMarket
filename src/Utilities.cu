@@ -15,8 +15,6 @@
 #define FSECON3(a, x) (6*x + 2*a)
 #define FSECON4(a, b, x) (12*x*x + a*6*x + b*2)
 
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
-
 template <typename T>
 void check(T err, const char* const func, const char* const file,
 	const int line)
@@ -45,23 +43,6 @@ void checkLast(const char* const file, const int line)
 		std::exit(EXIT_FAILURE);
 	}
 }
-
-float Mymin(float a, float b){
-	return b*(a>b) + a*(a<=b);
-}
-
-float Mymax(float a, float b){
-	return a*(a>b) + b*(a<=b);
-}
-
-double Mymin(double a, double b){
-	return b*(a>b) + a*(a<=b);
-}
-
-double Mymax(double a, double b){
-	return a*(a>b) + b*(a<=b);
-}
-
 
 
 int resolveRealPolynome3without2term(double* root, double* coef) {
@@ -330,7 +311,7 @@ int resolveRealPolynome3Halley(double* root, double* coef, double init)
 
 	double x_i = 0;
 	int nRoot = 0;
-	int n = 3; // degr� du polynome
+	//int n = 3; // degr� du polynome
 	int i = 0;
 	double x_pre = init;
 	
@@ -620,7 +601,7 @@ int resolveRealPolynome4Halley(double* root, double* coef, double init)
 
 	double x_i = 0;
 
-	int n = 3; // degr� du polynome
+	//int n = 3; // degr� du polynome
 	if (coef[2] != 0) {
 		 
 		double x_pre = init;
@@ -682,8 +663,7 @@ int resvolveRealPolynome4without2termLagrange(double* root, double* coef) {
 	double b = coef[0];
 	double d = coef[1];
 	double e = coef[2];
-	int nRoot = 0;
-
+	
 	// il faut passer de b d e � p q t, c'est le coef devant z^3 qui doit etre nul pas celui devant z^2 !!!
 
 	double p = -3.0 * b * b / (8.0);
@@ -785,7 +765,7 @@ __host__ __device__ double findAntpoly3Neg(double p, double q) {
 			return -(q / p);
 		}
 		else {
-			return -1.26*MAX(MAX(1 , -  p),  q);
+			return -1.26*MYMAX(MYMAX(1 , -  p),  q);
 		}
 	}
 	else {
@@ -806,7 +786,7 @@ __host__ __device__ double findAntpoly3Pos(double p, double q) {
 			return -(q / p);
 		}
 		else {
-			return 1.26*MAX(MAX(1, -p), -q);
+			return 1.26*MYMAX(MYMAX(1, -p), -q);
 		}
 	}
 	else {

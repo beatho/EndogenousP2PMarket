@@ -1,5 +1,5 @@
 #pragma once
-#include "MethodP2P.cuh"
+#include "MethodP2P.h"
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -9,8 +9,8 @@
 #endif
 
 
-class PACOpenMP : public MethodP2P // gère P et Q comme si tous les Q étaient des agents différents
-	//et donc P et Q sont 2 problèmes complètement distincts
+class PACOpenMP : public MethodP2P // gï¿½re P et Q comme si tous les Q ï¿½taient des agents diffï¿½rents
+	//et donc P et Q sont 2 problï¿½mes complï¿½tement distincts
 {
 public:
 	PACOpenMP();
@@ -26,7 +26,6 @@ public:
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
 	virtual void updateP0(const StudyCase& cas);
 	virtual void init(const Simparam& sim, const StudyCase& cas);
-	virtual float calcFc(MatrixCPU* cost1, MatrixCPU* cost2, MatrixCPU* trade, MatrixCPU* Pn, MatrixCPU* BETA, MatrixCPU* tempN1, MatrixCPU* tempNN);
 	virtual void setBestParam(const StudyCase& cas);
 	std::string NAME ="PACOpenMP";
 	void updateGlobalProb();
@@ -65,7 +64,7 @@ private:
 	
 
 	MatrixCPU tempN1; // Matrix temporaire pour aider les calculs
-	MatrixCPU tempNN; // plutôt que de re-allouer de la mémoire à chaque utilisation
+	MatrixCPU tempNN; // plutï¿½t que de re-allouer de la mï¿½moire ï¿½ chaque utilisation
 	MatrixCPU* tempM1 = nullptr; //
 	MatrixCPU* tempM = nullptr; //
 	

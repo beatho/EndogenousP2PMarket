@@ -1,5 +1,5 @@
 #pragma once
-#include "MethodP2P.cuh"
+#include "MethodP2P.h"
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -23,7 +23,6 @@ public:
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
 	virtual void updateP0(const StudyCase& cas);
 	virtual void init(const Simparam& sim, const StudyCase& cas);
-	virtual float calcFc(MatrixCPU* cost1, MatrixCPU* cost2, MatrixCPU* trade, MatrixCPU* Pn, MatrixCPU* BETA, MatrixCPU* tempN1, MatrixCPU* tempNN);
 	virtual void setBestParam(const StudyCase& cas);
 	std::string NAME ="PAC";
 	void updateGlobalProb();

@@ -291,7 +291,7 @@ PyObject* solvePFFromInterface(PyObject* self, PyObject* args){
 PyMethodDef MonObject_Methods[] = {
     {"setSbase", (PyCFunction) Interface_setSbase, METH_VARARGS, " set Sbase"},
     {"setVbase", (PyCFunction) Interface_setVbase, METH_VARARGS, "sets Vbase"},
-    {"display", (PyCFunction) Interface_display, METH_VARARGS, "display all data, >12 for help"},
+    {"display", (PyCFunction) Interface_display, METH_VARARGS, "display all data, >13 for help"},
     {"initProblem", (PyCFunction) Interface_initProblem, METH_VARARGS, "set trade, pn"},
     {"initDual", (PyCFunction) Interface_initDual, METH_VARARGS, "set lambda mu"},
     {"initDelta", (PyCFunction) Interface_initDelta, METH_VARARGS, "set delta"},

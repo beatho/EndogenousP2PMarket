@@ -1,5 +1,5 @@
 ﻿#include "../head/OPFADMMConsGPU.cuh"
-#define MAX(X, Y) X * (X >= Y) + Y * (Y > X)
+ 
 
 
 OPFADMMConsGPU::OPFADMMConsGPU() : MethodOPFGPU()
@@ -571,8 +571,6 @@ void OPFADMMConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	}
 
 	// bus factice
-	float sumP = 0;
-	float sumQ = 0;
 	int sizeA = 0;
 	MatrixGPU A;
 	switch (losstype)
@@ -650,8 +648,6 @@ void OPFADMMConsGPU::init(const Simparam& sim, const StudyCase& cas)
 void OPFADMMConsGPU::solveConsensus(float eps, MatrixGPU* PSO)
 {
 	float epsG = eps;
-	
-	float fc = 0;
 	float resG = 2 * epsG;
 	_iterGlobal = 0;
 	timeOPF = clock();
@@ -1006,8 +1002,6 @@ void OPFADMMConsGPU::initConsensus(const Simparam& sim, const StudyCase& cas, fl
 	}
 
 	// bus factice
-	float sumP = 0;
-	float sumQ = 0;
 	int sizeA = 0;
 	MatrixGPU A;
 	switch (losstype)
@@ -1760,7 +1754,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPU()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = Mymin(gamma, lambdaUp);
+					bestGamma = MYMIN(gamma, lambdaUp);
 					BestRoot = n;
 				}
 
@@ -1791,7 +1785,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPU()
 				}
 				if (gamma > bestGamma && lambdaLo > bestGamma) {
 					typeSol = 3;
-					bestGamma = Mymin(gamma, lambdaLo);
+					bestGamma = MYMIN(gamma, lambdaLo);
 					BestRoot = n;
 				}
 			}
@@ -1823,7 +1817,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPU()
 				}
 				if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 					typeSol = 4;
-					bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
+					bestGamma = MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min));
 					BestRoot = n;
 				}
 			}
@@ -2002,7 +1996,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPUBis()
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = Mymin(gamma, lambdaUp);
+					bestGamma = MYMIN(gamma, lambdaUp);
 					BestRoot = n;
 				}
 
@@ -2033,7 +2027,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPUBis()
 				}
 				if (gamma > bestGamma && lambdaLo > bestGamma) {
 					typeSol = 3;
-					bestGamma = Mymin(gamma, lambdaLo);
+					bestGamma = MYMIN(gamma, lambdaLo);
 					BestRoot = n;
 				}
 			}
@@ -2068,7 +2062,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPUBis()
 				}
 				if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 					typeSol = 4;
-					bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
+					bestGamma = MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min));
 					BestRoot = n;
 				}
 			}
@@ -2264,7 +2258,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPUBis(bool first)
 				}
 				if (gamma > bestGamma && lambdaUp > bestGamma) {
 					typeSol = 2;
-					bestGamma = Mymin(gamma, lambdaUp);
+					bestGamma = MYMIN(gamma, lambdaUp);
 					BestRoot = n;
 				}
 
@@ -2303,7 +2297,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPUBis(bool first)
 				}
 				if (gamma > bestGamma && lambdaLo > bestGamma) {
 					typeSol = 3;
-					bestGamma = Mymin(gamma, lambdaLo);
+					bestGamma = MYMIN(gamma, lambdaLo);
 					BestRoot = n;
 				}
 			}
@@ -2337,7 +2331,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPUBis(bool first)
 				}
 				if (gamma > bestGamma && (x3max - x3) > bestGamma && (x3 - x3min) > bestGamma) {
 					typeSol = 4;
-					bestGamma = Mymin(Mymin(gamma, (x3max - x3)), (x3 - x3min));
+					bestGamma = MYMIN(MYMIN(gamma, (x3max - x3)), (x3 - x3min));
 					BestRoot = n;
 				}
 			}
@@ -2538,14 +2532,14 @@ float OPFADMMConsGPU::updateRes(int indice)
 	}*/
 	if (_tau > 1) {
 		if (resR > _mu * resS) {
-			float oldRho = _rho;
+			
 			_rho = _tau * _rho;
 		 
 			Hinv.divide(_tau);
 			//std::cout << _iterGlobal << "rho augmente " << _rho << std::endl;
 		}
 		else if (resS > _mu * resR) {// rho = rho / tau_inc;
-			float oldRho = _rho;
+		
 			_rho = _rho / _tau;
 		
 			Hinv.multiply(_tau);
@@ -2556,7 +2550,7 @@ float OPFADMMConsGPU::updateRes(int indice)
 	
 
 
-	return MAX(MAX(resV, oldrho * resS), resR);
+	return MYMAX(MYMAX(resV, oldrho * resS), resR);
 }
 
 float OPFADMMConsGPU::updateResRhoFixe(int indice)
@@ -2569,7 +2563,7 @@ float OPFADMMConsGPU::updateResRhoFixe(int indice)
 	resF.set(1, indice, resS);
 	resF.set(2, indice, resV);
 
-	return MAX(MAX(resV, resS), resR);
+	return MYMAX(MYMAX(resV, resS), resR);
 }
 
 int OPFADMMConsGPU::feasiblePoint()
@@ -2775,7 +2769,7 @@ void OPFADMMConsGPU::display() {
 	std::cout << "     Constraints                                                                                        |" << std::endl;
 	std::cout << "========================================================================================================|" << std::endl;
 	std::cout << " Bus | Voltage | Voltage | Voltage |        Power Injection          |          Power Injection         |" << std::endl;
-	std::cout << "  #  | Mag(pu) | MIN(pu) |  MAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
+	std::cout << "  #  | Mag(pu) | MIN(pu) |  MYMAX(pu)|  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)  | Qmin (pu) | Qmax (pu) |" << std::endl;
 	std::cout << "-----|---------|---------|---------|---------|-----------|-----------|----------|-----------|-----------|" << std::endl;
 
 

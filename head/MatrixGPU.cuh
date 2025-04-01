@@ -134,7 +134,7 @@ public:
     void projectPos(); // max(m,0)
     float sum() const;
     float sum(int begin, int end);
-    void sum(MatrixGPU* m); // vecteur colonne
+    void  sum(MatrixGPU* m); // vecteur colonne
     float distance2();
     float distance2(MatrixGPU* m);
     float max2() const; // renvoie la norme infini 

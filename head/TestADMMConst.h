@@ -14,7 +14,6 @@ bool testADMMContruct3();
 bool testADMMSolve1();
 bool testADMMSolve2();
 bool testADMMSolve3();
-bool testADMMSolve4();
 bool testADMMFunction1();
 bool testADMMFunction2();
 bool testADMMFunction3();

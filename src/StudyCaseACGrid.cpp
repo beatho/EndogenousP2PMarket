@@ -795,7 +795,7 @@ void StudyCaseACGrid::SetACFromFile(std::string name, std::string path)
 					break;
 				}
 				else {
-					MatLine.swapLine(l, (double) (MatLine.get(l, 1) - 2));
+					MatLine.swapLine(l, (int) (MatLine.get(l, 1) - 2));
 				}	
 			}
 		}
@@ -1004,7 +1004,7 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 	}
 	for (int l = 0; l < _nLine; l++) { // s'il y a des bus non reli� et donc un resau pas radial cela ne marchera pas
 		while (MatLine.get(l, 1) != l + 1) {
-			MatLine.swapLine(l, (double) (MatLine.get(l, 1) - 1));
+			MatLine.swapLine(l, (int) (MatLine.get(l, 1) - 1));
 		}
 	}
 
@@ -1129,8 +1129,8 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 	_Vbase = Info.get(0, Vbase_ind);
 	_Zbase = _Vbase * _Vbase / _Sbase;
 
-	_nBus = Info.get(0, nBus_ind);
-	_nLine = Info.get(0, nLine_ind);
+	_nBus = (int) Info.get(0, nBus_ind);
+	_nLine = (int) Info.get(0, nLine_ind);
 	_nConstraint = _nLine + 2 * _nBus;
 	_V0 = Info.get(0, V0_ind);
 	_theta0 = Info.get(0, theta0_ind);
@@ -1151,7 +1151,7 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 					std::cout << "la presence de transformateur est peut etre mal prise en compte ?" << std::endl;
 					inversionLine.set(l, 0, 1);
 				}
-				int temp = MatLine.get(l, From_ind);
+				int temp = (int) MatLine.get(l, From_ind);
 				MatLine.set(l, From_ind, MatLine.get(l, To_ind));
 				MatLine.set(l, To_ind, temp);
 				MatLine.set(l, theta_ind, -MatLine.get(l, theta_ind));	// ????
@@ -1172,7 +1172,7 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 					break;
 				}
 				else {
-					MatLine.swapLine(l, MatLine.get(l, To_ind) - 1);
+					MatLine.swapLine(l, (int) MatLine.get(l, To_ind) - 1);
 				}
 			}
 		}
@@ -1184,8 +1184,8 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 	int offsetbus = 100; 
 	
 	for(int l =0; l<_nLine;l++){
-		if(MatLine.get(l,From_ind)<offsetbus){
-			offsetbus = MatLine.get(l,From_ind);
+		if(MatLine.get(l, From_ind) < offsetbus){
+			offsetbus = (int) MatLine.get(l,From_ind);
 		}
 	}
 
@@ -1214,8 +1214,8 @@ void StudyCaseACGrid::setFromInterface(StudyCaseInterface* interface) {
 	
 
 	for (int l = 0; l < _nLine; l++) {
-		int i = MatLine.get(l, From_ind) - offsetbus;
-		int j = MatLine.get(l, To_ind) - offsetbus;
+		int i = (int) MatLine.get(l, From_ind) - offsetbus;
+		int j = (int) MatLine.get(l, To_ind) - offsetbus;
 		
 		_CoresLineBus.set(l, 0, i);
 		_CoresLineBus.set(l, 1, j);
@@ -1358,12 +1358,12 @@ void StudyCaseACGrid::genGridBT(int nBus, int Nbranch, int Ndeep, float length, 
 		std::cout << nBus << " " << Nbranch << " " << Ndeep << std::endl;
 		throw std::invalid_argument("nBus > Nbranch * Ndeep, impossible to build a grid");
 	}
-	float rapContr = Ndeep / Nbranch;
+	float rapContr = (float) Ndeep / Nbranch;
 	float proba = rapContr / (1 + rapContr);
 
 
 	_Sbase = 1; // 1MW
-	_Vbase = 0.4; // 400V
+	_Vbase = 0.4f; // 400V
 	_Zbase = _Vbase * _Vbase / _Sbase;
 	int billion = 1000000000;
 	
@@ -1389,16 +1389,16 @@ void StudyCaseACGrid::genGridBT(int nBus, int Nbranch, int Ndeep, float length, 
 		int i = 0; // random dans vecteur !!!
 		float nRandom = rand1();
 		int dist = distZero[j];
-		sizeVector = branch.size();
+		sizeVector = (int) branch.size();
 		if (sizeVector > Nbranch || nRandom < proba) {
 			int indice = 0;
 			do
 			{
 				if (sizeVector > Nbranch) {
-					indice = rand1() * (branch.size() - 2) + 1;
+					indice = (int) (rand1() * (branch.size() - 2) + 1);
 				}
 				else {
-					indice = rand1() * (branch.size() - 1);
+					indice = (int) (rand1() * (branch.size() - 1));
 				}
 				i = branch[indice];
 				dist = distZero[i] + 1;
@@ -1416,7 +1416,7 @@ void StudyCaseACGrid::genGridBT(int nBus, int Nbranch, int Ndeep, float length, 
 		{
 			do
 			{
-				i = rand1() * l;
+				i = (int) (rand1() * l);
 				dist = distZero[i] + 1;
 			} while (dist > Ndeep);
 			distZero[j] = dist;
@@ -1475,7 +1475,7 @@ void StudyCaseACGrid::genGridHTB(int nBus, int nLine, int dnLine, float length, 
 {
 	//std::cout << "work in progress" << std::endl;
 	//throw std::invalid_argument("WIP");
-	float rapLineBus = 2.0 * nLine / nBus; // il vaut mieux que cela tombe juste sinon les arrondis vont tous casser
+	float rapLineBus = 2.0f * nLine / nBus; // il vaut mieux que cela tombe juste sinon les arrondis vont tous casser
 
 	if (dnLine >= rapLineBus || nLine < nBus) {
 		std::cout << dnLine << " " << nLine << " " << nBus << std::endl;
@@ -1514,17 +1514,17 @@ void StudyCaseACGrid::genGridHTB(int nBus, int nLine, int dnLine, float length, 
 	int indiceLine = 0;
 	for (int b = 0; b < nBus-1; b++) {
 		//std::cout << " bus " << b << " il y a " << indiceLine << " ligne et il reste " << (_nLine - indiceLine) << " ligne a faire ";
-		int nLineBus = randab(rapLineBus - dnLine, rapLineBus + dnLine + 1);
+		int nLineBus = randab((int) rapLineBus - dnLine, (int) rapLineBus + dnLine + 1);
 		//std::cout << nLineBus << " ,";
-		int oldnLineBus = _nLines.get(b, 0); // nombre de ligne qu'il a d�j�
+		int oldnLineBus = (int) _nLines.get(b, 0); // nombre de ligne qu'il a deja
 		int nLineToDo = 0;
 		if (nLineBus > oldnLineBus) { // s'il y a besoin d'ajouter de ligne
 			nLineToDo = nLineBus - oldnLineBus;
 		}
 		//std::cout << nLineToDo << " ,";
-		nLineToDo = Mymin(nLineToDo, nBus - b - 1);
+		nLineToDo = MYMIN(nLineToDo, nBus - b - 1);
 		//std::cout << nLineToDo << " ,";
-		nLineToDo = Mymin(nLineToDo, _nLine - indiceLine - ( nBus-b ) );
+		nLineToDo = MYMIN(nLineToDo, _nLine - indiceLine - ( nBus-b ) );
 
 		//std::cout << nLineToDo << std::endl;
 
@@ -2016,8 +2016,8 @@ int StudyCaseACGrid::getLastBus() const
 		int deepMa = 0;
 		int bus = 0;
 		for (int lold = 0; lold < _nLine; lold++) {
-			int busTo = _CoresLineBus.get(lold, 1);
-			int busFrom = _CoresLineBus.get(lold, 0);
+			int busTo   = (int) _CoresLineBus.get(lold, 1);
+			int busFrom = (int) _CoresLineBus.get(lold, 0);
 			int deep = tabTemp[busFrom] + 1;
 			if (deep > deepMa) {
 				deepMa = deep;

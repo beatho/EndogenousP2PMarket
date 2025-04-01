@@ -1,13 +1,13 @@
 #pragma once
 #include <device_launch_parameters.h>
-#include "MethodP2P.cuh"
+#include "MethodP2PGPU.cuh"
 #include "kernelFunction.cuh"
 #include <iostream>
 #include <string>
 #include <chrono>
 
 
-class PACGPU : public MethodP2P // g�re P et Q comme si tous les Q �taient des agents diff�rents
+class PACGPU : public MethodP2PGPU // g�re P et Q comme si tous les Q �taient des agents diff�rents
 	//et donc P et Q sont 2 probl�mes compl�tement distincts
 {
 public:

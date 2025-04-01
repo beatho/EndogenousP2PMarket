@@ -1,6 +1,6 @@
 #include "../head/ADMMGPUConstCons2.cuh"
 
-ADMMGPUConstCons2::ADMMGPUConstCons2() : MethodP2P()
+ADMMGPUConstCons2::ADMMGPUConstCons2() : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "Constructeur ADMMGPUConstCons2" << std::endl;
@@ -8,7 +8,7 @@ ADMMGPUConstCons2::ADMMGPUConstCons2() : MethodP2P()
 	_name = NAME;
 }
 
-ADMMGPUConstCons2::ADMMGPUConstCons2(float rho) : MethodP2P()
+ADMMGPUConstCons2::ADMMGPUConstCons2(float rho) : MethodP2PGPU()
 {
 #if DEBUG_CONSTRUCTOR
 	std::cout << "Constructeur ADMMGPUConstCons2 defaut" << std::endl;
@@ -50,6 +50,8 @@ void ADMMGPUConstCons2::init(const Simparam& sim, const StudyCase& cas)
 	}
 	const int iterG = sim.getIterG();
 	const int stepG = sim.getStepG();
+	kmax   = sim.getIterIntern();
+	epsOPF = sim.getEpsIntern();
 	float epsG = sim.getEpsG();
 	float epsGC = sim.getEpsGC();
 	_ratioEps = epsG / epsGC;
@@ -322,8 +324,6 @@ void ADMMGPUConstCons2::solveOPF()
 	
 	//init
 	int k = 0;
-	int kmax = 200;
-	float epsOPF = 0.0001;
 	float err = 2 * epsOPF;
 	mu = 10;
 	MatrixGPU tempL21(L2 + 1, 1, 0);
@@ -406,7 +406,7 @@ void ADMMGPUConstCons2::solveOPF()
 
 		// update mu
 		mu *= 0.8;
-		mu = MAX(mu, valMin);
+		mu = MYMAX(mu, valMin);
 
 		err = R.distance2();
 		k++;
@@ -491,8 +491,7 @@ void ADMMGPUConstCons2::solve(Simparam* result, const Simparam& sim, const Study
 	float resG = 2 * epsG;
 	float epsL2 = epsL * epsL;
 	int iterGlobal = 0;
-	int iterLocal = 0;
-	int realOccurence = 0;
+	
 	
 	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
 	while ((iterGlobal < iterG) && (resG > epsG)) {
@@ -518,7 +517,7 @@ void ADMMGPUConstCons2::solve(Simparam* result, const Simparam& sim, const Study
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(&resF, &Tlocal, iterGlobal / stepG, &tempNN);
+			resG = updateRes(iterGlobal / stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
@@ -541,7 +540,7 @@ void ADMMGPUConstCons2::solve(Simparam* result, const Simparam& sim, const Study
 	
 	
 
-	float fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
+	float fc = calcFc();
 	std::cout << "valeur finale des contraintes de l'opf : " << std::endl;
 	c.display();
 	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
@@ -711,29 +710,23 @@ void ADMMGPUConstCons2::updateGlobalProbGPU()
 
 
 
-float ADMMGPUConstCons2::updateRes(MatrixCPU* res, MatrixGPU* Tlocal, int iter, MatrixGPU* tempNN)
+float ADMMGPUConstCons2::updateResEndo(int iter)
 {
 
-	float resS = Tlocal->max2(&tradeLin);
+	float resS = Tlocal.max2(&tradeLin);
 
-	updateDiffGPU <<<_numBlocksM, _blockSize >> > (tempNN->_matrixGPU, Tlocal->_matrixGPU, CoresLinTrans._matrixGPU, _nAgent);
-	float resR = tempNN->max2();
+	updateDiffGPU <<<_numBlocksM, _blockSize >>> (tempNN._matrixGPU, Tlocal._matrixGPU, CoresLinTrans._matrixGPU, _nAgent);
+	float resR = tempNN.max2();
 
 	float resXf = _ratioEps * Pso.max2(&Pn);
-	res->set(0, iter, resR);
-	res->set(1, iter, resS);
-	res->set(2, iter, resXf);
-	return MAX(MAX(resXf, resS), resR);
+	resF.set(0, iter, resR);
+	resF.set(1, iter, resS);
+	resF.set(2, iter, resXf);
+	return MYMAX(MYMAX(resXf, resS), resR);
 
 }
 
 
 
-
-
-void ADMMGPUConstCons2::display() {
-
-	std::cout << _name << std::endl;
-}
 
 

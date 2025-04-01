@@ -1,5 +1,5 @@
 #include "../head/ADMMConst.h"
-
+ 
 
 
 ADMMConst::ADMMConst() : MethodP2P()
@@ -8,6 +8,9 @@ ADMMConst::ADMMConst() : MethodP2P()
 	std::cout << " ADMMConst Constructor" << std::endl;
 #endif // DEBUG_CONSTRUCTOR
 	_name = NAME;
+	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
+	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilis� pendant la simu
 }
 
 
@@ -18,6 +21,10 @@ ADMMConst::ADMMConst(float rho) : MethodP2P()
 #endif // DEBUG_CONSTRUCTOR
 	_name = NAME;
 	_rho = rho;
+	timePerBlock = MatrixCPU(1, 8, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
+	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
+	occurencePerBlock = MatrixCPU(1, 8, 0); //nb de fois utilis� pendant la simu
+
 }
 
 ADMMConst::~ADMMConst()
@@ -30,7 +37,10 @@ void ADMMConst::setParam(float rho)
 
 void ADMMConst::setTau(float tau)
 {
-	throw std::domain_error("tau is not define for this method");
+	if (tau < 1) {
+		throw std::invalid_argument("tau must be greater than 1");
+	}
+	_tau = tau;
 }
 
 
@@ -42,301 +52,567 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	clock_t t =clock();
+	clock_t tall =clock();
+#ifdef INSTRUMENTATION
+	std::chrono::high_resolution_clock::time_point t1;
+	std::chrono::high_resolution_clock::time_point t2;
+#endif // INSTRUMENTATION
+
 	// FB 0
-	float rho = sim.getRho();
+	if (_id == 0) {
+#ifdef INSTRUMENTATION
+		t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
+		init(sim, cas);
+#ifdef INSTRUMENTATION
+		t2 = std::chrono::high_resolution_clock::now();
+		timePerBlock.set(0, 0, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+		occurencePerBlock.increment(0, 0, 1);
+#endif // INSTRUMENTATION
+	}
+	_rhog = sim.getRho();
+	_at1 = _rhog;
 	int iterG = sim.getIterG();
 	int iterL = sim.getIterL();
 	int stepL = sim.getStepL();
 	int stepG = sim.getStepG();
 	
-	float epsG = sim.getEpsG();
-	float epsGC = sim.getEpsGC();
-	_ratioEps = epsG / epsGC;
 	float epsL = sim.getEpsL();
-	int nAgent = sim.getNAgent();
-	int nLine = cas.getNLine();
-	int nBus = cas.getNBus();
-	MatrixCPU BETA(cas.getBeta());
-	MatrixCPU connect(cas.getC());
-	MatrixCPU a(cas.geta());
-	MatrixCPU b(cas.getb());
-	MatrixCPU Ub(cas.getUb());
-	MatrixCPU Lb(cas.getLb());
-	MatrixCPU Pmin(cas.getPmin());
-	MatrixCPU Pmax(cas.getPmax());
-	MatrixCPU nVoisin(cas.getNvoi());
-	MatrixCPU Llimit(cas.getLineLimit());
-	MatrixCPU G(cas.getPowerSensi());
-	MatrixCPU G2(G);
-	G2.multiplyT(&G);
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-
-
-	MatrixCPU LAMBDA(sim.getLambda());
-	MatrixCPU trade(sim.getTrade());
-	MatrixCPU Pn(sim.getPn()); // trades sum for each agent
+	float epsG = sim.getEpsG();
 	
-	
-	MatrixCPU resF(3, (iterG/stepG)+1);
+
 	float fc = 0;
 
-
-	MatrixCPU MU(nAgent, 1); //  lambda_l/_rho
-	MatrixCPU Tlocal(nAgent, nAgent);
-	MatrixCPU Tlocal_pre(trade);
-	MatrixCPU Tmoy(nAgent,1);
-	Tmoy.Moy(&Tlocal_pre, &nVoisin);
-	MatrixCPU P(nAgent, 1); // trades mean for each agent
-	MatrixCPU Qpart(nLine, nAgent);
-	MatrixCPU Qtot(nLine, 1);
-	MatrixCPU Kappa1(nLine, 1, 0);
-	MatrixCPU Kappa2(nLine, 1, 0);
-	MatrixCPU Kappa1_pre(nLine, 1, 0);
-	MatrixCPU Kappa2_pre(nLine, 1, 0);
-
-
-	MatrixCPU alpha(nLine, nAgent);
-	
-
-	float rho_p = _rho;
-	if (_rho == 0) {
-		rho_p = rho;
-	}
-	float rho1 = sim.getRho1();
-
-	float at1 = rho; // 2*a in the article
-	float at2 = rho_p;
-
-	MatrixCPU Ap2(a);
-	MatrixCPU Ap1(nVoisin);
-	MatrixCPU Ap12(nAgent, 1); // Ap2+Ap1;
-	MatrixCPU Bt1(nAgent, nAgent);
-	MatrixCPU Bt2(nAgent, nAgent);
-	MatrixCPU Bp1(nAgent, 1);
-	MatrixCPU Ct(BETA);
-	MatrixCPU Cp1(nAgent, 1);
-	MatrixCPU Cp2(nAgent, 1);
-	MatrixCPU Cp(nAgent, 1);
-	MatrixCPU matUb(nAgent, nAgent);
-	MatrixCPU matLb(nAgent, nAgent);
-
-	MatrixCPU tempN1(nAgent, 1);
-	MatrixCPU temp1N(1, nAgent);
-	MatrixCPU tempNN(nAgent, nAgent);
-	MatrixCPU tempL1(nLine,1);
-
-
 	int iterLocal = 0;
-	for (int i = 0; i < nAgent; i++) 
-	{
-		for (int j = 0; j < nAgent;j++) {
-			if(Lb.getNCol()==1){
-				matUb.set(i, j, Ub.get(i, 0));
-				matLb.set(i, j, Lb.get(i, 0));
-			} else {
-				matUb.set(i, j, Ub.get(i, j));
-				matLb.set(i, j, Lb.get(i, j));
-			}
-		}
-	}
-	matUb.multiplyT(&connect);
-	matLb.multiplyT(&connect);
-	
-	
-	temp1N.sum(&G2, 1);
-	
-	
-	temp1N.multiply(2*rho1);
-	Ap2.addTrans(&temp1N);
-	Ap2.multiplyT(&nVoisin);
-	Ap2.multiplyT(&nVoisin);
-	Ap1.multiply(rho_p);
-	Ap12.add(&Ap1, &Ap2);
-	Cp1.multiplyT(&b, &nVoisin);
-
-	// FB 1
-	Pn.set(&Tmoy);
-	Pn.multiplyT(&nVoisin);
-	alpha.multiplyTVector(&G, &Pn, 0);
-	updateQ(&Qpart, &Qtot, &alpha, nAgent, nLine);
-	updateLAMBDA(&LAMBDA, &trade, rho);
-	Kappa1_pre.set(&Kappa1);
-	Kappa2_pre.set(&Kappa2);
-	updateKappa(&Kappa1, &Kappa2, &Llimit, &Qtot);
-	updateBt1(&Bt1, &trade, rho, &LAMBDA);
-	updateCp2(&Cp2, rho1, &Kappa1, &Kappa2, &G, &tempL1, &Qpart, &nVoisin, nLine, nAgent);
-	Cp.add(&Cp1, &Cp2);
-
-	std::cout << "fin init" << std::endl;
-
-	
-	
-
 	float resG = 2 * epsG;
 	float resL = 2 * epsL;
 	int iterGlobal = 0;
-	while ((iterGlobal < iterG) && (resG>epsG)) {
+	while ((iterGlobal < iterG) && (resG>epsG) || (iterGlobal <= stepG)) {
 		resL = 2 * epsL;
 		iterLocal = 0;
+#ifdef INSTRUMENTATION
+		t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
 		while (iterLocal< iterL && resL>epsL) {
-			// FB 2a	
-			updateBt2(&Bt2,&Tlocal_pre,&Tmoy,&P,&MU);
-			
-			updateTl(&Tlocal, at1, at2, &Bt1, &Bt2, &Ct, &matLb, &matUb);
-			// FB 2b
-			Tmoy.Moy(&Tlocal, &nVoisin); 
-			
-			// FB 2c
-			updateBp1(&Bp1, &MU, &Tmoy);
-			updateP(&P, &Ap1, &Ap12, &Bp1, &Cp, &Pmin,&Pmax);
-			updateMU(&MU,&Tmoy,&P);
-
+			updateLocalProb();
 			// FB 3
-			resL = calcRes(&Tlocal,&Tlocal_pre,&Tmoy,&P); 
+			if (!(iterLocal % stepL)) {
+
+				resL = calcRes();
+
+			}
 			Tlocal_pre.swap(&Tlocal); 
 			iterLocal++;
-			
 		}
+#ifdef INSTRUMENTATION
+		t2 = std::chrono::high_resolution_clock::now();
+		timePerBlock.increment(0, 1, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+#endif // INSTRUMENTATION			
 		//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG) << " " << resF.get(1, iterGlobal / stepG) << std::endl;
 		Tlocal_pre.swap(&Tlocal);
-		trade.swap(&Tlocal);
+		tradeLin.swap(&Tlocal);
 		
-		Pn.set(&Tmoy);
-		Pn.multiplyT(&nVoisin);
-		alpha.multiplyTVector(&G, &Pn, 0);
-		updateQ(&Qpart, &Qtot, &alpha, nAgent, nLine);
-		updateLAMBDA(&LAMBDA, &trade, rho);
-		Kappa1_pre.set(&Kappa1);
-		Kappa2_pre.set(&Kappa2);
-		updateKappa(&Kappa1, &Kappa2, &Llimit, &Qtot);
-		// FB 1b
-		updateBt1(&Bt1, &trade, rho, &LAMBDA);
-		updateCp2(&Cp2, rho1, &Kappa1, &Kappa2, &G, &tempL1, &Qpart, &nVoisin, nLine, nAgent);
-		
-		Cp.add(&Cp1, &Cp2);
-		
+		updateGlobalProb();
 
 		// FB 4
-		resG = updateRes(&resF, &trade, &Tlocal, (iterGlobal/stepG), &Kappa1, &Kappa2, &Kappa1_pre, &Kappa2_pre);
-		
+		if (!(iterGlobal % stepG)) {
+#ifdef INSTRUMENTATION
+			t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
+			resG = updateResEndo(iterGlobal / stepG);
+			//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG)
+			//	<< " " << resF.get(1, iterGlobal / stepG) << " " << resF.get(2, iterGlobal / stepG) << std::endl;
+#ifdef INSTRUMENTATION
+			t2 = std::chrono::high_resolution_clock::now();
+			timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+#endif // INSTRUMENTATION		
+		}
 		iterGlobal++;
 	}
-	std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (iterGlobal - 1) / stepG) << " " << resF.get(1, (iterGlobal - 1) / stepG) << " " << resF.get(2, (iterGlobal - 1) / stepG) << std::endl;
+	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (iterGlobal - 1) / stepG) << " " << resF.get(1, (iterGlobal - 1) / stepG) << " " << resF.get(2, (iterGlobal - 1) / stepG) << std::endl;
+#ifdef INSTRUMENTATION
+	occurencePerBlock.increment(0, 1, iterGlobal);
+	occurencePerBlock.increment(0, 3, iterGlobal);
+	occurencePerBlock.increment(0, 4, iterGlobal);
+	occurencePerBlock.increment(0, 5, iterGlobal);
+	occurencePerBlock.increment(0, 6, iterGlobal / stepG);
+
+	t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
+	Kappa1.projectNeg(); //delta1
+	Kappa2.projectNeg(); // delta2
+
+
+	int indice = 0;
+	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
+		MatrixCPU omega(cas.getVoisin(idAgent));
+		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
+			int idVoisin = omega.get(voisin, 0);
+			trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
+			LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
+			indice = indice + 1;
+		}
+	}
+	
+	fc = calcFc();
 	// FB 5
+	if (cas.isAC()) {
+		MatrixCPU tradeTot(2 * _nAgent, _nAgent);
+		MatrixCPU LAMBDATot(2 * _nAgent, _nAgent);
+		MatrixCPU PnTot(2 * _nAgent, 1);
+		MatrixCPU MUTot(2 * _nAgent, 1);
+
+		for (int n = 0; n < _nAgent; n++) {
+			for (int m = 0; m < _nAgent; m++) {
+				tradeTot.set(n, m, trade.get(n, m));
+				LAMBDATot.set(n, m, LAMBDA.get(n, m));
+			}
+			PnTot.set(n, 0, Pn.get(n, 0));
+			MUTot.set(n, 0, MU.get(n, 0));
+		}
+		result->setLAMBDA(&LAMBDATot);
+		result->setTrade(&tradeTot);
+		result->setMU(&MUTot);
+		result->setPn(&PnTot);
+
+	}
+	else {
+		
+		result->setLAMBDA(&LAMBDA);
+		result->setTrade(&trade);
+		result->setMU(&MU);
+		result->setPn(&Pn);
+	}
+
+
 	result->setResF(&resF);
-	
-	result->setLAMBDA(&LAMBDA);
-	
-	result->setTrade(&trade);
-	
+	if (_nLine) {
+		result->setDelta1(&Kappa1);
+		result->setDelta2(&Kappa2);
+	}
 	result->setIter(iterGlobal);
 	
-	Pn.set(&Tmoy);
-	Pn.multiplyT(&nVoisin);
-	result->setPn(&Pn);
-	fc = calcFc(&a, &b, &trade, &Pn, &BETA,&tempN1,&tempNN);
+	
+	
 	result->setFc(fc);
-	t = clock() - t;
-	result->setTime((float)t / CLOCKS_PER_SEC);
+#ifdef INSTRUMENTATION
+	t2 = std::chrono::high_resolution_clock::now();
+	timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	occurencePerBlock.increment(0, 7, 1);
+	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
+#endif // INSTRUMENTATION
+	tall = clock() - tall;
+	result->setTime((float)tall / CLOCKS_PER_SEC);
 	
 }
 
 void ADMMConst::updateP0(const StudyCase& cas)
 {
-	// not used for this method
+	_id = _id + 1;
+#ifdef INSTRUMENTATION
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
+
+	if (cas.isAC()) {
+		
+		MatrixCPU bT = cas.getb();
+		MatrixCPU PminT = cas.getPmin();
+		MatrixCPU PmaxT = cas.getPmax();
+	
+
+		for (int n = 0; n < _nAgent; n++) {
+						b.set(n, 0, bT.get(n, 0));
+			Pmin.set(n, 0, PminT.get(n, 0));
+			Pmax.set(n, 0, PmaxT.get(n, 0));
+		}
+
+	}
+	else {
+		b = cas.getb();
+		Pmin = cas.getPmin();
+		Pmax = cas.getPmax();
+	}
+	
+
+
+	MatrixCPU Lb(cas.getLb());
+
+	
+	Cp1 = b;
+	int indice = 0;
+
+	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
+		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
+			matLb.set(indice, 0, Lb.get(idAgent, 0));
+			indice = indice + 1;
+		}
+	}
+
+	Pmin.divideT(&nVoisin);
+	Pmax.divideT(&nVoisin);
+	Cp1.multiplyT(&nVoisin);
+#ifdef INSTRUMENTATION
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	occurencePerBlock.increment(0, 8, 1);
+#endif // INSTRUMENTATION
+
+
 }
 
 void ADMMConst::init(const Simparam& sim, const StudyCase& cas)
 {
-	// not used for this method
-}
-
-
-void ADMMConst::updateBt1(MatrixCPU* Bt1, MatrixCPU* trade, float rho, MatrixCPU* LAMBDA)
-{
-	Bt1->set(trade);
-	Bt1->subtractTrans(trade);
-	Bt1->multiply(0.5*rho); 
-	Bt1->subtract(LAMBDA);
-	Bt1->divide(rho);
-
-}
-
-void ADMMConst::updateBt2(MatrixCPU* Bt2, MatrixCPU* Tlocal, MatrixCPU* Tmoy, MatrixCPU* P, MatrixCPU* MU)
-{
-	Bt2->set(Tlocal);
-	Bt2->subtractVector(Tmoy);
-	Bt2->addVector(P);
-	Bt2->subtractVector(MU);
-}
-
-void ADMMConst::updateBp1(MatrixCPU* Bp1, MatrixCPU* MU, MatrixCPU* Tmoy)
-{
-	Bp1->add(MU, Tmoy);
-}
-
-void ADMMConst::updateTl(MatrixCPU* Tlocal, float at1, float at2, MatrixCPU* Bt1, MatrixCPU*Bt2, MatrixCPU* Ct, MatrixCPU* matLb, MatrixCPU* matUb)
-{
-
-	float ada = at1 / at2; 
-	float apa = at1 + at2;
-
-	Tlocal->set(Bt1);
-	Tlocal->multiply(ada);
-	Tlocal->add(Bt2);
-	Tlocal->multiply(at2);
-
-	Tlocal->subtract(Ct);
-	Tlocal->divide(apa); 
-	Tlocal->project(matLb, matUb);
-}
-
-float ADMMConst::calcRes( MatrixCPU* Tlocal, MatrixCPU* Tlocal_pre, MatrixCPU* Tmoy, MatrixCPU* P)
-{
-	MatrixCPU temp(*Tlocal);
-	temp.subtract(Tlocal_pre);
-
-	MatrixCPU temp2(*Tmoy);
-	temp2.subtract(P);
-	float d1 = temp.max2();
-	float d2 = temp2.max2();
-	//std::cout << " ResS " << d1 << " ResR " << d2 << std::endl;
-
-	return d1 * (d1 > d2) + d2 * (d2 >= d1);
-}
-
-void ADMMConst::updateP(MatrixCPU* P, MatrixCPU* Ap1, MatrixCPU* Ap12, MatrixCPU* Bp1, MatrixCPU* Cp, MatrixCPU* Pmin, MatrixCPU* Pmax)
-{
-	P->multiplyT(Ap1, Bp1);
-	P->subtract(Cp);
+	// intitilisation des matrixs et variables 
 	
-	P->divideT(Ap12);
-	P->project(Pmin, Pmax);
-}
+	//std::cout << "init " << std::endl;
+	_rhog = sim.getRho();
+	_rho1 = sim.getRho1();
+	const int iterG = sim.getIterG();
+	const int stepG = sim.getStepG();
+	float epsG = sim.getEpsG();
+	float epsGC = sim.getEpsGC();
+	_ratioEps = epsG / epsGC;
+	_nAgent = sim.getNAgent();
+	
 
-void ADMMConst::updateMU(MatrixCPU* MU, MatrixCPU* Tmoy, MatrixCPU* P)
-{
-	MU->add(Tmoy);
-	MU->subtract(P);
-}
-
-void ADMMConst::updateQ(MatrixCPU* Qpart, MatrixCPU* Qtot, MatrixCPU* alpha, int nAgent, int nLine)
-{
-	for (int l = 0; l < nLine; l++) {
-		float qt = 0;
-		for (int n = nAgent - 1; n >= 0; n--) {
-			qt += alpha->get(l, n);
-			if (n > 0) {
-				Qpart->set(l, n - 1, qt);
-			}
+	_rhol = _rho; //*nAgent
+	//std::cout << "rho " << _rho << std::endl;
+	if (_rho == 0) {
+		_rhol = _rhog;
+	}
+	if (cas.isAC()) {
+		MatrixCPU nVoisinT = cas.getNvoi();
+		nVoisin = MatrixCPU(_nAgent, 1);
+		for (int n = 0; n < _nAgent; n++) {
+			nVoisin.set(n, 0, nVoisinT.get(n, 0));
 		}
-		Qtot->set(l, 0, qt);
+	}
+	else {
+		nVoisin = cas.getNvoi();
+	}
+	
+
+	_nLine = cas.getNLine();
+	//std::cout << "_nLine " << _nLine << std::endl;
+	_nBus = cas.getNBus();
+
+	_nTrade = nVoisin.sum();
+	_at1 = _rhog; // represente en fait 2*a
+	_at2 = _rhol;
+
+	resF = MatrixCPU(3, (iterG / stepG) + 1);
+	resX = MatrixCPU(4, (iterG / stepG) + 1);
+
+	MatrixCPU BETA(cas.getBeta());
+	
+	MatrixCPU Ub(cas.getUb());
+	MatrixCPU Lb(cas.getLb());
+	LAMBDA = sim.getLambda();
+	trade = sim.getTrade();
+
+	//std::cout << "mise sous forme lin�aire" << std::endl;
+	
+	CoresMatLin = MatrixCPU(_nAgent, _nAgent, -1);
+	CoresLinAgent = MatrixCPU(_nTrade, 1);
+	CoresAgentLin = MatrixCPU(_nAgent + 1, 1);
+	CoresLinVoisin = MatrixCPU(_nTrade, 1);
+	CoresLinTrans = MatrixCPU(_nTrade, 1);
+
+	Tlocal_pre = MatrixCPU(_nTrade, 1);
+	tradeLin = MatrixCPU(_nTrade, 1);
+	LAMBDALin = MatrixCPU(_nTrade, 1);
+
+	matLb = MatrixCPU(_nTrade, 1);
+	matUb = MatrixCPU(_nTrade, 1);
+	Ct = MatrixCPU(_nTrade, 1);
+	Bt2 = MatrixCPU(_nTrade, 1);
+
+	int indice = 0;
+
+	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
+		MatrixCPU omega(cas.getVoisin(idAgent));
+		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
+			int idVoisin = omega.get(voisin, 0);
+			if(Lb.getNCol()==1){
+				matLb.set(indice, 0, Lb.get(idAgent, 0));
+				matUb.set(indice, 0, Ub.get(idAgent, 0));
+			} else {
+				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
+				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
+			}
+			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
+			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
+			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
+			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
+			CoresLinAgent.set(indice, 0, idAgent);
+			CoresLinVoisin.set(indice, 0, idVoisin);
+			CoresMatLin.set(idAgent, idVoisin, indice);
+			indice = indice + 1;
+		}
+		CoresAgentLin.set(idAgent + 1, 0, indice);
+	}
+	for (int lin = 0; lin < _nTrade; lin++) {
+		int i = CoresLinAgent.get(lin, 0);
+		int j = CoresLinVoisin.get(lin, 0);
+		int k = CoresMatLin.get(j, i);
+		CoresLinTrans.set(lin, 0, k);
 	}
 
 
+	// transfert des mises lineaire
+	
+
+	//std::cout << "donnees sur CPU pour le grid" << std::endl;
+	Kappa1 = MatrixCPU(_nLine, 1, 0);
+	Kappa2 = MatrixCPU(_nLine, 1, 0);
+	Kappa1_pre = MatrixCPU(_nLine, 1, 0);
+	Kappa2_pre = MatrixCPU(_nLine, 1, 0);
+	Qpart = MatrixCPU(_nLine, _nAgent, 0);
+	Qtot = MatrixCPU(_nLine, 1, 0);
+	alpha = MatrixCPU(_nLine, _nAgent, 0);
+
+	G = MatrixCPU(cas.getPowerSensi());
+	
+	
+
+	lLimit = MatrixCPU(cas.getLineLimit());
+
+	GTrans = MatrixCPU(_nAgent, _nLine);
+	GTrans.setTrans(&G);
+
+	G2 = GTrans;
+	G2.multiplyT(&GTrans);
+
+
+	//std::cout << "autres donn�e sur CPU" << std::endl;
+	tempNN = MatrixCPU(_nTrade, 1, 0);
+	tempN1 = MatrixCPU(_nAgent, 1, 0); // plut�t que de re-allouer de la m�moire � chaque utilisation
+	tempL1 = MatrixCPU(_nLine, 1, 0);
+	//MatrixCPU temp1N(1, _nAgent, 0, 1);
+
+	Tlocal = MatrixCPU(_nTrade, 1, 0);
+	P = MatrixCPU(_nAgent, 1, 0); // moyenne des trades
+	Pn = MatrixCPU(_nAgent, 1, 0); // somme des trades
+
+	// si cas AC, a, b ,Nvoisin, Pmin,Pma n'ont pas la bonne taille !!!
+	if (cas.isAC()) {
+		MatrixCPU aT = cas.geta();
+		MatrixCPU bT = cas.getb();
+		MatrixCPU PminT = cas.getPmin();
+		MatrixCPU PmaxT = cas.getPmax();
+		MatrixCPU MUT = sim.getMU(); // facteur reduit i.e lambda_l/_rho
+		MatrixCPU TmoyT = sim.getPn();
+		a = MatrixCPU(_nAgent, 1);
+		b = MatrixCPU(_nAgent, 1);
+		Pmin = MatrixCPU(_nAgent, 1);
+		Pmax = MatrixCPU(_nAgent, 1);
+		MU = MatrixCPU(_nAgent, 1);
+		Tmoy = MatrixCPU(_nAgent, 1);
+
+		for (int n = 0; n < _nAgent; n++) {
+			a.set(n, 0, aT.get(n, 0));
+			b.set(n, 0, bT.get(n, 0));
+			Pmin.set(n, 0, PminT.get(n, 0));
+			Pmax.set(n, 0, PmaxT.get(n, 0));
+			MU.set(n, 0, MUT.get(n, 0));
+			Tmoy.set(n, 0, TmoyT.get(n, 0));
+		}
+
+	}
+	else {
+		a = MatrixCPU(cas.geta());
+		b = MatrixCPU(cas.getb());
+		
+		
+		
+		Pmin = MatrixCPU(cas.getPmin());
+		Pmax = MatrixCPU(cas.getPmax());
+		MU = MatrixCPU(sim.getMU()); // facteur reduit i.e lambda_l/_rho
+		Tmoy = MatrixCPU(sim.getPn());
+	}
+	Ap1 = nVoisin;
+	Ap2 = a;
+	Cp1 = b;
+	
+	Ap12 = MatrixCPU(_nAgent, 1, 0);
+
+	Bt1 = MatrixCPU(_nTrade, 1, 0);
+	Cp = MatrixCPU(_nAgent, 1, 0);
+	Cp2 = MatrixCPU(_nAgent, 1, 0);
+	Bp1 = MatrixCPU(_nAgent, 1, 0);
+
+	Pmin.divideT(&nVoisin);
+	Pmax.divideT(&nVoisin);
+	Ap1.multiply(_rhol);
+	Cp1.multiplyT(&nVoisin);
+	Tmoy.divideT(&nVoisin);
+	tempN1.sum(&G2);
+	
+	tempN1.multiply(2 * _rho1);
+	Ap2.add(&tempN1);
+	Ap2.multiplyT(&nVoisin);
+	Ap2.multiplyT(&nVoisin);
+	Ap12.add(&Ap1, &Ap2);
+
+
+	updateGlobalProb();
+	//std::cout << "rho " << _rhog << " rhoL " << _rhol << " rho1 " << _rho1 << std::endl;
+	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
+	//std::cout << "fin init " << std::endl;
+
+}
+
+void ADMMConst::updateGlobalProb() {
+	
+	// FB 3a
+#ifdef INSTRUMENTATION
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
+	
+
+	updatePn();
+	
+
+#ifdef INSTRUMENTATION
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+
+	timePerBlock.increment(0, 3, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+
+	// FB 3b
+	t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
+	alpha.multiplyTVector(&G, &Pn, 0);
+	updateQ();
+	
+#ifdef INSTRUMENTATION
+	t2 = std::chrono::high_resolution_clock::now();
+	timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+	
+	t1 = std::chrono::high_resolution_clock::now();
+#endif // INSTRUMENTATION
+	
+	Kappa1_pre.set(&Kappa1);
+	Kappa2_pre.set(&Kappa2);
+	updateKappa();
+	updateCp2();
+	Cp.add(&Cp1, &Cp2);
+	// FB 3c
+	updateLambda();
+	updateBt1();
+	
+#ifdef INSTRUMENTATION
+	t2 = std::chrono::high_resolution_clock::now();
+	timePerBlock.increment(0, 5, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+#endif // INSTRUMENTATION
+	
+}
+
+void ADMMConst::updateLocalProb() {
+	// FB 1a
+
+	updateBt2();
+	updateTl();
+
+	
+	for (int i = 0; i < _nAgent; i++) {
+		int nVoisinLocal = nVoisin.get(i, 0);
+		int beginLocal = CoresAgentLin.get(i, 0);
+		int endLocal = beginLocal + nVoisinLocal;
+		float m = 0;
+		for (int j = beginLocal; j < endLocal; j++) {
+			m += Tlocal.get(j, 0);
+		}
+		Tmoy.set(i, 0, m/nVoisinLocal);
+	}
+
+	updateBp1();
+	updateP();
+	updateMU();
+
+	
+}
+
+
+
+
+void ADMMConst::updateBt1()
+{
+	
+	// subtractTrans
+	for (int t = 0; t < _nTrade; t++) {
+		int k = CoresLinTrans.get(t,0);
+		Bt1.set(t, 0, tradeLin.get(t, 0) - tradeLin.get(k, 0));
+	}
+	Bt1.multiply(0.5*_rhog); 
+	Bt1.subtract(&LAMBDALin);
+	Bt1.divide(_rhog);
+}
+
+void ADMMConst::updateBt2()
+{
+	for (int i = 0; i < _nAgent; i++) {
+		int nVoisinLocal = nVoisin.get(i,0);
+		int beginLocal = CoresAgentLin.get(i,0);
+		int endLocal = beginLocal + nVoisinLocal; 
+		for (int j = beginLocal; j < endLocal; j++) {
+			float m = Tlocal_pre.get(j,0) - Tmoy.get(i, 0) + P.get(i, 0) - MU.get(i, 0); 
+			Bt2.set(j, 0, m);
+		}
+	}
+}
+
+void ADMMConst::updateBp1()
+{
+	Bp1.add(&MU, &Tmoy);
+}
+
+void ADMMConst::updateTl()
+{
+
+	float ada = _at1 / _at2; 
+	float apa = _at1 + _at2;
+
+	Tlocal.set(&Bt1);
+	Tlocal.multiply(ada);
+	Tlocal.add(&Bt2);
+	Tlocal.multiply(_at2);
+
+	Tlocal.subtract(&Ct);
+	Tlocal.divide(apa);
+	Tlocal.project(&matLb, &matUb);
+}
+
+
+void ADMMConst::updateP()
+{
+	P.multiplyT(&Ap1, &Bp1);
+	P.subtract(&Cp);
+	
+	P.divideT(&Ap12);
+	P.project(&Pmin, &Pmax);
+}
+
+void ADMMConst::updateMU()
+{
+	MU.add(&Tmoy);
+	MU.subtract(&P);
+}
+
+void ADMMConst::updateQ()
+{
+	for (int l = 0; l < _nLine; l++) {
+		float qt = 0;
+		for (int n = _nAgent - 1; n >= 0; n--) {
+			qt += alpha.get(l, n);
+			if (n > 0) {
+				Qpart.set(l, n - 1, qt);
+			}
+		}
+		Qtot.set(l, 0, qt);
+	}
 }
 
 void ADMMConst::display() {

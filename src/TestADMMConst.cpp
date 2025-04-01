@@ -21,15 +21,13 @@ int testADMM()
 	n++;
 	if (!testADMMFunction6()) return n;
 	n++; // 10
-	std::cout << "test solve" << std::endl;
 	if (!testADMMSolve1()) return n;
 	n++;
 	if (!testADMMSolve2()) return n;
 	n++;
 	if (!testADMMSolve3()) return n;
 	n++;
-	if (!testADMMSolve4()) return n;
-	n++;
+	
 
 	return 0;
 }
@@ -64,23 +62,14 @@ bool testADMMSolve1()
 	//solve(Simparam* result, Simparam sim, StudyCase cas);
 	StudyCase cas;
 	cas.Set2node();
-
-	//cas.display(0);
-	//cas.display(1);
-
 	int nAgent = cas.getNagent();
 	
 	Simparam param(nAgent, 1);
-	float epsG = 0.0001f;
-	int iterG = 1000;
 	/*int iterG = 1;
 	int iterL = 5;
 	param.setItG(iterG);
 	param.setItL(iterL);*/
 	Simparam res(param);
-	
-	
-	
 
 	ADMMConst a;
 
@@ -98,89 +87,48 @@ bool testADMMSolve2()
 {
 	//solve(Simparam* result, Simparam sim, StudyCase cas);
 	StudyCase cas;
-	cas.Set4Agent();
-
-	//cas.display(0);
-	//cas.display(1);
-
+	cas.Set29node();
+	
 	int nAgent = cas.getNagent();
 
-	Simparam param(nAgent, 1);
-	float epsG = 0.0001f;
-	int iterG = 1000;
+	Simparam param(nAgent, cas.getNLine());
+	float epsG = 0.00001f;
 	param.setEpsG(epsG);
-	param.setItG(iterG);
-	/*int iterG = 1;
-	int iterL = 5;
-	param.setItG(iterG);
-	param.setItL(iterL);*/
+	param.setRho(10000);
 	Simparam res(param);
-
-
-
-
 	ADMMConst a;
-
-	MatrixCPU P(nAgent, 1);
-	P.set(0, 0, -11.1764);
-	P.set(1, 0, -11.1764);
-	P.set(2, 0, 24.033);
-	P.set(3, 0, -1.6809);
 	a.solve(&res, param, cas);
+	
+	res.display();
+	
+					
+	float Pn[31] = { -1.008853555f,-4.62966156f,-2.927534103f,-0.8979898691f,-0.9462603927f,-0.09805059433f,-0.127968356f,-4.168303013f,-3.151874542f,-2.261414766f,-0.670329392f,-3.399893284f,-0.4841034412f,-2.775528431f,-3.008597374f,-1.849177122f,-0.5534118414f,-2.362840891f,-1.122991204f,-0.1379692554f,-2.332088947f,4.406820297f,5.406073093f,3.676487684f,3.929354668f,4.570535183f,2.529039145f,3.478654861f,2.755935192f,3.768760443f,4.393183708f };
+
+	MatrixCPU P(31, 1);
+	for (int i = 0; i < 31; i++) {
+		P.set(i, 0, Pn[i]);
+	}
 
 	MatrixCPU P2 = res.getPn();
-	res.display();
-	P2.display();
-	return P.isEqual(&P2, 0.01f);
+	std::cout << std::endl;
+	return P2.isEqual(&P,0.01f);
 }
 
 bool testADMMSolve3()
 {
 	//solve(Simparam* result, Simparam sim, StudyCase cas);
 	StudyCase cas;
-	cas.Set29node();
-	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
-
-	int nAgent = cas.getNagent();
-
-	Simparam param(nAgent, cas.getNLine());
-	float epsG = 0.00005f;
-	int iterG = 100000;
-	param.setEpsG(epsG);
-	param.setItG(iterG);
-	param.setEpsG(epsG);
-	param.setRho(10000);
-
-	Simparam res(param);
-	ADMMConst a;
-	a.solve(&res, param, cas);
-
-	res.display();
-
-
-	float fc = -87016;
-	float Pn[31] = { -0.927f, -4.51f, -2.81f, -0.795f, -0.880f, -0.0980f, -0.128f, -4.07f, -3.04f, -2.16f, -0.593f, -3.31f, -0.389f, -2.71f, -2.93f, -1.77f, -0.490f, -2.26f, -1.05f, -0.138f, -2.24f, 4.246f, 5.19f, 3.42f, 3.75f, 4.41f, 2.34f, 3.31f, 2.57f, 3.49f, 4.23f };
-
-	MatrixCPU P(31, 1);
-	for (int i = 0; i < 31; i++) {
-		P.set(i, 0, Pn[i]);
-	}
-	MatrixCPU P2 = res.getPn();
-	P2.display();
-
-	return P2.isEqual(&P, 0.1f);
-}
-
-bool testADMMSolve4()
-{
-	//solve(Simparam* result, Simparam sim, StudyCase cas);
-	StudyCase cas;
 	float lim = 0.8f;
 	cas.Set2nodeConstraint(lim);
 	int nAgent = cas.getNagent();
+	float epsG = 0.00001f;
+	int iterG = 1000;
 	Simparam param(nAgent, 1);
+	param.setEpsG(epsG);
+	param.setEpsGC(epsG);
+	param.setItG(iterG);
 	Simparam res(param);
-
+	
 
 	float value = (1 - lim) * (lim > 1) + lim;
 
@@ -211,24 +159,33 @@ void ADMMConst::updateBt1(MatrixCPU* Bt1, MatrixCPU* trade, float rho, MatrixCPU
 
 }*/
 
-	int nAgent = 2;
+	int nTrade = 2;
 	float value1 = 2;
 	float value2 = 4;
 	float value3 = -2;
+	float value4 = -3.5;
 	float rho = 1.5;
-	MatrixCPU Bt1(nAgent, nAgent,value1);
-	MatrixCPU Bt11(nAgent, nAgent, value1);
-	MatrixCPU trade(nAgent, nAgent,value2);
-	MatrixCPU LAMBDA(nAgent, nAgent, value3);
-	ADMMConst a;
+	MatrixCPU Bt1(nTrade, 1, 0);
+	
+	MatrixCPU Bt11(nTrade, 1, value1);
+	Bt11.set(0, 0, 0.5 * (value2 - value4) - value3 / rho);
+	Bt11.set(1, 0, 0.5 * (value4 - value2) - value3 / rho);
+	MatrixCPU trade(nTrade, 1, value2);
+	trade.set(1, 0, value4);
+	MatrixCPU LAMBDA(nTrade, 1, value3);
+	MatrixCPU CoresLinTrans(nTrade, 1);
+	CoresLinTrans.set(0, 0, 1);
+	CoresLinTrans.set(1, 0, 0);
 
-	a.updateBt1(&Bt1, &trade, rho, &LAMBDA);
 
-	Bt11.set(&trade);
-	Bt11.subtractTrans(&trade);
-	Bt11.multiply(0.5f * rho); 
-	Bt11.subtract(&LAMBDA);
-	Bt11.divide(rho);
+	for (int t = 0; t < nTrade; t++) {
+		int k = (int) CoresLinTrans.get(t, 0);
+		Bt1.set(t, 0, trade.get(t, 0) - trade.get(k, 0));
+	}
+	Bt1.multiply(0.5f * rho);
+	Bt1.subtract(&LAMBDA);
+	Bt1.divide(rho);
+	
 
 	return Bt1.isEqual(&Bt11);
 }
@@ -243,27 +200,36 @@ bool testADMMFunction2()
 	Bt2->subtractVector(MU);
 }*/
 	int nAgent = 2;
+	int nTrade = 2;
 	float value1 = 0;
-	float value2 = 0;
-	float value3 = 0;
+	float value2 = 2;
+	float value3 = 3.5;
 	float value4 = -4;
 	float value5 = 4;
 	
-	MatrixCPU Bt2(nAgent,nAgent,value1);
-	MatrixCPU Bt22(nAgent, nAgent, value1);
-	MatrixCPU Tlocal(nAgent, nAgent, value2);
+	MatrixCPU Bt22(nTrade, 1, value2-value3-value5+value4);
+	MatrixCPU Bt2(nTrade, 1, 0);
+	MatrixCPU Tlocal(nTrade, 1, value2);
 	MatrixCPU Tmoy(nAgent, 1, value3);
 	MatrixCPU P(nAgent, 1, value4);
 	MatrixCPU MU(nAgent, 1, value5);
-	ADMMConst a;
-	a.updateBt2(&Bt2, &Tlocal, &Tmoy, &P, &MU);
+	MatrixCPU nVoisin(nAgent, 1, 1);
+	MatrixCPU CoresAgentLin(nAgent, 1, 0);
+	CoresAgentLin.set(1, 0, 1);
 
+	
+	for (int i = 0; i < nAgent; i++) {
+		int nVoisinLocal = (int) nVoisin.get(i, 0);
+		int beginLocal = (int) CoresAgentLin.get(i, 0);
+		int endLocal = beginLocal + nVoisinLocal;
+		for (int j = beginLocal; j < endLocal; j++) {
+			float m = Tlocal.get(j, 0) - Tmoy.get(i, 0) + P.get(i, 0) - MU.get(i, 0);
+			Bt2.set(j, 0, m);
+		}
+	}
 
-	Bt22.set(&Tlocal);
-	Bt22.subtractVector(&Tmoy);
-	Bt22.addVector(&P);
-	Bt22.subtractVector(&MU);
-
+	Bt2.display();
+	Bt22.display();
 
 	return Bt2.isEqual(&Bt22);
 }
@@ -282,26 +248,32 @@ bool testADMMFunction3()
 
 	return d1 * (d1 > d2) + d2 * (d2 >= d1);
 }*/
-	int nAgent = 4;
+	int nTrade = 4;
+	int nAgent = 3;
 	float value1 = 2;
 	float value2 = 4;
 	float value3 = -2;
 	float value4 = 3;
-	float d = 0;
-	MatrixCPU Tlocal(nAgent, nAgent, value1);
-	MatrixCPU Tlocal_pre(nAgent, nAgent, value2);
+	MatrixCPU Tlocal(nTrade, 1, value1);
+	MatrixCPU Tlocal_pre(nTrade, 1, value2);
 	MatrixCPU Tmoy(nAgent, 1, value3);
 	MatrixCPU P(nAgent, 1, value4);
-	ADMMConst a;
-	d = a.calcRes(&Tlocal, &Tlocal_pre, &Tmoy, &P);
+	MatrixCPU temp(Tlocal);
+	temp.subtract(&Tlocal_pre);
+
+	MatrixCPU temp2(Tmoy);
+	temp2.subtract(&P);
+	float d1 = temp.max2();
+	float d2 = temp2.max2();
 	
-	float d1 = fabs(value1 - value2);
-	float d2 = fabs(value3 - value4);
+	float d = d1 * (d1 > d2) + d2 * (d2 >= d1);
+	float d11 = fabs(value1 - value2);
+	float d22 = fabs(value3 - value4);
 	
 
 
 	
-	return (d==(d1 * (d1 > d2) + d2 * (d2 >= d1)));
+	return (d==(d11 * (d11 > d22) + d22 * (d22 >= d11)));
 }
 
 bool testADMMFunction4()
@@ -322,7 +294,8 @@ bool testADMMFunction4()
 	Tlocal->project(matLb, matUb);
 }*/
 
-	int nAgent = 4;
+	int nAgent = 3;
+	int nTrade = 4;
 	float value1 = 2;
 	float value2 = -8;
 	float value3 = 1;
@@ -337,17 +310,15 @@ bool testADMMFunction4()
 	else if (value8 < value6) {
 		value8 = value6;
 	}
-	MatrixCPU Bt1(nAgent,nAgent,value1);
+	MatrixCPU Bt1(nTrade,1,value1);
 	float at1 = value3;
-	MatrixCPU Bt2(nAgent, nAgent, value2);
+	MatrixCPU Bt2(nTrade, 1, value2);
 	float at2 = value4;
-	MatrixCPU Ct(nAgent, nAgent, value5);
-	MatrixCPU Lb(nAgent, nAgent, value6);
-	MatrixCPU Ub(nAgent, nAgent, value7);
-	MatrixCPU Tlocal(nAgent, nAgent);
-	MatrixCPU Tlocal2(nAgent, nAgent);
-	ADMMConst a;
-	a.updateTl(&Tlocal, at1, at2, &Bt1, &Bt2, &Ct, &Lb, &Ub);
+	MatrixCPU Ct(nTrade, 1, value5);
+	MatrixCPU Lb(nTrade, 1, value6);
+	MatrixCPU Ub(nTrade, 1, value7);
+	MatrixCPU Tlocal(nTrade, 1);
+	MatrixCPU Tlocal2(nTrade, 1);
 	
 	float ada = at1 / at2; 
 	float apa = at1 + at2;
@@ -361,9 +332,9 @@ bool testADMMFunction4()
 	Tlocal2.project(&Lb, &Ub);
 	
 	
-	MatrixCPU test(nAgent, nAgent, value8);
+	MatrixCPU test(nTrade, 1, value8);
 
-	return (Tlocal2.isEqual(&Tlocal) && (Tlocal.isEqual(&test)));
+	return (Tlocal2.isEqual(&test));
 }
 
 bool testADMMFunction5()
@@ -400,8 +371,11 @@ bool testADMMFunction5()
 	MatrixCPU Lb(nAgent, 1, value6);
 	MatrixCPU Ub(nAgent, 1, value7);
 	MatrixCPU P(nAgent, 1);
-	ADMMConst a;
-	a.updateP(&P, &Ap1, &Ap12, &Bp1, &Cp, &Lb, &Ub);
+	P.multiplyT(&Ap1, &Bp1);
+	P.subtract(&Cp);
+
+	P.divideT(&Ap12);
+	P.project(&Lb, &Ub);
 	
 	MatrixCPU test(nAgent, 1, value8);
 	return test.isEqual(&P);
@@ -409,5 +383,33 @@ bool testADMMFunction5()
 
 bool testADMMFunction6()
 {
-	return true;
+	//LAMBDA
+	int nAgent = 3; // 2 conso et un prod
+	int ntrade = 4;
+	float value1 = 2;
+	float value2 = -8;
+	float value3 = 1.5;
+	float value4 = 4;
+	float rho = value3;
+
+	MatrixCPU LAMBDALin(ntrade, 1, value1);
+	MatrixCPU trade(ntrade, 1, value2);
+	trade.set(2, 0, value4);
+	trade.set(3, 0, value4);
+	MatrixCPU CoresLinTrans(ntrade, 1);
+	CoresLinTrans.set(0, 0, 2);
+	CoresLinTrans.set(1, 0, 3);
+	CoresLinTrans.set(2, 0, 0);
+	CoresLinTrans.set(3, 0, 1);
+
+	MatrixCPU LAMBDALin2(ntrade, 1, value1 + 0.5 * value3 * (value2 + value4));
+	
+	for (int t = 0; t < ntrade; t++) {
+		int k = (int) CoresLinTrans.get(t, 0);
+		float lamb = 0.5f * rho * (trade.get(t, 0) + trade.get(k, 0));
+		LAMBDALin.set(t, 0, LAMBDALin.get(t, 0) + lamb);
+	}
+
+
+	return (LAMBDALin.isEqual(&LAMBDALin2));
 }

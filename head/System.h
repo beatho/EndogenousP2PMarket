@@ -7,6 +7,8 @@
 /* Market */
 #include "ADMMMarket.h"
 #include "ADMMMarketOpenMP.h"
+#include "PAC.h"
+#include "ADMMConst.h"
 
 /* Endogenous Market*/
 #include "MarEndoCons.h"
@@ -61,8 +63,8 @@ public:
 	const std::string sADMMMarketGPU = "ADMMGPU";
 	const std::string sPAC = "PAC";
 
-	const std::string sADMMConst = "ADMMConst";
-	const std::string sADMMConst1 = "DCEndoMarket"; //ADMMConst1
+	// DC Endo
+	const std::string sADMMConst = "DCEndoMarket"; //ADMMConst
 	const std::string sADMMGPUConst1 = "ADMMGPUConst1";
 	const std::string sADMMGPUConst1T = "ADMMGPUConst1T";
 	const std::string sADMMGPUConst2 = "ADMMGPUConst2";
@@ -105,9 +107,7 @@ public:
 	void addLink(int i, int j);
 	Agent removeAgent(int agent);
 	void restoreAgent(Agent& agent, bool all = false);
-	void setBestRho(float rhoMax = 0, bool rhoVar = 0, float rhoTest = 0);
-
-
+	
 	// mettre tous les set permettant de modifier les param�tres...
 	void setStudyCase(const StudyCase& cas);
 	void setStudyCase(std::string caseName);
