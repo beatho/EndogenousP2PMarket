@@ -22,14 +22,13 @@ public:
 	ADMMGPUConstCons2();
 	ADMMGPUConstCons2(float rho);
 	virtual ~ADMMGPUConstCons2();
-	void setParam(float rho);
+	virtual void setParam(float rho);
 	void setTau(float tau);
 
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
 	void updateGlobalProbGPU();
 	void updateLocalProbGPU(float epsL, int nIterL);
-	void init(const Simparam& sim, const StudyCase& cas);
-	void updateP0(const StudyCase& cas);
+	virtual void init(const Simparam& sim, const StudyCase& cas);
 	void solveOPF();
 	void findalpha();
 	std::string NAME ="ADMMGPUConstCons2";
@@ -61,9 +60,6 @@ private:
 	float err1; // a mettre sur GPU !
 	float v; //  Ploss = 0 a mettre sur GPU !
 	float mu; // relaxation, fonction barriere
-
-	int kmax = 200;
-	float epsOPF = 0.0001;
 
 	MatrixGPU H;
 	MatrixGPU q; // 0.5x^THx + q^T*x

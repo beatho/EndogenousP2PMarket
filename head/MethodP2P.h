@@ -18,6 +18,8 @@ public:
 	MethodP2P();
 	virtual ~MethodP2P();
 	virtual void setParam(float param) = 0;
+	virtual void init(const Simparam& sim, const StudyCase& cas) = 0;
+	virtual void updateP0(const StudyCase& cas);
 	//virtual void setTau(float tau) = 0;
 
 	virtual void updateLAMBDA();
@@ -25,24 +27,28 @@ public:
 	void updateKappa();
 	void updateCp2();
 
-	/*virtual float updateRes(MatrixCPU* res, MatrixGPU* Tlocal, MatrixGPU* trade, int iter, MatrixGPU* tempNN);
-	float updateRes(MatrixCPU* res, MatrixCPU* Tlocal, MatrixCPU* trade, int iter);
-	float updateRes(MatrixCPU* res, MatrixCPU* Tlocal, MatrixCPU* trade, int iter, MatrixCPU* Kappa1, MatrixCPU* Kappa2, MatrixCPU* Kappa1_pre, MatrixCPU* Kappa2_pre);
-	*/
 	float updateResMat(int iter);
 	float updateRes(int iter);
 	float updateResEndo(int iter);
 	float calcRes();
 
-
+	void initLinForm(const Simparam& sim, const StudyCase& cas);
+	void initSize(const StudyCase& cas);
+	void initSimParam(const Simparam& sim);
+	void initDCEndoGrid(const StudyCase& cas); // init with G transposed
+	void initCaseParam(const Simparam& sim, const StudyCase& cas);
+	void initDCEndoMarket();
+	void initP2PMarket();
 	// compute : fc = 0.5 * cost1 * pn^2 + cost2 * pn + BETA * trade
 	float calcFc();
 
 	virtual void updatePn();
 	virtual void solveWithMinPower(Simparam* result, const Simparam& sim, const StudyCase& cas);
-	
+	virtual void display();
 protected:
 	// ne change pas avec P0
+	clock_t tMarket;
+
 	float _mu = 40;
 	float _mu1 = 40;
 	float _mul = 40;
@@ -50,9 +56,30 @@ protected:
 
 	float _rho = 0;
 	float _rhol = 0;
-	int _nAgent = 0;
-	int _nTrade = 0;
 	float _rhog = 0;
+
+	int _iterGlobal = 0;
+	int _iterG = 0;
+	int _iterL = 0;
+	int _iterIntern = 0;
+
+	int _stepG = 1;
+	int _stepL = 1;
+	int _stepIntern = 1;
+
+	float _epsL = 0;
+	float _epsG = 0;
+	float _epsX = 0;
+	float _epsIntern = 0;
+	
+	bool isAC = false;
+	int _nAgent = 0;
+	int _nAgentTrue = 0;
+
+	int _nTrade = 0;
+	int _nTradeP = 0;
+	int _nTradeQ = 0;
+	
 	float _at1 = 0;
 	float _at2 = 0;
 
@@ -65,9 +92,13 @@ protected:
 	MatrixCPU Pn; // somme des trades
 
 	MatrixCPU a;
-	MatrixCPU Ap2;
 	MatrixCPU Ap1;
+	MatrixCPU Ap2;
+	MatrixCPU Ap2a;
+	MatrixCPU Ap2b;
 	MatrixCPU Ap12;
+
+
 	MatrixCPU Bt1;
 	MatrixCPU Bt2;
 	MatrixCPU Bp1;

@@ -21,9 +21,9 @@ ADMMConst::ADMMConst(float rho) : MethodP2P()
 #endif // DEBUG_CONSTRUCTOR
 	_name = NAME;
 	_rho = rho;
-	timePerBlock = MatrixCPU(1, 8, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
+	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
-	occurencePerBlock = MatrixCPU(1, 8, 0); //nb de fois utilis� pendant la simu
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilis� pendant la simu
 
 }
 
@@ -72,31 +72,24 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	}
 	_rhog = sim.getRho();
 	_at1 = _rhog;
-	int iterG = sim.getIterG();
-	int iterL = sim.getIterL();
-	int stepL = sim.getStepL();
-	int stepG = sim.getStepG();
-	
-	float epsL = sim.getEpsL();
-	float epsG = sim.getEpsG();
-	
+		
 
 	float fc = 0;
 
 	int iterLocal = 0;
-	float resG = 2 * epsG;
-	float resL = 2 * epsL;
+	float resG = 2 * _epsG;
+	float resL = 2 * _epsL;
 	int iterGlobal = 0;
-	while ((iterGlobal < iterG) && (resG>epsG) || (iterGlobal <= stepG)) {
-		resL = 2 * epsL;
+	while ((iterGlobal < _iterG) && (resG>_epsG)) {
+		resL = 2 * _epsL;
 		iterLocal = 0;
 #ifdef INSTRUMENTATION
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-		while (iterLocal< iterL && resL>epsL) {
+		while (iterLocal< _iterL && resL> _epsL) {
 			updateLocalProb();
 			// FB 3
-			if (!(iterLocal % stepL)) {
+			if (!(iterLocal % _stepL)) {
 
 				resL = calcRes();
 
@@ -115,11 +108,11 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 		updateGlobalProb();
 
 		// FB 4
-		if (!(iterGlobal % stepG)) {
+		if (!(iterGlobal % _stepG)) {
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResEndo(iterGlobal / stepG);
+			resG = updateResEndo(iterGlobal / _stepG);
 			//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG)
 			//	<< " " << resF.get(1, iterGlobal / stepG) << " " << resF.get(2, iterGlobal / stepG) << std::endl;
 #ifdef INSTRUMENTATION
@@ -207,255 +200,29 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	
 }
 
-void ADMMConst::updateP0(const StudyCase& cas)
-{
-	_id = _id + 1;
-#ifdef INSTRUMENTATION
-	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-#endif // INSTRUMENTATION
-
-	if (cas.isAC()) {
-		
-		MatrixCPU bT = cas.getb();
-		MatrixCPU PminT = cas.getPmin();
-		MatrixCPU PmaxT = cas.getPmax();
-	
-
-		for (int n = 0; n < _nAgent; n++) {
-						b.set(n, 0, bT.get(n, 0));
-			Pmin.set(n, 0, PminT.get(n, 0));
-			Pmax.set(n, 0, PmaxT.get(n, 0));
-		}
-
-	}
-	else {
-		b = cas.getb();
-		Pmin = cas.getPmin();
-		Pmax = cas.getPmax();
-	}
-	
-
-
-	MatrixCPU Lb(cas.getLb());
-
-	
-	Cp1 = b;
-	int indice = 0;
-
-	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			indice = indice + 1;
-		}
-	}
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-	Cp1.multiplyT(&nVoisin);
-#ifdef INSTRUMENTATION
-	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
-	occurencePerBlock.increment(0, 8, 1);
-#endif // INSTRUMENTATION
-
-
-}
-
 void ADMMConst::init(const Simparam& sim, const StudyCase& cas)
 {
 	// intitilisation des matrixs et variables 
 	
 	//std::cout << "init " << std::endl;
-	_rhog = sim.getRho();
-	_rho1 = sim.getRho1();
-	const int iterG = sim.getIterG();
-	const int stepG = sim.getStepG();
-	float epsG = sim.getEpsG();
-	float epsGC = sim.getEpsGC();
-	_ratioEps = epsG / epsGC;
-	_nAgent = sim.getNAgent();
-	
-
-	_rhol = _rho; //*nAgent
-	//std::cout << "rho " << _rho << std::endl;
-	if (_rho == 0) {
-		_rhol = _rhog;
-	}
-	if (cas.isAC()) {
-		MatrixCPU nVoisinT = cas.getNvoi();
-		nVoisin = MatrixCPU(_nAgent, 1);
-		for (int n = 0; n < _nAgent; n++) {
-			nVoisin.set(n, 0, nVoisinT.get(n, 0));
-		}
-	}
-	else {
-		nVoisin = cas.getNvoi();
-	}
-	
-
-	_nLine = cas.getNLine();
-	//std::cout << "_nLine " << _nLine << std::endl;
-	_nBus = cas.getNBus();
-
-	_nTrade = nVoisin.sum();
-	_at1 = _rhog; // represente en fait 2*a
-	_at2 = _rhol;
-
-	resF = MatrixCPU(3, (iterG / stepG) + 1);
-	resX = MatrixCPU(4, (iterG / stepG) + 1);
-
-	MatrixCPU BETA(cas.getBeta());
-	
-	MatrixCPU Ub(cas.getUb());
-	MatrixCPU Lb(cas.getLb());
-	LAMBDA = sim.getLambda();
-	trade = sim.getTrade();
+	isAC = false;
+	initSimParam(sim);
+	initSize(cas);
 
 	//std::cout << "mise sous forme lin�aire" << std::endl;
+	initLinForm(sim, cas);
 	
-	CoresMatLin = MatrixCPU(_nAgent, _nAgent, -1);
-	CoresLinAgent = MatrixCPU(_nTrade, 1);
-	CoresAgentLin = MatrixCPU(_nAgent + 1, 1);
-	CoresLinVoisin = MatrixCPU(_nTrade, 1);
-	CoresLinTrans = MatrixCPU(_nTrade, 1);
-
-	Tlocal_pre = MatrixCPU(_nTrade, 1);
-	tradeLin = MatrixCPU(_nTrade, 1);
-	LAMBDALin = MatrixCPU(_nTrade, 1);
-
-	matLb = MatrixCPU(_nTrade, 1);
-	matUb = MatrixCPU(_nTrade, 1);
-	Ct = MatrixCPU(_nTrade, 1);
-	Bt2 = MatrixCPU(_nTrade, 1);
-
-	int indice = 0;
-
-	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			if(Lb.getNCol()==1){
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-			} else {
-				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
-				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
-			}
-			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-			CoresLinAgent.set(indice, 0, idAgent);
-			CoresLinVoisin.set(indice, 0, idVoisin);
-			CoresMatLin.set(idAgent, idVoisin, indice);
-			indice = indice + 1;
-		}
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	for (int lin = 0; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
-		int k = CoresMatLin.get(j, i);
-		CoresLinTrans.set(lin, 0, k);
-	}
 
 
 	// transfert des mises lineaire
 	
 
 	//std::cout << "donnees sur CPU pour le grid" << std::endl;
-	Kappa1 = MatrixCPU(_nLine, 1, 0);
-	Kappa2 = MatrixCPU(_nLine, 1, 0);
-	Kappa1_pre = MatrixCPU(_nLine, 1, 0);
-	Kappa2_pre = MatrixCPU(_nLine, 1, 0);
-	Qpart = MatrixCPU(_nLine, _nAgent, 0);
-	Qtot = MatrixCPU(_nLine, 1, 0);
-	alpha = MatrixCPU(_nLine, _nAgent, 0);
-
-	G = MatrixCPU(cas.getPowerSensi());
 	
-	
-
-	lLimit = MatrixCPU(cas.getLineLimit());
-
-	GTrans = MatrixCPU(_nAgent, _nLine);
-	GTrans.setTrans(&G);
-
-	G2 = GTrans;
-	G2.multiplyT(&GTrans);
-
-
 	//std::cout << "autres donn�e sur CPU" << std::endl;
-	tempNN = MatrixCPU(_nTrade, 1, 0);
-	tempN1 = MatrixCPU(_nAgent, 1, 0); // plut�t que de re-allouer de la m�moire � chaque utilisation
-	tempL1 = MatrixCPU(_nLine, 1, 0);
-	//MatrixCPU temp1N(1, _nAgent, 0, 1);
-
-	Tlocal = MatrixCPU(_nTrade, 1, 0);
-	P = MatrixCPU(_nAgent, 1, 0); // moyenne des trades
-	Pn = MatrixCPU(_nAgent, 1, 0); // somme des trades
-
-	// si cas AC, a, b ,Nvoisin, Pmin,Pma n'ont pas la bonne taille !!!
-	if (cas.isAC()) {
-		MatrixCPU aT = cas.geta();
-		MatrixCPU bT = cas.getb();
-		MatrixCPU PminT = cas.getPmin();
-		MatrixCPU PmaxT = cas.getPmax();
-		MatrixCPU MUT = sim.getMU(); // facteur reduit i.e lambda_l/_rho
-		MatrixCPU TmoyT = sim.getPn();
-		a = MatrixCPU(_nAgent, 1);
-		b = MatrixCPU(_nAgent, 1);
-		Pmin = MatrixCPU(_nAgent, 1);
-		Pmax = MatrixCPU(_nAgent, 1);
-		MU = MatrixCPU(_nAgent, 1);
-		Tmoy = MatrixCPU(_nAgent, 1);
-
-		for (int n = 0; n < _nAgent; n++) {
-			a.set(n, 0, aT.get(n, 0));
-			b.set(n, 0, bT.get(n, 0));
-			Pmin.set(n, 0, PminT.get(n, 0));
-			Pmax.set(n, 0, PmaxT.get(n, 0));
-			MU.set(n, 0, MUT.get(n, 0));
-			Tmoy.set(n, 0, TmoyT.get(n, 0));
-		}
-
-	}
-	else {
-		a = MatrixCPU(cas.geta());
-		b = MatrixCPU(cas.getb());
 		
-		
-		
-		Pmin = MatrixCPU(cas.getPmin());
-		Pmax = MatrixCPU(cas.getPmax());
-		MU = MatrixCPU(sim.getMU()); // facteur reduit i.e lambda_l/_rho
-		Tmoy = MatrixCPU(sim.getPn());
-	}
-	Ap1 = nVoisin;
-	Ap2 = a;
-	Cp1 = b;
-	
-	Ap12 = MatrixCPU(_nAgent, 1, 0);
-
-	Bt1 = MatrixCPU(_nTrade, 1, 0);
-	Cp = MatrixCPU(_nAgent, 1, 0);
-	Cp2 = MatrixCPU(_nAgent, 1, 0);
-	Bp1 = MatrixCPU(_nAgent, 1, 0);
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-	Ap1.multiply(_rhol);
-	Cp1.multiplyT(&nVoisin);
-	Tmoy.divideT(&nVoisin);
-	tempN1.sum(&G2);
-	
-	tempN1.multiply(2 * _rho1);
-	Ap2.add(&tempN1);
-	Ap2.multiplyT(&nVoisin);
-	Ap2.multiplyT(&nVoisin);
-	Ap12.add(&Ap1, &Ap2);
+	initCaseParam(sim, cas);
+	initDCEndoMarket();
 
 
 	updateGlobalProb();
@@ -613,9 +380,4 @@ void ADMMConst::updateQ()
 		}
 		Qtot.set(l, 0, qt);
 	}
-}
-
-void ADMMConst::display() {
-
-	std::cout << _name << std::endl;
 }

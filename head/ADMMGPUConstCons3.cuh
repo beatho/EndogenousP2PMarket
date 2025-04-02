@@ -22,14 +22,13 @@ public:
 	ADMMGPUConstCons3();
 	ADMMGPUConstCons3(float rho);
 	virtual ~ADMMGPUConstCons3();
-	void setParam(float rho);
+	virtual void setParam(float rho);
 	void setTau(float tau);
 
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
 	void updateGlobalProbGPU();
 	void updateLocalProbGPU(float epsL, int nIterL);
-	void init(const Simparam& sim, const StudyCase& cas);
-	void updateP0(const StudyCase& cas);
+	virtual void init(const Simparam& sim, const StudyCase& cas);
 	void solveOPF();
 	void findalpha();
 	std::string NAME ="ADMMGPUConstCons3";
@@ -38,11 +37,10 @@ public:
 
 private:
 
-	MatrixGPU Ap123; // Ap1 + Ap2 + Ap3
+	
 		
 	// Pour le consensus
 	MatrixGPU etaP;
-	MatrixGPU Ap3; // rho1*Mn^2
 	MatrixGPU Bp3; // 1/Mn * (Pso + P)/2 - eta/rho1
 	MatrixGPU Pso;
 
@@ -55,8 +53,7 @@ private:
 	int _Asize; // L2*nAgent
 	float* alpha = nullptr; // a mettre sur GPU !
 	float err1; // 
-	int kmax = 200;
-	float epsOPF = 0.0001;
+	
 
 	float mu; // relaxation, fonction barriere
 

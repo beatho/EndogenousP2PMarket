@@ -77,23 +77,17 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 	_rhog = sim.getRho();
 	_at1 = _rhog;
 
-	int iterL = sim.getIterL();
-	int stepL = sim.getStepL();
-	float epsL = sim.getEpsL();
-	float epsG = sim.getEpsG();
-	
-
 	float fc = 0;
 
 	int iterLocal = 0;
-	float resG = 2 * epsG;
-	float resL = 2 * epsL;
+	float resG = 2 * _epsG;
+	float resL = 2 * _epsL;
 	_iterGlobal = 0;
 
-	while ((_iterGlobal < _iterG) && (resG>epsG)) {
-		resL = 2 * epsL;
+	while ((_iterGlobal < _iterG) && (resG > _epsG)) {
+		resL = 2 * _epsL;
 		iterLocal = 0;
-		while (iterLocal< iterL && resL>epsL) {
+		while (iterLocal< _iterL && resL> _epsL) {
 			// FB 1a
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
@@ -101,8 +95,8 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 
 			#pragma omp parallel for
 			for (int i = 0; i < _nAgent; i++) {
-				int nVoisinLocal = nVoisin.get(i, 0);
-				int beginLocal = CoresAgentLin.get(i, 0);
+				int nVoisinLocal = (int) nVoisin.get(i, 0);
+				int beginLocal = (int) CoresAgentLin.get(i, 0);
 				int endLocal = beginLocal + nVoisinLocal;
 				float moy = 0;
 				for (int j = beginLocal; j < endLocal; j++) {
@@ -125,7 +119,6 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 				P.set(i, 0, p);
 				float mu = MU.get(i, 0) - p + moy;
 				MU.set(i, 0, mu);
-
 			}
 			
 #ifdef INSTRUMENTATION
@@ -135,7 +128,7 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 
 		
 			// FB 2
-			if (!(iterLocal % stepL)) {
+			if (!(iterLocal % _stepL)) {
 #ifdef INSTRUMENTATION
 				t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -149,7 +142,7 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 			Tlocal_pre.swap(&Tlocal); 
 			iterLocal++;
 		}
-		if (iterLocal == iterL) {
+		if (iterLocal == _iterL) {
 			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
 		}
 #ifdef INSTRUMENTATION
@@ -304,46 +297,12 @@ void ADMMMarketOpenMP::updateP0(const StudyCase& cas)
 void ADMMMarketOpenMP::init(const Simparam& sim, const StudyCase& cas)
 {
 	// intitilisation des matrixs et variables 
-	
 	clock_t t = clock();
-
 	isAC = cas.isAC();
 	//std::cout << "init " << std::endl;
-	_rhog = sim.getRho();
-	
-	_iterG = sim.getIterG();
-	_stepG = sim.getStepG();
-	float epsG = sim.getEpsG();
-	
-	_nAgentTrue = sim.getNAgent();
-	_nAgent = _nAgentTrue + isAC * _nAgentTrue;
+	initSize(cas);
+	initSimParam(sim);
 
-	_rhol = _rho; //*nAgent
-	//std::cout << "rho " << _rho << std::endl;
-	if (_rho == 0) {
-		_rhol = _rhog;
-	}
-
-	nVoisin = cas.getNvoi();
-	_nTrade = nVoisin.sum();
-	_nTradeP = 0;
-	int testReduc = 0;
-	if (isAC) {	
-		#pragma omp parallel for reduction(+ : testReduc)
-		for (int n = 0; n < _nAgentTrue; n++) {
-			testReduc += nVoisin.get(n, 0);
-		}
-		_nTradeP = testReduc;
-		_nTradeQ = _nTrade - _nTradeP;
-		if (_nTradeQ != (_nAgentTrue * (_nAgentTrue - 1))) {
-			std::cout << "err OpenMp : " << _nAgent << " " << _nAgentTrue << " " << _nTrade << " " << _nTradeP << " " << _nTradeQ << std::endl;
-
-			throw std::invalid_argument("Agent must be fully conected for the Q echanges, WIP");
-		}
-	}
-	else {
-		_nTradeP = _nTrade;
-	}
 	//std::cout << isAC << " " <<  _nAgentTrue << " " << _nAgent << " " << _nTrade << " " << _nTradeP << " " << _nTradeQ << std::endl;
 	
 
@@ -351,140 +310,14 @@ void ADMMMarketOpenMP::init(const Simparam& sim, const StudyCase& cas)
 	_at1 = _rhog; // represente en fait 2*a
 	_at2 = _rhol;
 
-	resF = MatrixCPU(3, (_iterG / _stepG) + 1);
-
-	MatrixCPU BETA(cas.getBeta());
-	MatrixCPU Ub(cas.getUb());
-	MatrixCPU Lb(cas.getLb());
-	LAMBDA = sim.getLambda();
-	trade = sim.getTrade();
-
-	//std::cout << "mise sous forme lin�aire" << std::endl;
-	
-	
-	CoresMatLin = MatrixCPU(_nAgent, _nAgentTrue, -1);
-	CoresAgentLin = MatrixCPU( _nAgent + 1, 1);
-	
-	
-	CoresLinAgent = MatrixCPU(_nTrade, 1);
-	
-	CoresLinVoisin = MatrixCPU(_nTrade, 1);
-	CoresLinTrans = MatrixCPU(_nTrade, 1);
-
-	Tlocal_pre = MatrixCPU(_nTrade, 1);
-	tradeLin = MatrixCPU(_nTrade, 1);
-	LAMBDALin = MatrixCPU(_nTrade, 1);
-
-	matLb = MatrixCPU(_nTrade, 1);
-	matUb = MatrixCPU(_nTrade, 1);
-	Ct = MatrixCPU(_nTrade, 1);
-	Bt2 = MatrixCPU(_nTrade, 1);
-
-	int indice = 0;
-	//std::cout << " P " << std::endl;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) { // P
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			if(Lb.getNCol()==1){
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-			} else {
-				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
-				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
-			}
-			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-			CoresLinAgent.set(indice, 0, idAgent);
-			CoresLinVoisin.set(indice, 0, idVoisin);
-			CoresMatLin.set(idAgent, idVoisin, indice);
-			indice = indice + 1;
-		}
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	//std::cout << " Q " << std::endl;
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) { // Q
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-				//Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-				tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-				Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-				LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-				CoresLinAgent.set(indice, 0, idAgent );
-				CoresLinVoisin.set(indice, 0, idVoisin + _nAgentTrue);
-				CoresMatLin.set(idAgent, idVoisin, indice);
-				indice = indice + 1;
-			}
-		}
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	#pragma omp parallel for
-	for (int lin = 0; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
-		if (lin >= _nTradeP) {
-			i -= _nAgentTrue;
-		}
-				
-		int k = CoresMatLin.get(j, i);
-		CoresLinTrans.set(lin, 0, k);
-	}
-
-
-	/*std::cout << "trade bound" << std::endl;
-	matLb.display();
-    matUb.display();*/
-
 	
 
-	//std::cout << "autres donn�e sur CPU" << std::endl;
-	tempNN = MatrixCPU(_nTrade, 1, 0);
-	tempN1 = MatrixCPU(_nAgent, 1, 0); // plut�t que de re-allouer de la m�moire � chaque utilisation
-	//MatrixCPU temp1N(1, _nAgent, 0, 1);
+	//std::cout << "mise sous forme lineaire" << std::endl;
+	initLinForm(sim, cas);
+	//std::cout << "autres donnee sur CPU" << std::endl;
+	initCaseParam(sim, cas);
+	initP2PMarket();
 
-	Tlocal = MatrixCPU(_nTrade, 1, 0);
-	
-	
-	
-	
-	Pn = sim.getPn(); // somme des trades
-	P = Pn; // moyenne des trades, ici c'est juste pour qu'il ait la m�me taille sans avoir besoin de se poser de question
-
-	a = MatrixCPU(cas.geta());
-	b = MatrixCPU(cas.getb());
-	Ap2 = a;
-	Ap1 = nVoisin;
-	Ap12 = MatrixCPU(_nAgent, 1, 0);
-
-	Bt1 = MatrixCPU(_nTrade, 1, 0);
-	Cp = b;
-	Bp1 = MatrixCPU(_nAgent, 1, 0);
-
-	Pmin = cas.getPmin();
-	Pmax = cas.getPmax();
-	MU = sim.getMU(); // facteur reduit i.e lambda_l/_rho
-	Tmoy = sim.getPn();
-
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-
-	/*std::cout << "Power bound" << std::endl;
-	Pmin.display();
-	Pmax.display();*/
-
-	Ap1.multiply(_rhol);
-	Cp.multiplyT(&nVoisin);
-	Tmoy.divideT(&nVoisin);
-	
-	Ap2.multiplyT(&nVoisin);
-	Ap2.multiplyT(&nVoisin);
-	Ap12.add(&Ap1, &Ap2);
 
 
 #pragma omp parallel for
@@ -502,58 +335,4 @@ void ADMMMarketOpenMP::init(const Simparam& sim, const StudyCase& cas)
 }
 
 
-void ADMMMarketOpenMP::display() {
 
-	if (_iterGlobal == 0) {
-		std::cout << "algorithm not launch" << std::endl;
-	}
-	else if (_iterGlobal < _iterG) {
-		std::cout << "method " << _name << " converged in " << _iterGlobal << " iterations." << std::endl;
-		std::cout << "Converged in " << (float)tMarket / CLOCKS_PER_SEC << " seconds" << std::endl;
-
-	}
-	else {
-		std::cout << "method " << _name << " not converged in " << _iterGlobal << " iterations." << std::endl;
-		std::cout << "time taken " << (float) tMarket / CLOCKS_PER_SEC << " seconds" << std::endl;
-	}
-	resF.display();
-	std::cout << "The power error of this state is (constraint) " << resF.get(0, _iterGlobal / _stepG - (_iterGlobal>0)) << " and convergence " << resF.get(1, _iterGlobal / _stepG - (_iterGlobal > 0)) << std::endl;
-	std::cout << "===============================================================|" << std::endl;
-	std::cout << "      System Summary                                           |" << std::endl;
-	std::cout << "===============================================================|" << std::endl;
-	std::cout << "Agent            " << _nAgentTrue << std::endl;
-	std::cout << "Nombre d'�change " << _nTrade << std::endl;
-
-	std::cout << std::endl << std::endl;
-
-	std::cout << "==================================================================================================|" << std::endl;
-	std::cout << "      Agent Data                                                                                  |" << std::endl;
-	std::cout << "==================================================================================================|" << std::endl;
-	std::cout << " Agent |  Cost   |  Cost   |        Power Injection          |           Power Injection          |" << std::endl;
-	std::cout << "  #    |  a (pu) |  b (pu) |  P (pu) | Pmin (pu) | Pmax (pu) |  Q (pu)    | Qmin (pu) | Qmax (pu) |" << std::endl;
-	std::cout << "-------|---------|---------|---------|-----------|-----------|------------|-----------|-----------|" << std::endl;
-
-	for (int n = 0; n < _nAgentTrue; n++) {
-		
-		std::cout << std::setw(7) << n << "|" << std::setw(8) << a.get(n, 0) << " |" << std::setw(9)
-			<< b.get(n, 0) << "|" << std::setw(9) << Pn.get(n, 0) << "|" << std::setw(11)
-			<< Pmin.get(n, 0) * nVoisin.get(n,0) << "|" << std::setw(11) << Pmax.get(n, 0) * nVoisin.get(n, 0) << "|";
-		if (isAC) {
-			std::cout << std::setw(12) << Pn.get(n + _nAgentTrue, 0) << "|" << std::setw(11)
-				<< Pmin.get(n + _nAgentTrue, 0) * nVoisin.get(n + _nAgentTrue, 0) << "|" << std::setw(11) << Pmax.get(n + _nAgentTrue, 0) * nVoisin.get(n + _nAgentTrue, 0) << "|" << std::endl;
-		}
-		else {
-			std::cout << std::setw(10) << 0 << "|" << std::setw(11)
-				<< 0 << "|" << std::setw(11) << 0 << "|" << std::endl;
-		}
-		
-	}
-
-
-	std::cout << "========================================================================================================|" << std::endl;
-	std::cout << "                      END PRINT                                                                         |" << std::endl;
-	std::cout << "========================================================================================================|" << std::endl;
-
-
-	std::cout << std::endl << std::endl;
-}

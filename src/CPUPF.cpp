@@ -870,7 +870,7 @@ void CPUPF::calcJacPhiE()
 
 }
 
-MatrixCPU* CPUPF::calcG()
+MatrixCPU CPUPF::calcG()
 {
     calcJacPhiE();
    
@@ -882,7 +882,7 @@ MatrixCPU* CPUPF::calcG()
     
     G.setBloc(B2, Nconstraint, 0, N2, &tempLN2);
 
-    return &G;
+    return G;
 }
 
 MatrixCPU* CPUPF::calcY()

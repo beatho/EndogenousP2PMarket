@@ -21,10 +21,7 @@ public:
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
 	virtual void updateP0(const StudyCase& cas);
 	virtual void init(const Simparam& sim, const StudyCase& cas);
-	
-	
-	
-	
+		
 	bool chekcase();
 	std::string NAME ="MarketEndoDirect";
 	void updateGlobalProb();
@@ -80,23 +77,12 @@ private:
 	double root6[4];
 	double coefPoly3[3];
 	
-	int _iterGlobal = 0;
-	int _iterG = 0;
-	int _stepG = 0;
-
+	
 	float _Ploss = 0;
 	float _Qloss = 0;
 	clock_t timeMarketEndo = 0;
 
-	// market
-	int _nAgentTrue = 0; // _nAgent = _nAgentTrue + (isAc)*_nAgent
 
-	int _nTradeP = 0;
-	int _nTradeQ = 0;
-	
-	float _epsL = 0;
-	int _stepL = 0;
-	int _iterL = 0;
 	
 	// problem : TradeLin tempN2 cost1 cost2
 	LossType losstype = LossType::CURRENT;

@@ -12,6 +12,8 @@ public:
     MethodP2PGPU();
 	virtual ~MethodP2PGPU();
 	virtual void setParam(float param) = 0;
+	virtual void updateP0(const StudyCase& cas);
+	virtual void init(const Simparam& sim, const StudyCase& cas) = 0;
 	//virtual void setTau(float tau) = 0;
 
 	void updateLAMBDA(MatrixGPU* LAMBDA, MatrixGPU* trade, float rho, MatrixGPU* tempNN);
@@ -26,10 +28,17 @@ public:
 
 	virtual void updatePn();
 
+	void initLinForm(const Simparam& sim, const StudyCase& cas);
+	void initSize(const StudyCase& cas);
+	void initSimParam(const Simparam& sim); // AFTER initSize
+	void initDCEndoGrid(const StudyCase& cas); // init with G transposed
+	void initDCEndoMarket();
+	void initP2PMarket();
+	void initCaseParam(const Simparam& sim, const StudyCase& cas);
+
 
 	virtual void solveWithMinPower(Simparam* result, const Simparam& sim, const StudyCase& cas);
-	virtual void updateP0(const StudyCase& cas) = 0;
-	virtual void init(const Simparam& sim, const StudyCase& cas) = 0;
+	
 	virtual void display();
 	
 
@@ -40,9 +49,31 @@ protected:
 	float _mul = 40.0f;
 	float _tau = 2.0f;
 	
-	float _rho = 0.0f;
-	float _rhol = 0.0f;
-	float _rhog = 0.0f;
+	float _rho = 0;
+	float _rhol = 0;
+	float _rhog = 0;
+
+	int _iterGlobal = 0;
+	int _iterG = 0;
+	int _iterL = 0;
+	int _iterIntern = 0;
+
+	int _stepG = 1;
+	int _stepL = 1;
+	int _stepIntern = 1;
+
+	float _epsL = 0;
+	float _epsG = 0;
+	float _epsX = 0;
+	float _epsIntern = 0;
+	
+	bool isAC = false;
+	int _nAgent = 0;
+	int _nAgentTrue = 0;
+
+	int _nTrade = 0;
+	int _nTradeP = 0;
+	int _nTradeQ = 0;
 
 
 	int _blockSize = 512;
@@ -51,8 +82,6 @@ protected:
 	int _numBlocksL = 0;
 	int _numBlocksNL = 0;
 
-	int _nAgent = 0;
-	int _nTrade = 0;
 	
 	float _at1 = 0.0f;
 	float _at2 = 0.0f;
@@ -69,10 +98,14 @@ protected:
 	MatrixGPU Pn; // somme des trades
 
 	MatrixGPU a;
-	MatrixGPU Ap2;
-
+	MatrixGPU Ap2; // Mn^2 * (Ap2a + Ap2b)
+	MatrixGPU Ap2a; // a
+	MatrixGPU Ap2b; // 2 * _rho1 * sum(G^2) 
 	MatrixGPU Ap1;
 	MatrixGPU Ap12;
+	MatrixGPU Ap3; // rho1*Mn^2 when used
+	MatrixGPU Ap123;
+
 	MatrixGPU Bt1;
 	MatrixGPU Ct;
 	MatrixGPU matUb;

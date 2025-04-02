@@ -859,12 +859,7 @@ void MatrixGPU::setBloc(int iBegin, int iEnd, int jBegin, int jEnd, MatrixGPU* m
         }
     }
     else if (getPos() && (m->getPos())) {
-        /*const int nThread = 16;
-         const int bx = (jEnd - jBegin + nThread - 1) / nThread;
-         const int by = (iEnd - iBegin + nThread - 1) / nThread;
-         dim3 gridBlock(bx, by);
-         dim3 dimBlock(nThread, nThread);*/
-        SetBlocGPU << <m->_numBlocks, m->_blockSize >> > (_matrixGPU, m->_matrixGPU, iBegin, iEnd, jBegin, jEnd, _column);
+        SetBlocGPU << <_numBlocks, _blockSize >> > (_matrixGPU, m->_matrixGPU, iBegin, iEnd, jBegin, jEnd, _column);
     }
     else {
        
@@ -959,7 +954,34 @@ void MatrixGPU::setBloc(int iBegin, int iEnd, int jBegin, int jEnd, float value)
     }
 }
 
-
+void MatrixGPU::setFromBloc(int iBegin, int iEnd, int jBegin, int jEnd, MatrixGPU* m){
+    if ((iBegin < 0) || (jBegin < 0) || iEnd > _row || jEnd > _column) {
+        std::cout << iBegin << " " << iEnd  << " " << jBegin << " " << jEnd << " " << _row << " " << _column << std::endl;
+        throw std::out_of_range(" setFromBloc : index out of bounds"); 
+    } if ((iBegin > iEnd) || (jBegin > jEnd)) {
+        throw std::invalid_argument("setFromBloc : xBegin must be smaller than xEnd");
+    } if (getNLin() != (iEnd - iBegin) || getNCol() != (jEnd - jBegin)) {
+        throw std::invalid_argument("setFromBloc : not the same dimension");
+    }
+    if (!_GPU && !(m->getPos())) {
+        int row = 0;
+        for (int i = iBegin; i < iEnd; i++) {
+            int col = 0;
+            for (int j = jBegin; j < jEnd;j++) {
+                set(row, col, m->get(i, j));
+                col = col + 1;
+            }
+            row = row + 1;
+        }
+    }
+    else if (getPos() && (m->getPos())) {
+        SetFromBlocGPU << <_numBlocks, _blockSize >> > (_matrixGPU, m->_matrixGPU, iBegin, iEnd, jBegin, jEnd, m->getNCol());
+    }
+    else {
+       
+        throw std::invalid_argument("setBloc : Matrix not at the same place");
+    }
+}
 
 void MatrixGPU::swap(MatrixGPU* m)
 {
@@ -3320,18 +3342,39 @@ __global__ void SetBlocGPU(float* out, float* in, int ibegin, int iend, int jbeg
     }
 }
 
+__global__ void SetFromBlocGPU(float* out, float* in, int ibegin, int iend, int jbegin, int jend, int col)
+{
+    int index = threadIdx.x + blockIdx.x * blockDim.x;
+    int step = blockDim.x * gridDim.x;
+    int offset = jbegin + ibegin * col;
+    int N = (jend - jbegin) * (iend - ibegin);
+    int colReduce = (jend - jbegin);
+
+    for (int j = index; j < N; j += step)
+    {
+        int rowLoc = j / colReduce;
+        //int colLoc = j - rowLoc*colReduce;
+        //int GlobalInd = offset + rowLoc *col + colLoc;
+        int GlobalInd = offset + j + rowLoc*(col-colReduce);
+        out[j] = in[GlobalInd];
+    }
+}
+
+
 __global__ void SetBlocGPU(float* out, float value, int ibegin, int iend, int jbegin, int jend, int col)
 {
     int index = threadIdx.x + blockIdx.x * blockDim.x;
     int step = blockDim.x * gridDim.x;
     int offset = jbegin + ibegin * col;
     int N = (jend - jbegin) * (iend - ibegin);
+    int colReduce = (jend - jbegin);
 
     for (int j = index; j < N; j += step)
     {
-        int rowLoc = j / (jend - jbegin);
-        int colLoc = j % (jend - jbegin);
-        int GlobalInd = offset + rowLoc * col + colLoc;
+        int rowLoc = j / colReduce;
+       //int colLoc = j - rowLoc*colReduce;
+        //int GlobalInd = offset + rowLoc *col + colLoc;
+        int GlobalInd = offset + j + rowLoc*(col-colReduce);
         out[GlobalInd] = value;
     }
 }

@@ -159,7 +159,7 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 	Kappa1.projectNeg(); //delta1
 	Kappa2.projectNeg(); // delta2
 	int indice = 0;
-	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
+	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
 		MatrixCPU omega(cas.getVoisin(idAgent));
 		int Nvoisinmax = nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
@@ -231,7 +231,7 @@ void ADMMACConst1::updateP0(const StudyCase& cas)
 	Cp1 = b;
 	int indice = 0;
 
-	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
+	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
 		int Nvoisinmax = nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			matLb.set(indice, 0, Lb.get(idAgent, 0));
@@ -263,8 +263,8 @@ void ADMMACConst1::init(const Simparam& sim, const StudyCase& cas)
 	float epsG = sim.getEpsG();
 	float epsGC = sim.getEpsGC();
 	_ratioEps = epsG / epsGC;
-	_nAgent = sim.getNAgent();
-	_nAgent2 = 2 * _nAgent;
+	_nAgentTrue = sim.getNAgent();
+	_nAgent = 2 * _nAgentTrue;
 
 	_rhol = _rho; //*nAgent
 	//std::cout << "rho " << _rho << std::endl;
@@ -280,7 +280,7 @@ void ADMMACConst1::init(const Simparam& sim, const StudyCase& cas)
 
 	_nTrade = nVoisin.sum();
 	_nVoisinRef = nVoisin.get(0, 0);
-	_nTradeQ = _nAgent * (_nAgent - 1);
+	_nTradeQ = _nAgentTrue * (_nAgentTrue - 1);
 	_nConstraint = _nLine + 2 * _nBus;
 	_nTradeP = _nTrade - _nTradeQ;
 
@@ -290,13 +290,17 @@ void ADMMACConst1::init(const Simparam& sim, const StudyCase& cas)
 	resF = MatrixCPU(3, (iterG / stepG) + 1);
 	resX = MatrixCPU(4, (iterG / stepG) + 1);
 
+	
+
+	//std::cout << "mise sous forme lin�aire" << std::endl;
+	initLinForm(sim, cas);
+	std::cout << "il y a des mise a jour a faire pour que la mise en lineraire soit coherente avec le reste \n";
+	/*
 	MatrixCPU BETA(cas.getBeta());
 	MatrixCPU Ub(cas.getUb());
 	MatrixCPU Lb(cas.getLb());
 	LAMBDA = sim.getLambda(); 
 	trade = sim.getTrade();
-
-	//std::cout << "mise sous forme lin�aire" << std::endl;
 	
 	CoresMatLin = MatrixCPU(_nAgent, _nAgent, -1);
 	CoresLinAgent = MatrixCPU(_nTrade, 1);
@@ -377,8 +381,7 @@ void ADMMACConst1::init(const Simparam& sim, const StudyCase& cas)
 				indice = indice + 1;
 			}
 		}
-	}
-	
+	*/	
 	/*CoresLinAgent.display();
 	CoresLinVoisin.display();
 	CoresLinTrans.display();*/
@@ -388,14 +391,14 @@ void ADMMACConst1::init(const Simparam& sim, const StudyCase& cas)
 	Kappa2 = MatrixCPU(_nConstraint, 1, 0);
 	Kappa1_pre = MatrixCPU(_nConstraint, 1, 0);
 	Kappa2_pre = MatrixCPU(_nConstraint, 1, 0);
-	Qpart = MatrixCPU(_nConstraint, _nAgent2, 0);
+	Qpart = MatrixCPU(_nConstraint, _nAgent, 0);
 	Qtot = MatrixCPU(_nConstraint, 1, 0);
 	rhoMn = MatrixCPU(nVoisin);
 	rhoMn.multiply(_rho1);
 	rhoMn2 = MatrixCPU(nVoisin);
 	rhoMn2.multiplyT(&rhoMn);
 
-	G2 = MatrixCPU(_nConstraint, _nAgent2);
+	G2 = MatrixCPU(_nConstraint, _nAgent);
 
 	UpperBound = cas.getUpperBound();
 	LowerBound = cas.getLowerBound();
@@ -409,14 +412,14 @@ void ADMMACConst1::init(const Simparam& sim, const StudyCase& cas)
 	tempN1 = MatrixCPU(_nAgent, 1, 0); // plut�t que de re-allouer de la m�moire � chaque utilisation
 	tempL1 = MatrixCPU(_nLine, 1, 0);
 	tempC1 = MatrixCPU(_nConstraint, 1, 0);
-	tempCN = MatrixCPU(_nConstraint, _nAgent2);
+	tempCN = MatrixCPU(_nConstraint, _nAgent);
 	//MatrixCPU temp1N(1, _nAgent, 0, 1);
 
 	Tlocal = MatrixCPU(_nTrade, 1, 0);
-	P = MatrixCPU(_nAgent2, 1, 0); // moyenne des trades
+	P = MatrixCPU(_nAgent, 1, 0); // moyenne des trades
 	Pn = MatrixCPU(sim.getPn()); // somme des trades
-	PQ = MatrixCPU(_nAgent2, 1);
-	PQ.setBloc(0, _nAgent, 0, 1, &Pn);
+	PQ = MatrixCPU(_nAgent, 1);
+	PQ.setBloc(0, _nAgentTrue, 0, 1, &Pn);
 	PF.init(cas, &PQ);
 
 	a = MatrixCPU(cas.geta());
@@ -428,30 +431,30 @@ void ADMMACConst1::init(const Simparam& sim, const StudyCase& cas)
 	Ap1 = nVoisin;
 	Ap1.multiply(_rhol);
 
-	Ap3 = MatrixCPU(_nAgent2, 1);
+	Ap3 = MatrixCPU(_nAgent, 1);
 
-	Ap12 = MatrixCPU(_nAgent2, 1, 0);
+	Ap12 = MatrixCPU(_nAgent, 1, 0);
     Ap12.add(&Ap1, &Ap2);
-	Ap123 = MatrixCPU(_nAgent2, 1, 0);
+	Ap123 = MatrixCPU(_nAgent, 1, 0);
 
 
 	Cp1 = b;
 	Cp1.multiplyT(&nVoisin);
 
 	Bt1 = MatrixCPU(_nTrade, 1, 0);
-	Cp = MatrixCPU(_nAgent2, 1, 0);
-	Cp2 = MatrixCPU(_nAgent2, 1, 0);
+	Cp = MatrixCPU(_nAgent, 1, 0);
+	Cp2 = MatrixCPU(_nAgent, 1, 0);
 	
-	Bp1 = MatrixCPU(_nAgent2, 1, 0);
+	Bp1 = MatrixCPU(_nAgent, 1, 0);
 
 	Pmin = MatrixCPU(cas.getPmin());
 	Pmax = MatrixCPU(cas.getPmax());
 
-	MU = MatrixCPU(_nAgent2, 1);// facteur reduit i.e lambda_l/_rho
-	MU.setBloc(0, _nAgent, 0, 1, &sim.getMU());
+	MU = MatrixCPU(_nAgent, 1);// facteur reduit i.e lambda_l/_rho
+	MU.setBloc(0, _nAgentTrue, 0, 1, &sim.getMU());
 	
-	Tmoy = MatrixCPU(_nAgent2, 1, 0);
-	Tmoy.setBloc(0, _nAgent, 0, 1, &Pn);
+	Tmoy = MatrixCPU(_nAgent, 1, 0);
+	Tmoy.setBloc(0, _nAgentTrue, 0, 1, &Pn);
 
 	Pmin.divideT(&nVoisin);
 	Pmax.divideT(&nVoisin);
@@ -490,9 +493,9 @@ void ADMMACConst1::updateGlobalProb() {
 
 		}
 		Pmax.set(0, 0, -Ploss / _nVoisinRef);
-		Pmax.set(_nAgent, 0, -Qloss / (_nAgent - 1));
+		Pmax.set(_nAgentTrue, 0, -Qloss / (_nAgentTrue - 1));
 		Pmin.set(0, 0, -Ploss / _nVoisinRef);
-		Pmin.set(_nAgent, 0, -Qloss / (_nAgent - 1));
+		Pmin.set(_nAgentTrue, 0, -Qloss / (_nAgentTrue - 1));
 
 		//std::cout << "update phi" << std::endl;
 		PF.calcPhi();
@@ -538,7 +541,7 @@ void ADMMACConst1::updateGlobalProb() {
 	tempCN.set(&Qpart);
 	tempCN.multiply(2);
 	tempCN.addVector(&tempC1);
-	tempCN.multiplyT(G);
+	tempCN.multiplyT(&G);
 
 	
 	//std::cout << "updateCp2" << std::endl;
@@ -549,8 +552,8 @@ void ADMMACConst1::updateGlobalProb() {
 
 	// updateAp3
 	//std::cout << "updateAp3" << std::endl;
-	G2.set(G);
-	G2.multiplyT(G);
+	G2.set(&G);
+	G2.multiplyT(&G);
 
 	Ap3.sumT(&G2, 1);
 	Ap3.multiplyT(&rhoMn2);
@@ -596,7 +599,7 @@ void ADMMACConst1::updateLocalProb() {
 #endif // INSTRUMENTATION
 	
 	
-	for (int i = 0; i < _nAgent2; i++) {
+	for (int i = 0; i < _nAgent; i++) {
 		int nVoisinLocal = nVoisin.get(i, 0);
 		int beginLocal = CoresAgentLin.get(i, 0);
 		int endLocal = beginLocal + nVoisinLocal;
@@ -651,7 +654,7 @@ void ADMMACConst1::updateBt2()
 {
 	
 
-	for (int i = 0; i < _nAgent2; i++) {
+	for (int i = 0; i < _nAgent; i++) {
 		int nVoisinLocal = nVoisin.get(i,0);
 		int beginLocal = CoresAgentLin.get(i,0);
 		int endLocal = beginLocal + nVoisinLocal; 
@@ -755,8 +758,8 @@ void ADMMACConst1::updateQ()
 {
 	for (int l = 0; l < _nLine; l++) {
 		float qt = 0;
-		for (int n = _nAgent2 - 1; n >= 0; n--) {
-			qt += G->get(l, n) * PQ.get(n, 0);
+		for (int n = _nAgent - 1; n >= 0; n--) {
+			qt += G.get(l, n) * PQ.get(n, 0);
 			if (n > 0) {
 				Qpart.set(l, n - 1, qt);
 			}

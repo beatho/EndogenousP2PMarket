@@ -97,6 +97,8 @@ public:
     void setBloc(int iBegin, int iEnd, int jBegin, int jEnd, MatrixGPU* m, float factor);
     void setBloc(int iBegin, int iEnd, int jBegin, int jEnd, MatrixCPU* m);
     void setBloc(int iBegin, int iEnd, int jBegin, int jEnd, float value);
+    void setFromBloc(int iBegin, int iEnd, int jBegin, int jEnd, MatrixGPU* m);
+
     void swap(MatrixGPU* m);
     void replace(float previous, float newValue);
 
@@ -174,6 +176,8 @@ __global__ void replaceGPU(float* mat, const float previous, const float newValu
 __global__ void SetBlocGPU(float* out, float* in, int ibegin, int iend, int jbegin, int jend, int col);
 __global__ void SetBlocGPU(float* out, float value, int ibegin, int iend, int jbegin, int jend, int col);
 __global__ void SetBlocGPU(float* out, float* in, int ibegin, int iend, int jbegin, int jend, int col, float factor);
+__global__ void SetFromBlocGPU(float* out, float* in, int ibegin, int iend, int jbegin, int jend, int col);
+
 
 __global__ void addGPU(float* mat, float c, int N);
 __global__ void addGPU(float* mat1, float* mat2, int N);

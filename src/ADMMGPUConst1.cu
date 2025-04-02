@@ -9,6 +9,10 @@ ADMMGPUConst1::ADMMGPUConst1() : MethodP2PGPU()
 	std::cout << "Constructeur ADMMGPUConst1" << std::endl;
 #endif // DEBUG_CONSTRUCTOR
 	_name = NAME;
+	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
+	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilis� pendant la simu
+
 }
 
 
@@ -19,6 +23,10 @@ ADMMGPUConst1::ADMMGPUConst1(float rho) : MethodP2PGPU()
 #endif // DEBUG_CONSTRUCTOR
 	_name = NAME;
 	_rho = rho;
+	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb1 , Fb2, Fb3, Fb5, Fb6 Fb0'
+	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
+	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilis� pendant la simu
+
 }
 
 ADMMGPUConst1::~ADMMGPUConst1()
@@ -43,250 +51,31 @@ void ADMMGPUConst1::init(const Simparam& sim, const StudyCase& cas)
 	// intitilisation des matrixs et variables 
 		//std::cout << "init " << std::endl;
 	// reste sur CPU 
-	
-	_rhog = sim.getRho();
-	_rho1 = sim.getRho1();
-	const int iterG = sim.getIterG();
-	const int stepG = sim.getStepG();
-	float epsG = sim.getEpsG();
-	float epsGC = sim.getEpsGC();
-	_ratioEps = epsG / epsGC;
-	_nAgent = sim.getNAgent();
+	isAC = false;
+	initSize(cas);
+	initSimParam(sim);
 
-	_rhol = _rho; //*nAgent
-	//std::cout << "rho " << _rho << std::endl;
-	if (_rho == 0) {
-		_rhol = _rhog;
-	}
-
-	nVoisinCPU = cas.getNvoi();
-	nVoisin = MatrixGPU(nVoisinCPU, 1);
-
-	_nLine = cas.getNLine();
-	//std::cout << _nLine << std::endl;
-	_nBus = cas.getNBus();
-	_nTrade = nVoisin.sum();
-	if (_nTrade == 0) {
-		std::cout << "nombre de trade nul " << std::endl;
-		nVoisinCPU.display();
-		nVoisin.display(true);
-		exit(-1);
-	}
-	_numBlocksN = ceil((_nAgent + _blockSize - 1) / _blockSize);
-	_numBlocksM = ceil((_nTrade + _blockSize - 1) / _blockSize);
-	_numBlocksL = ceil((_nLine + _blockSize - 1) / _blockSize);
-	_numBlocksNL = ceil((_nAgent*_nLine + _blockSize - 1) / _blockSize);
-	_at1 = _rhog; // represente en fait 2*a
-	_at2 = _rhol;
-
-	resF = MatrixCPU(3, (iterG / stepG) + 1);
-	resX = MatrixCPU(4, (iterG / stepG) + 1);
-
-	MatrixCPU BETA(cas.getBeta());
-	MatrixCPU Ub(cas.getUb());
-	MatrixCPU Lb(cas.getLb());
-	LAMBDA = sim.getLambda();
-	trade = sim.getTrade();
-
-	//std::cout << "mise sous forme lin�aire" << std::endl;
-		// Rem : si matrice d�j� existante, elles sont d�j� sur GPU donc bug pour les get
-	if (Ct.getPos()) { // une copie en trop mais pour l'instant c'est ok...
-		CoresMatLin.transferCPU();
-
-		CoresLinAgent.transferCPU();
-		CoresAgentLin.transferCPU();
-		CoresLinVoisin.transferCPU();
-		CoresLinTrans.transferCPU();
-
-		Tlocal_pre.transferCPU();
-		tradeLin.transferCPU();
-		LAMBDALin.transferCPU();
-
-		matLb.transferCPU();
-		matUb.transferCPU();
-		Ct.transferCPU();
-
-	}
 	//std::cout << _nAgent << " " << _nTrade << " " << _nLine << std::endl;
-	CoresMatLin = MatrixGPU(_nAgent, _nAgent, -1);
-	CoresLinAgent = MatrixGPU(_nTrade, 1);
-	CoresAgentLin = MatrixGPU(_nAgent + 1, 1);
-	CoresLinVoisin = MatrixGPU(_nTrade, 1);
-	CoresLinTrans = MatrixGPU(_nTrade, 1);
+
 	
-	Tlocal_pre = MatrixGPU(_nTrade, 1);
-	tradeLin = MatrixGPU(_nTrade, 1);
-	LAMBDALin = MatrixGPU(_nTrade, 1);
-
-	matLb = MatrixGPU(_nTrade, 1);
-	matUb = MatrixGPU(_nTrade, 1);
-	Ct = MatrixGPU(_nTrade, 1);
-	int indice = 0;
-
-	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			if(Lb.getNCol() == 1){
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-			} else {
-				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
-				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
-			}
-			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-			CoresLinAgent.set(indice, 0, idAgent);
-			CoresLinVoisin.set(indice, 0, idVoisin);
-			CoresMatLin.set(idAgent, idVoisin, indice);
-			indice = indice + 1;
-		}
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	for (int lin = 0; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
-		int k = CoresMatLin.get(j, i);
-		CoresLinTrans.set(lin, 0, k);
-	}
+	//std::cout << "mise sous forme lineaire" << std::endl;
+		
+	initLinForm(sim, cas);
 	
-	// transfert des mises lineaire
-	matUb.transferGPU();
-	matLb.transferGPU();
-	Ct.transferGPU();
-
-	Tlocal_pre.transferGPU();
-	tradeLin.transferGPU();
-	LAMBDALin.transferGPU();
-
-	CoresAgentLin.transferGPU();
-	CoresLinAgent.transferGPU();
-	CoresLinVoisin.transferGPU();
-	CoresMatLin.transferGPU();
-	CoresLinTrans.transferGPU();
-
 	//std::cout << "donnees sur GPU pour le grid" << std::endl;
-	Kappa1 = MatrixGPU(_nLine, 1, 0, 1);
-	Kappa2 = MatrixGPU(_nLine, 1, 0, 1);
-	Kappa1_pre = MatrixGPU(_nLine, 1, 0, 1);
-	Kappa2_pre = MatrixGPU(_nLine, 1, 0, 1);
+	initDCEndoGrid(cas);
 	Qpart = MatrixGPU(_nLine, _nAgent, 0, 1);
-	Qtot = MatrixGPU(_nLine, 1, 0, 1);
 	alpha = MatrixGPU(_nLine, _nAgent, 0, 1);
+
+
+	//std::cout << "autres donnee sur GPU" << std::endl;
+	initCaseParam(sim, cas);
+
+	// Market
+	initDCEndoMarket();
 	
-	G = MatrixGPU(cas.getPowerSensi());
-	
-	
-	
-	lLimit = MatrixGPU(cas.getLineLimit(), 1);
-	
-	GTrans = MatrixGPU(_nAgent, _nLine);
-	GTrans.setTrans(&G);
-	G.transferGPU();
-	GTrans.transferGPU();
-	G2 = GTrans;
-	G2.multiplyT(&GTrans);
-	
-
-	//std::cout << "autres donn�e sur GPU" << std::endl;
-	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plut�t que de re-allouer de la m�moire � chaque utilisation
-	tempL1 = MatrixGPU(_nLine, 1, 0, 1);
-	tempL2 = MatrixGPU(_nLine, 1, 0, 1);
-	//MatrixGPU temp1N(1, _nAgent, 0, 1);
-
-	Tlocal = MatrixGPU(_nTrade, 1, 0, 1);
-	P = MatrixGPU(_nAgent, 1, 0, 1); // moyenne des trades
-	Pn = MatrixGPU(sim.getPn(), 1); // somme des trades
-
-
-	a = MatrixGPU(cas.geta(), 1);
-	b = MatrixGPU(cas.getb(), 1);
-	Ap2 = a;
-	Ap1 = nVoisin;
-	Ap12 = MatrixGPU(_nAgent, 1, 0, 1);
-
-	Bt1 = MatrixGPU(_nTrade, 1, 0, 1);
-	Cp = MatrixGPU(_nAgent, 1, 0, 1);
-	Cp2 = MatrixGPU(_nAgent, 1, 0, 1);
-	Cp1 = b;
-
-	Pmin = MatrixGPU(cas.getPmin(), 1);
-	Pmax = MatrixGPU(cas.getPmax(), 1);
-	MU = MatrixGPU(sim.getMU(), 1); // facteur reduit i.e lambda_l/_rho
-	Tmoy = MatrixGPU(sim.getPn(), 1);
-
-
-	tempNN.preallocateReduction();
-	Tlocal.preallocateReduction();
-	P.preallocateReduction();
-	tempL1.preallocateReduction();
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-	Ap1.multiply(_rhol);
-	Cp1.multiplyT(&nVoisin);
-	Tmoy.divideT(&nVoisin);
-	tempN1.sum(&G2);
-	//tempN1.display(true);
-	tempN1.multiply(2*_rho1);
-	Ap2.add(&tempN1);
-	Ap2.multiplyT(&nVoisin);
-	Ap2.multiplyT(&nVoisin);
-	Ap12.add(&Ap1, &Ap2);
-
-
 	updateGlobalProbGPU();
 }
-
-
-
-void ADMMGPUConst1::updateP0(const StudyCase& cas)
-{
-	_id = _id + 1;
-#ifdef INSTRUMENTATION
-	cudaDeviceSynchronize();
-	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-#endif // INSTRUMENTATION
-	
-
-	matLb.transferCPU();
-
-	Pmin = cas.getPmin();
-	Pmax = cas.getPmax();
-
-
-	MatrixGPU Lb(cas.getLb());
-
-	b = cas.getb();
-	Cp1 = b;
-	int indice = 0;
-
-	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			indice = indice + 1;
-		}
-	}
-
-	matLb.transferGPU();
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-	Cp1.multiplyT(&nVoisin);
-#ifdef INSTRUMENTATION
-	cudaDeviceSynchronize();
-	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 10, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
-	occurencePerBlock.increment(0, 10, 1);
-#endif // INSTRUMENTATION
-	
-	//std::cout << "fin update temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
-}
-
 
 void ADMMGPUConst1::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 {
@@ -318,24 +107,17 @@ void ADMMGPUConst1::solve(Simparam* result, const Simparam& sim, const StudyCase
 	//std::cout << _numBlocks2 << " " <<  _blockSize << std::endl;
 	_rhog = sim.getRho();
 	_at1 = _rhog; // represente en fait 2*a
-	float epsG = sim.getEpsG();
-	float epsL = sim.getEpsL();
-	
-	const int stepL = sim.getStepL();
-	const int stepG = sim.getStepG();
-	const int iterG = sim.getIterG();
-	const int iterL = sim.getIterL();
 	
 
-	float resG = 2 * epsG;
-	float resL = 2 * epsL;
+	float resG = 2 * _epsG;
+	float resL = 2 * _epsL;
 	int iterGlobal = 0;
 	int iterLocal = 0;
 
-	while ((iterGlobal < iterG) && (resG>epsG)) {
-		resL = 2 * epsL;
+	while ((iterGlobal < _iterG) && (resG>_epsG)) {
+		resL = 2 * _epsL;
 		iterLocal = 0;
-		while (iterLocal< iterL && resL>epsL) {
+		while (iterLocal< _iterL && resL>_epsL) {
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
@@ -348,7 +130,7 @@ void ADMMGPUConst1::solve(Simparam* result, const Simparam& sim, const StudyCase
 #endif // INSTRUMENTATION
 			
 
-			if (!(iterLocal % stepL)) {
+			if (!(iterLocal % _stepL)) {
 #ifdef INSTRUMENTATION
 				cudaDeviceSynchronize();
 				t1 = std::chrono::high_resolution_clock::now();
@@ -376,13 +158,13 @@ void ADMMGPUConst1::solve(Simparam* result, const Simparam& sim, const StudyCase
 		tradeLin.swap(&Tlocal); // echange juste les pointeurs
 		updateGlobalProbGPU();
 		
-		if (!(iterGlobal % stepG)) {
+		if (!(iterGlobal % _stepG)) {
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 			
-			resG = updateResEndo(iterGlobal / stepG);
+			resG = updateResEndo(iterGlobal / _stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();

@@ -17,21 +17,17 @@ public:
 	ADMMGPUConst5();
 	ADMMGPUConst5(float rho);
 	virtual ~ADMMGPUConst5();
-	void setParam(float rho);
+	virtual void setParam(float rho);
 	void setTau(float tau);
 
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
 	void updateGlobalProbGPU();
 	void updateLocalProbGPU(float epsL, int nIterL);
-	void init(const Simparam& sim, const StudyCase& cas);
-	void updateP0(const StudyCase& cas);
+	virtual void init(const Simparam& sim, const StudyCase& cas);
 	std::string NAME ="ADMMGPUConst5";
 		
 private:
-	
-	MatrixGPU Ap2a; // a *Mn^2
-	MatrixGPU Ap2b; // Mn^2 * sum(G2)
-	
+		
 };
 
 __device__ float warpReduceMax5(volatile float* r);

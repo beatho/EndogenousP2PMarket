@@ -819,90 +819,13 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 	_at1 = _rho; // car that apparait 2 fois 
 	_at2 = _rhol;
 
-	MatrixCPU BETA(cas.getBeta());
-	MatrixCPU Ub(cas.getUb());
-	MatrixCPU Lb(cas.getLb());
 
 	/*if (Ub.get(_nAgentTrue, 0) == 0) { // unleash power
 		Ub.set(_nAgentTrue, 0, POWERLIMIT);
 		Lb.set(_nAgentTrue, 0, -POWERLIMIT);
 	}*/
 
-
 	
-	
-	//std::cout << "mise sous forme lin�aire" << std::endl;
-	
-
-
-	CoresMatLin = MatrixGPU(_nAgent, _nAgentTrue, -1);
-	CoresAgentLin = MatrixGPU(_nAgent + 1, 1);
-	CoresLinAgent = MatrixGPU(_nTrade, 1);
-	CoresLinVoisin = MatrixGPU(_nTrade, 1);
-	CoresLinTrans = MatrixGPU(_nTrade, 1);
-
-	Tlocal_pre = MatrixGPU(_nTrade, 1);
-	tradeLin = MatrixGPU(_nTrade, 1);
-	LAMBDALin = MatrixGPU(_nTrade, 1);
-
-	matLb = MatrixGPU(_nTrade, 1);
-	matUb = MatrixGPU(_nTrade, 1);
-	Ct = MatrixGPU(_nTrade, 1);
-	
-
-	int indice = 0;
-	//std::cout << " P " << std::endl;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) { // P
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			if(Lb.getNCol()==1){
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-			} else {
-				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
-				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
-			}
-			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-			CoresLinAgent.set(indice, 0, idAgent);
-			CoresLinVoisin.set(indice, 0, idVoisin);
-			CoresMatLin.set(idAgent, idVoisin, indice);
-			indice = indice + 1;
-		}
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	//std::cout << " Q " << std::endl;
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) { // Q
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-				tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-				Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-				LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-				CoresLinAgent.set(indice, 0, idAgent);
-				CoresLinVoisin.set(indice, 0, idVoisin + _nAgentTrue);
-				CoresMatLin.set(idAgent, idVoisin, indice);
-				indice = indice + 1;
-			}
-		}
-
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	for (int lin = 0; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
-		if (lin >= _nTradeP) {
-			i -= _nAgentTrue;
-		}
-
-		int k = CoresMatLin.get(j, i);
-		CoresLinTrans.set(lin, 0, k);
-	}
 	// transfert des mises lineaire
 	matUb.transferGPU();
 	matLb.transferGPU();

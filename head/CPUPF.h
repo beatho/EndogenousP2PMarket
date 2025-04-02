@@ -26,7 +26,7 @@ public:
 	virtual void calcJacPhiE();
 	virtual int calcVoltage();
 	virtual void calcE();
-	MatrixCPU* calcG();
+	MatrixCPU calcG();
 	MatrixCPU* calcY();
 
 
