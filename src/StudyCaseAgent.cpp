@@ -156,7 +156,7 @@ void StudyCaseAgent::initMatAC()
 	_nVoisin = MatrixCPU(2 * _nAgent, 1);
 
 //  Pour puissance active seulement
-	_BETA = MatrixCPU(_nAgent, _nAgent);
+	_BETA = MatrixCPU(2*_nAgent, _nAgent);
 	_connect = MatrixCPU(_nAgent, _nAgent);
 	genConnec(&_connect); 
 }
@@ -2341,8 +2341,7 @@ MatrixCPU StudyCaseAgent::SetFromInterface(StudyCaseInterface* interface, bool D
 
 	if(interface->isBetaDefined()){
 		MatrixCPU Beta_temp = interface->getBeta(); // taille N*N (without loss agent)
-		_BETA = MatrixCPU(_nAgent, _nAgent);
-		
+				
 		for(int i=offset; i<_nAgent;i++){
 			for(int j=offset; j<_nAgent; j++){
 				_BETA.set(i, j, Beta_temp.get(i - offset, j - offset));

@@ -46,7 +46,7 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	clock_t tall =clock();
+	tMarket = clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -81,8 +81,8 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 	int iterLocal = 0;
 	float resG = 2 * epsG;
 	float resL = 2 * epsL;
-	iterGlobal = 0;
-	while ((iterGlobal < iterG) && (resG>epsG)) {
+	_iterGlobal = 0;
+	while ((_iterGlobal < iterG) && (resG>epsG)) {
 		resL = 2 * epsL;
 		iterLocal = 0;
 		while (iterLocal< iterL && resL>epsL) {
@@ -130,11 +130,11 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 		updateGlobalProb();
 
 		// FB 4
-		if (!(iterGlobal % stepG)) {
+		if (!(_iterGlobal % stepG)) {
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResBis(&resF, (iterGlobal / stepG), &tempNN);
+			resG = updateResBis(&resF, (_iterGlobal / stepG), &tempNN);
 			//P.display();
 			//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (iterGlobal - 1) / stepG) << " " << resF.get(1, (iterGlobal - 1) / stepG) << " " << resF.get(2, (iterGlobal - 1) / stepG) << std::endl;
 
@@ -144,7 +144,7 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 			timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION		
 		}
-		iterGlobal++;
+		_iterGlobal++;
 	}
 	#ifdef INSTRUMENTATION
 	occurencePerBlock.increment(0, 5, iterGlobal);
@@ -154,24 +154,13 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (iterGlobal - 1) / stepG) << " " << resF.get(1, (iterGlobal - 1) / stepG) << " " << resF.get(2, (iterGlobal - 1) / stepG) << std::endl;
+	std::cout << _iterGlobal << " " << iterLocal << " " <<
+	 resL << " " << resF.get(0, (_iterGlobal - 1) / stepG) << " " <<
+	  resF.get(1, (_iterGlobal - 1) / stepG) << " " << resF.get(2, (_iterGlobal - 1) / stepG) << std::endl;
 
-	Kappa1.projectNeg(); //delta1
-	Kappa2.projectNeg(); // delta2
-	int indice = 0;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
 
 	//fc = calcFc(&a, &b, &tradeLin, &Pn, &Ct, &tempN1, &tempNN);
-	std::cout << "----trade--upper--lower--result--" << std::endl;
+	/*std::cout << "----trade--upper--lower--result--" << std::endl;
 	matUb.display();
 	matLb.display();
 	Tlocal_pre.display();
@@ -190,212 +179,47 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 
 	std::cout << "kappa" << std::endl;
 	Kappa1.display();
-	Kappa2.display();
+	Kappa2.display();*/
 	// FB 5
-	/*result->setResF(&resF);
-	result->setLAMBDA(&LAMBDA);
-	result->setTrade(&trade);
-	result->setDelta1(&Kappa1);
-	result->setDelta2(&Kappa2);
-	result->setIter(iterGlobal);
-	result->setMU(&MU);
 	
-	result->setPn(&Pn);*/
-	
-	result->setFc(fc);
+	setResult(result, cas.isAC());
+
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
 	timePerBlock.increment(0, 9, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 9, 1);
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
-	tall = clock() - tall;
-	result->setTime((float)tall / CLOCKS_PER_SEC);
 	
-}
-
-void ADMMACConst1::updateP0(const StudyCase& cas)
-{
-	_id = _id + 1;
-#ifdef INSTRUMENTATION
-	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-#endif // INSTRUMENTATION
-
-	Pmin = cas.getPmin();
-	Pmax = cas.getPmax();
-
-
-	MatrixCPU Lb(cas.getLb());
-
-	b = cas.getb();
-	Cp1 = b;
-	int indice = 0;
-
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			indice = indice + 1;
-		}
-	}
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-	Cp1.multiplyT(&nVoisin);
-#ifdef INSTRUMENTATION
-	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 10, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
-	occurencePerBlock.increment(0, 10, 1);
-#endif // INSTRUMENTATION
-
-
+	
 }
 
 void ADMMACConst1::init(const Simparam& sim, const StudyCase& cas)
 {
 	// intitilisation des matrixs et variables 
-	
 	//std::cout << "init " << std::endl;
-	_rhog = sim.getRho();
-	_rho1 = sim.getRho1();
-	const int iterG = sim.getIterG();
-	const int stepG = sim.getStepG();
-	float epsG = sim.getEpsG();
-	float epsGC = sim.getEpsGC();
-	_ratioEps = epsG / epsGC;
-	_nAgentTrue = sim.getNAgent();
-	_nAgent = 2 * _nAgentTrue;
-
-	_rhol = _rho; //*nAgent
-	//std::cout << "rho " << _rho << std::endl;
-	if (_rho == 0) {
-		_rhol = _rhog;
-	}
-
-	nVoisin = cas.getNvoi();
-
-	_nLine = cas.getNLine();
-	//std::cout << _nLine << std::endl;
-	_nBus = cas.getNBus();
-
-	_nTrade = nVoisin.sum();
-	_nVoisinRef = nVoisin.get(0, 0);
-	_nTradeQ = _nAgentTrue * (_nAgentTrue - 1);
+	isAC = true;
+	initSize(cas);
+	initSimParam(sim);
+	
+	
+	_nVoisinRef = (int) nVoisin.get(0, 0);
 	_nConstraint = _nLine + 2 * _nBus;
-	_nTradeP = _nTrade - _nTradeQ;
-
-	_at1 = _rhog; // represente en fait 2*a
-	_at2 = _rhol;
-
-	resF = MatrixCPU(3, (iterG / stepG) + 1);
-	resX = MatrixCPU(4, (iterG / stepG) + 1);
-
 	
-
-	//std::cout << "mise sous forme lin�aire" << std::endl;
-	initLinForm(sim, cas);
-	std::cout << "il y a des mise a jour a faire pour que la mise en lineraire soit coherente avec le reste \n";
-	/*
-	MatrixCPU BETA(cas.getBeta());
-	MatrixCPU Ub(cas.getUb());
-	MatrixCPU Lb(cas.getLb());
-	LAMBDA = sim.getLambda(); 
-	trade = sim.getTrade();
-	
-	CoresMatLin = MatrixCPU(_nAgent, _nAgent, -1);
-	CoresLinAgent = MatrixCPU(_nTrade, 1);
-	CoresAgentLin = MatrixCPU(_nAgent2 + 1, 1);
-	CoresLinVoisin = MatrixCPU(_nTrade, 1);
-	CoresLinTrans = MatrixCPU(_nTrade, 1);
-
-	Tlocal_pre = MatrixCPU(_nTrade, 1);
-	tradeLin = MatrixCPU(_nTrade, 1);
-	LAMBDALin = MatrixCPU(_nTrade, 1);
-
-	matLb = MatrixCPU(_nTrade, 1);
-	matUb = MatrixCPU(_nTrade, 1);
-	Ct = MatrixCPU(_nTrade, 1);
-	Bt2 = MatrixCPU(_nTrade, 1);
-
-	int indice = 0;
-	int indice2 = _nTradeP;
-	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			if(Lb.getNCol()==1){
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-			} else {
-				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
-				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
-			}
-			
-			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-			CoresLinAgent.set(indice, 0, idAgent);
-			CoresLinVoisin.set(indice, 0, idVoisin);
-			CoresMatLin.set(idAgent, idVoisin, indice);
-			indice = indice + 1;
-		}
-		for (int i = 0; i < _nAgent; i++) {
-			if (i != idAgent) {
-				matLb.set(indice2, 0, Lb.get(idAgent + _nAgent, 0));
-				matUb.set(indice2, 0, Ub.get(idAgent + _nAgent, 0));
-				CoresLinAgent.set(indice2, 0, idAgent);
-				CoresLinVoisin.set(indice2, 0, i);
-				indice2++;
-				// reste � 0
-			}
-		}
-		CoresAgentLin.set(_nAgent+ idAgent + 1, 0, indice2);
-
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	for (int lin = 0; lin < _nTradeP; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
-		int k = CoresMatLin.get(j, i);
-		CoresLinTrans.set(lin, 0, k);
-	}
-	for (int lin = _nTradeP; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
-		
-		if(i > j) 
-		{
-			i = i - 1;
-		}
-		int k = _nTradeP + j*(_nAgent-1) + i;
-		CoresLinTrans.set(lin, 0, k);
-	}
-	for (int n = 0; n < _nAgent; n++) {
-		for (int i = 0; i < _nAgent; i++) {
-			if (i != n) {
-				matLb.set(indice, 0, Lb.get(n + _nAgent, 0));
-				matUb.set(indice, 0, Ub.get(n + _nAgent, 0));
-				// reste � 0
-				indice = indice + 1;
-			}
-		}
-	*/	
-	/*CoresLinAgent.display();
-	CoresLinVoisin.display();
-	CoresLinTrans.display();*/
+	initCaseParam(sim, cas);
+	//std::cout << "mise sous forme lineaire" << std::endl;
+	initLinForm(cas);
 	//std::cout << "donnees sur CPU pour le grid" << std::endl;
 	
-	Kappa1 = MatrixCPU(_nConstraint, 1, 0);
-	Kappa2 = MatrixCPU(_nConstraint, 1, 0);
+	Kappa1     = MatrixCPU(_nConstraint, 1, 0);
+	Kappa2     = MatrixCPU(_nConstraint, 1, 0);
 	Kappa1_pre = MatrixCPU(_nConstraint, 1, 0);
 	Kappa2_pre = MatrixCPU(_nConstraint, 1, 0);
-	Qpart = MatrixCPU(_nConstraint, _nAgent, 0);
-	Qtot = MatrixCPU(_nConstraint, 1, 0);
-	rhoMn = MatrixCPU(nVoisin);
+	Qpart      = MatrixCPU(_nConstraint, _nAgent, 0);
+	Qtot       = MatrixCPU(_nConstraint, 1, 0);
+	rhoMn      = MatrixCPU(nVoisin);
 	rhoMn.multiply(_rho1);
-	rhoMn2 = MatrixCPU(nVoisin);
+	rhoMn2     = MatrixCPU(nVoisin);
 	rhoMn2.multiplyT(&rhoMn);
 
 	G2 = MatrixCPU(_nConstraint, _nAgent);
@@ -408,60 +232,27 @@ void ADMMACConst1::init(const Simparam& sim, const StudyCase& cas)
 
 
 	//std::cout << "autres donn�e sur CPU" << std::endl;
-	tempNN = MatrixCPU(_nTrade, 1, 0);
-	tempN1 = MatrixCPU(_nAgent, 1, 0); // plut�t que de re-allouer de la m�moire � chaque utilisation
-	tempL1 = MatrixCPU(_nLine, 1, 0);
+
 	tempC1 = MatrixCPU(_nConstraint, 1, 0);
 	tempCN = MatrixCPU(_nConstraint, _nAgent);
 	//MatrixCPU temp1N(1, _nAgent, 0, 1);
 
-	Tlocal = MatrixCPU(_nTrade, 1, 0);
-	P = MatrixCPU(_nAgent, 1, 0); // moyenne des trades
-	Pn = MatrixCPU(sim.getPn()); // somme des trades
+
 	PQ = MatrixCPU(_nAgent, 1);
 	PQ.setBloc(0, _nAgentTrue, 0, 1, &Pn);
 	PF.init(cas, &PQ);
 
-	a = MatrixCPU(cas.geta());
-	b = MatrixCPU(cas.getb());
-	Ap2 = a;
-    Ap2.multiplyT(&nVoisin);
-	Ap2.multiplyT(&nVoisin);
-
-	Ap1 = nVoisin;
-	Ap1.multiply(_rhol);
-
+	initP2PMarket();
+	
 	Ap3 = MatrixCPU(_nAgent, 1);
-
-	Ap12 = MatrixCPU(_nAgent, 1, 0);
-    Ap12.add(&Ap1, &Ap2);
 	Ap123 = MatrixCPU(_nAgent, 1, 0);
 
 
 	Cp1 = b;
 	Cp1.multiplyT(&nVoisin);
 
-	Bt1 = MatrixCPU(_nTrade, 1, 0);
 	Cp = MatrixCPU(_nAgent, 1, 0);
 	Cp2 = MatrixCPU(_nAgent, 1, 0);
-	
-	Bp1 = MatrixCPU(_nAgent, 1, 0);
-
-	Pmin = MatrixCPU(cas.getPmin());
-	Pmax = MatrixCPU(cas.getPmax());
-
-	MU = MatrixCPU(_nAgent, 1);// facteur reduit i.e lambda_l/_rho
-	MU.setBloc(0, _nAgentTrue, 0, 1, &sim.getMU());
-	
-	Tmoy = MatrixCPU(_nAgent, 1, 0);
-	Tmoy.setBloc(0, _nAgentTrue, 0, 1, &Pn);
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-	
-	
-	Tmoy.divideT(&nVoisin);
-	
 
 
 	updateGlobalProb();
@@ -600,8 +391,8 @@ void ADMMACConst1::updateLocalProb() {
 	
 	
 	for (int i = 0; i < _nAgent; i++) {
-		int nVoisinLocal = nVoisin.get(i, 0);
-		int beginLocal = CoresAgentLin.get(i, 0);
+		int nVoisinLocal = (int) nVoisin.get(i, 0);
+		int beginLocal = (int) CoresAgentLin.get(i, 0);
 		int endLocal = beginLocal + nVoisinLocal;
 		float m = 0;
 		for (int j = beginLocal; j < endLocal; j++) {
@@ -631,8 +422,8 @@ void ADMMACConst1::updateLocalProb() {
 void ADMMACConst1::updateLambda()
 {
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
-		float lamb = 0.5 * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
+		int k = (int) CoresLinTrans.get(t, 0);
+		float lamb = 0.5f * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
 		LAMBDALin.set(t, 0, LAMBDALin.get(t,0)+lamb);
 	}
 }
@@ -642,10 +433,10 @@ void ADMMACConst1::updateBt1()
 	
 	// subtractTrans
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t,0);
+		int k = (int) CoresLinTrans.get(t,0);
 		Bt1.set(t, 0, tradeLin.get(t, 0) - tradeLin.get(k, 0));
 	}
-	Bt1.multiply(0.5*_rhog); 
+	Bt1.multiply(0.5f*_rhog); 
 	Bt1.subtract(&LAMBDALin);
 	Bt1.divide(_rhog);
 }
@@ -655,8 +446,8 @@ void ADMMACConst1::updateBt2()
 	
 
 	for (int i = 0; i < _nAgent; i++) {
-		int nVoisinLocal = nVoisin.get(i,0);
-		int beginLocal = CoresAgentLin.get(i,0);
+		int nVoisinLocal = (int) nVoisin.get(i,0);
+		int beginLocal = (int) CoresAgentLin.get(i,0);
 		int endLocal = beginLocal + nVoisinLocal; 
 		for (int j = beginLocal; j < endLocal; j++) {
 			float m = Tlocal_pre.get(j,0) - Tmoy.get(i, 0) + P.get(i, 0) - MU.get(i, 0); 
@@ -709,7 +500,7 @@ float ADMMACConst1::calcRes()
 float ADMMACConst1::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
 {
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
+		int k = (int) CoresLinTrans.get(t, 0);
 		tempNN->set(t, 0, tradeLin.get(t, 0) + tradeLin.get(k, 0));
 	}
 	float resR = tempNN->max2();

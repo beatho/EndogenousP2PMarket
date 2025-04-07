@@ -16,8 +16,6 @@ float MethodP2PGPU::updateRes(int iter)
 	updateDiffGPU << <_numBlocksM, _blockSize >> > (tempNN._matrixGPU, tradeLin._matrixGPU, CoresLinTrans._matrixGPU, _nTrade);
 	float resR = tempNN.max2();
 
-	updateResX << <_numBlocksL, _blockSize >> > (tempL1._matrixGPU, Kappa1._matrixGPU, Kappa2._matrixGPU, Kappa1_pre._matrixGPU, Kappa2_pre._matrixGPU, _nLine);
-
 	resF.set(0, iter, resR);
 	resF.set(1, iter, resS);
 	if (iter > 0 && _tau > 1) {
@@ -186,14 +184,12 @@ void MethodP2PGPU::updateP0(const StudyCase& cas)
 	
 }
 
-void MethodP2PGPU::initLinForm( const Simparam& sim, const StudyCase& cas){
+void MethodP2PGPU::initLinForm(const StudyCase& cas){
 
 	MatrixCPU BETA(cas.getBeta());
 	MatrixCPU Ub(cas.getUb());
 	MatrixCPU Lb(cas.getLb());
-	LAMBDA = sim.getLambda(); 
-	trade = sim.getTrade();
-
+	
 	// Rem : si matrice deja existante, elles sont deja sur GPU donc bug pour les get
 
 	if (Ct.getPos()) { // une copie en trop mais pour l'instant c'est ok...
@@ -322,8 +318,11 @@ void MethodP2PGPU::initSize(const StudyCase& cas){
 	}
 	nVoisin = MatrixGPU(nVoisinCPU, 1);
 	nVoisin.preallocateReduction();
-
-	_nLine = cas.getNLine();
+	if(isAC){
+		_nLine = cas.getNLine(true);
+	} else{
+		_nLine = cas.getNLine();
+	}
 	_nBus = cas.getNBus();
 	_nTrade = (int) nVoisin.sum();
 	_nTradeP = 0;
@@ -331,9 +330,7 @@ void MethodP2PGPU::initSize(const StudyCase& cas){
 		_nTradeP = _nTrade;
 		_nTradeQ = 0;
 	} else{
-		for (int n = 0; n < _nAgentTrue; n++) {
-			_nTradeP += (int) nVoisin.get(n, 0);
-		}
+		_nTradeP = (int) nVoisin.sum(0, _nAgentTrue);
 		_nTradeQ = _nTrade - _nTradeP;
 	}
 	_numBlocksN = ceil((_nAgent + _blockSize - 1) / _blockSize);
@@ -417,16 +414,6 @@ void MethodP2PGPU::initDCEndoMarket(){
 	initP2PMarket();
 
 	Ap2a = a;
-	Ap2b = MatrixGPU(_nAgent, 1, 0, 1);
-	Ap3 = MatrixGPU(_nAgent, 1, 0, 1); // not used by default but exists
-	Ap123 = MatrixGPU(_nAgent, 1, 0, 1); // idem
-
-	Cp2 = MatrixGPU(_nAgent, 1, 0, 1);
-	Cp1 = b;
-
-	Cp1.multiplyT(&nVoisin);
-	
-
 	Ap2b.sum(&G2);
 	Ap2b.multiply(2 * _rho1);
 	Ap2.add(&Ap2a, &Ap2b);
@@ -434,28 +421,41 @@ void MethodP2PGPU::initDCEndoMarket(){
 	Ap2.multiplyT(&nVoisin);
 	Ap2.multiplyT(&nVoisin);
 	Ap12.add(&Ap1, &Ap2);
-	Cp = Cp1;
 }
 void MethodP2PGPU::initP2PMarket(){
 	_at1 = _rhog; 
 	_at2 = _rhol;
-	Ap2 = a;
+
 	Ap1 = nVoisin;
+	Ap2 = a;
 	Ap12 = MatrixGPU(_nAgent, 1, 0, 1);
 
+	Bp1 = MatrixGPU(_nAgent, 1, 0, 1);
 	Bt1 = MatrixGPU(_nTrade, 1, 0, 1);
-	Cp = b;
-
+	Bt2 = MatrixGPU(_nTrade, 1, 0, 1);
+	
+	Cp1 = b;
 	
 	Pmin.divideT(&nVoisin);
 	Pmax.divideT(&nVoisin);
-	Ap1.multiply(_rhol);
-	Cp.multiplyT(&nVoisin);
 	Tmoy.divideT(&nVoisin);
+
+	Ap1.multiply(_rhol);
+	Cp1.multiplyT(&nVoisin);
+	
 	
 	Ap2.multiplyT(&nVoisin);
 	Ap2.multiplyT(&nVoisin);
 	Ap12.add(&Ap1, &Ap2);
+	Cp = Cp1;
+
+	/* not used by default but must exists for P0 */
+	Ap2a   = MatrixGPU(_nAgent, 1, 0, 1);
+	Ap2b   = MatrixGPU(_nAgent, 1, 0, 1);
+	Ap3    = MatrixGPU(_nAgent, 1, 0, 1); 
+	Ap123  = MatrixGPU(_nAgent, 1, 0, 1); 
+	Cp2    = MatrixGPU(_nAgent, 1, 0, 1);
+	
 
 }
 
@@ -464,7 +464,8 @@ void MethodP2PGPU::initCaseParam(const Simparam& sim,const StudyCase& cas){
 	Tlocal = MatrixGPU(_nTrade, 1, 0, 1);
 	P = MatrixGPU(_nAgent, 1, 0, 1); // moyenne des trades
 	Pn = MatrixGPU(_nAgent, 1, 0, 1); // somme des trades
-
+	LAMBDA = sim.getLambda(); 
+	trade = sim.getTrade();
 	// si cas AC, a, b , Nvoisin, Pmin, Pmax n'ont pas la bonne taille !!!
 	if (cas.isAC() && !isAC) {
 		MatrixGPU aT(cas.geta(), 1);
@@ -506,7 +507,80 @@ void MethodP2PGPU::initCaseParam(const Simparam& sim,const StudyCase& cas){
 	P.preallocateReduction();
 }
 
+void MethodP2PGPU::setResult(Simparam* result, bool casAC){
+	Kappa1.projectNeg(); //delta1
+	Kappa2.projectNeg(); // delta2
 
+	updatePn();
+
+	float fc = calcFc();
+
+	CoresLinAgent.transferCPU();
+	CoresLinVoisin.transferCPU();
+
+	MatrixCPU tradeLinCPU;
+	tradeLin.toMatCPU(tradeLinCPU);
+	MatrixCPU LAMBDALinCPU;
+	LAMBDALin.toMatCPU(LAMBDALinCPU);
+	MatrixCPU PnCPU;
+	Pn.toMatCPU(PnCPU);
+
+	MatrixCPU MUCPU;
+	MU.toMatCPU(MUCPU);
+	MatrixCPU delta1CPU;
+	Kappa1.toMatCPU(delta1CPU);
+	MatrixCPU delta2CPU;
+	Kappa2.toMatCPU(delta2CPU);
+		
+	
+	for(int lin = 0; lin <_nTradeP; lin++){
+		int idAgent  = (int) CoresLinAgent.get(lin, 0);
+		int idVoisin = (int) CoresLinVoisin.get(lin,0); 
+		trade.set(idAgent, idVoisin, tradeLinCPU.get(lin, 0));
+		LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(lin, 0));
+	}
+	for(int lin = _nTradeP; lin < _nTrade; lin++){
+		int idAgent  = (int) CoresLinAgent.get(lin, 0);
+		int idVoisin = (int) CoresLinVoisin.get(lin,0) - _nAgentTrue; 
+		trade.set(idAgent, idVoisin, tradeLinCPU.get(lin, 0));
+		LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(lin, 0));
+	}
+	CoresLinAgent.transferGPU();
+	CoresLinVoisin.transferGPU();
+
+	if (casAC  == isAC) {
+		result->setPn(&PnCPU);
+		result->setMU(&MUCPU);
+	} else if (!casAC && isAC){
+		throw std::invalid_argument("setResult : method is AC but case is DC");
+	}
+	else {
+		MatrixCPU PnTot(2 * _nAgent, 1);
+		MatrixCPU MUTot(2 * _nAgent, 1);
+
+		for (int n = 0; n < _nAgent; n++) {
+			PnTot.set(n, 0, PnCPU.get(n, 0));
+			MUTot.set(n, 0, MUCPU.get(n, 0));
+		}
+		result->setMU(&MUTot);
+		result->setPn(&PnTot);
+	}
+
+	result->setLAMBDA(&LAMBDA);
+	result->setTrade(&trade);
+
+	result->setDelta1(&delta1CPU);
+	result->setDelta2(&delta2CPU);
+
+	result->setResF(&resF);
+	result->setIter(_iterGlobal);
+	result->setFc(fc);
+	result->setRho(_rhog);
+
+	tMarket = clock() - tMarket;
+	result->setTime((float)tMarket / CLOCKS_PER_SEC);
+
+}
 
 void MethodP2PGPU::solveWithMinPower(Simparam* result, const Simparam& sim, const StudyCase& cas)
 {
@@ -531,7 +605,7 @@ float MethodP2PGPU::calcFc()
 	float fc = tempN1.sum();
 	
 
-	tempNN.set(&trade);
+	tempNN.set(&tradeLin);
 	
 	tempNN.multiplyT(&Ct);
 	

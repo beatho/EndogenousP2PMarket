@@ -16,9 +16,9 @@ static MatrixCPU convertListToVectorCPUf(PyObject* list){
     return toReturn;
 }
 static MatrixCPU convertListToVectorCPUi(PyObject* list){
-    MatrixCPU toReturn(PyList_GET_SIZE(list),1);
+    MatrixCPU toReturn((int) PyList_GET_SIZE(list),1);
     bool warning = false;
-    for (int i=0; i <PyList_GET_SIZE(list); i++ ){
+    for (int i=0; i < (int) PyList_GET_SIZE(list); i++ ){
         PyObject* pItem = PyList_GetItem(list, i);
         if(PyLong_Check(pItem)){
             long Gs = PyLong_AsLong(pItem);

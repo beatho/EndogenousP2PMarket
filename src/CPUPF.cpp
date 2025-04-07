@@ -175,7 +175,7 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool useD
         W0D = MatrixCPUD(B2, 1);
 
         for (int n = 1; n < Nagent; n++) {
-            int bus = I.get(n, 0);
+            int bus = (int) I.get(n, 0);
             W0D.increment(bus, 0, PQD->get(n, 0));
             W0D.increment(bus + Nbus, 0, PQD->get(n + Nagent, 0));
         }
@@ -225,7 +225,7 @@ void CPUPF::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool useD
         W0 = MatrixCPU(B2, 1);
         //PQ->display();
         for (int n = 1; n < Nagent; n++) {
-            int bus = I.get(n, 0);
+            int bus = (int) I.get(n, 0);
             W0.increment(bus, 0, PQ->get(n, 0));
             W0.increment(bus + Nbus, 0, PQ->get(n + Nagent, 0));
         }
@@ -354,7 +354,7 @@ void CPUPF::updatePQ(MatrixCPU* PQ)
     W0 = MatrixCPU(B2, 1);
     //PQ->display();
     for (int n = 1; n < Nagent; n++) {
-        int bus = I.get(n, 0);
+        int bus = (int) I.get(n, 0);
         W0.increment(bus, 0, PQ->get(n, 0));
         W0.increment(bus + Nbus, 0, PQ->get(n + Nagent, 0));
     }
@@ -379,10 +379,10 @@ void CPUPF::calcW(bool end)
         double EE = 0;
         WD.set(0.0);
         for (int i = 0; i < Nbus; i++) {
-            int k = CoresBusLin.get(i, 0);
+            int k = (int) CoresBusLin.get(i, 0);
 
             for (int voisin = k; voisin < (k + nLines.get(i, 0)); voisin++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                 double dTheta_ij = ED.get(i, 0) - ED.get(j, 0);
                 sdt = sin(dTheta_ij);
                 cdt = cos(dTheta_ij);
@@ -485,10 +485,10 @@ void CPUPF::calcW(bool end)
         W.set(0.0);
         for (int i = 0; i < Nbus; i++) {
            // std::cout << i << std::endl;
-            int k = CoresBusLin.get(i, 0);
+            int k = (int) CoresBusLin.get(i, 0);
 
             for (int voisin = k; voisin < (k + nLines.get(i, 0)); voisin++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                 double dTheta_ij = E.getD(i, 0) - E.getD(j, 0);
                 sdt = sin(dTheta_ij);
                 cdt = cos(dTheta_ij);
@@ -519,10 +519,10 @@ void CPUPF::calcJac()
 {
     if(_useDouble){
         for (int i = 1; i < Nbus; i++) {
-            int k = CoresBusLin.get(i, 0);
+            int k = (int) CoresBusLin.get(i, 0);
 
             for (int voisin = k; voisin < (k + nLines.get(i, 0)); voisin++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                 int i2 = i + Nbus;
                 int j2 = j + Nbus;
                 if (i == j) {
@@ -584,10 +584,10 @@ void CPUPF::calcJac()
     }
     else {
         for (int i = 1; i < Nbus; i++) {
-            int k = CoresBusLin.get(i, 0);
+            int k = (int) CoresBusLin.get(i, 0);
 
             for (int voisin = k; voisin < (k + nLines.get(i, 0)); voisin++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                 int i2 = i + Nbus;
                 int j2 = j + Nbus;
                 if (i == j) {
@@ -815,7 +815,7 @@ void CPUPF::setW(MatrixCPU* Wnew)
 
 void CPUPF::calcE()
 {
-    std::cout << "calculE de CPUPF" << std::endl;
+    //std::cout << "calculE de CPUPF" << std::endl;
     // nothing to do
 }
 
@@ -823,9 +823,9 @@ void CPUPF::calcPhi()
 {
     calcE();
     for (int l = 0; l < Nline; l++) {
-        int i = CoresLineBus.get(l, 0); //from 
+        int i = (int) CoresLineBus.get(l, 0); //from 
         int i2 = i + Nbus;
-        int j = CoresLineBus.get(l, 1); // to
+        int j = (int) CoresLineBus.get(l, 1); // to
         int j2 = j + Nbus;
         //float dTheta_ij = E.get(i, 0) - E.get(j, 0);
 
@@ -851,9 +851,9 @@ void CPUPF::calcPhi()
 void CPUPF::calcJacPhiE()
 {
     for (int l = 0; l < Nline; l++) { //angle
-        int i = CoresLineBus.get(l, 0); //from 
+        int i = (int) CoresLineBus.get(l, 0); //from 
         int i2 = i + Nbus;
-        int j = CoresLineBus.get(l, 1); // to
+        int j = (int) CoresLineBus.get(l, 1); // to
         int j2 = j + Nbus;
         
         JacPhiE.set(l, i2, E.get(j2, 0) * Ggrid2Bgrid2.get(i, j));
@@ -897,7 +897,7 @@ MatrixCPU* CPUPF::calcY()
 }
 float CPUPF::getPloss()
 {
-    float s = 0;
+    double s = 0;
     if (_useDouble) {
         for (int i = 0; i < Nbus; i++) {
             s += WD.get(i, 0);
@@ -914,7 +914,7 @@ float CPUPF::getPloss()
 
 float CPUPF::getQloss()
 {
-    float s = 0;
+    double s = 0;
     if (_useDouble) {
         for (int i = Nbus; i < B2; i++) {
             s += WD.get(i, 0);
@@ -931,7 +931,7 @@ float CPUPF::getQloss()
 
 float CPUPF::getRes()
 {
-    return err;
+    return (float) err;
 }
 
 int CPUPF::getIter()
@@ -942,7 +942,7 @@ int CPUPF::getIter()
 float CPUPF::getP0()
 {
     if (_useDouble) {
-        return WD.get(0, 0);
+        return (float) WD.get(0, 0);
     }
     else {
         return W.get(0 ,0);
@@ -952,7 +952,7 @@ float CPUPF::getP0()
 float CPUPF::getQ0()
 {
     if (_useDouble) {
-        return WD.get(Nbus, 0);
+        return (float) WD.get(Nbus, 0);
     }
     else {
         return W.get(Nbus, 0);
@@ -1001,14 +1001,14 @@ MatrixCPU CPUPF::getY()
     }
     int line = 0;
     for (int b = 0; b < Nbus; b++) {
-        int k = CoresBusLin.get(b, 0);
+        int k = (int) CoresBusLin.get(b, 0);
         float thetai = E.get(b, 0);
         float Vi = E.get(b + Nbus, 0);
         float ei = Vi * cos(thetai);
         float fi = Vi * sin(thetai);
        
         for (int voisin = k + 1; voisin < (k + nLines.get(b, 0)); voisin++) {
-            int j = CoresVoiLin.get(voisin, 0);
+            int j = (int) CoresVoiLin.get(voisin, 0);
             if (j > b) {
                 float thetaj = E.get(j, 0);
                 float Vj = E.get(j + Nbus, 0);
@@ -1121,7 +1121,7 @@ void CPUPF::display(bool all)
 
         //std::cout << 0 << "      " << E.get(Nbus, 0) << "             " << E.get(0, 0) * (abs(E.get(0, 0)) > 0.0001) * 180 / 3.1415 << "              " << (abs(W.get(0, 0)) > 0.0001) * W.get(0, 0) << "         " << (abs(W.get(Nbus, 0)) > 0.0001) * W.get(Nbus, 0) << std::endl;
 
-        float seuil = 0.0001;
+        float seuil = 0.0001f;
         if (_useDouble) {
             std::cout << std::setw(5) << 0 << "|" << std::setw(11) << ED.get(Nbus, 0) << "*|" << std::setw(11) << ED.get(0, 0) * (abs(ED.get(0, 0)) > seuil) * 180 / 3.1415
                 << "*|" << std::setw(15) << (abs(WD.get(0, 0)) > seuil) * WD.get(0, 0) << "|" << std::setw(15) << (abs(WD.get(Nbus, 0)) > seuil) * WD.get(Nbus, 0)
@@ -1156,7 +1156,7 @@ void CPUPF::display(bool all)
         }
     }
     else {
-        float seuil = 0.0001;
+        float seuil = 0.0001f;
         std::cout << " Bus |          Voltage        |  Power = Generation  + Load   |  Init = Generation  + Load    |" << std::endl;
         std::cout << "  #  |    Mag(pu) |  Ang(deg)  |    P (pu)     |     Q (pu)    |    P (pu)     |     Q (pu)    |" << std::endl;
         std::cout << "-----|------------|------------|---------------|---------------|---------------|---------------|" << std::endl;

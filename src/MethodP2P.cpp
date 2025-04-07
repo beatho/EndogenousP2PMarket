@@ -18,7 +18,7 @@ MethodP2P::~MethodP2P()
 }
 
 
-void  MethodP2P::updateP0(const StudyCase& cas){
+void MethodP2P::updateP0(const StudyCase& cas){
 	
 	_id = _id + 1;
 #ifdef INSTRUMENTATION
@@ -95,6 +95,7 @@ void  MethodP2P::updateP0(const StudyCase& cas){
 	Ap2.multiplyT(&nVoisin);
 	Ap2.multiplyT(&nVoisin);
 	Ap12.add(&Ap1, &Ap2);
+	Ap123.add(&Ap12, &Ap3);
 	Cp.add(&Cp1, &Cp2);
 
 #ifdef INSTRUMENTATION
@@ -137,7 +138,6 @@ void MethodP2P::updateKappa()
 	Kappa2.add(&Qtot);
 	//
 }
-
 void MethodP2P::updateCp2()
 {
 	tempL1.subtractAbs(&Kappa1, &Kappa2);
@@ -157,7 +157,6 @@ void MethodP2P::updateCp2()
 	Cp2.multiply(_rho1);
 	Cp2.multiplyT(&nVoisin);
 }
-
 float MethodP2P::updateResMat(int iter)
 {
 	tempNN.subtract(&Tlocal, &trade);
@@ -257,6 +256,7 @@ float MethodP2P::calcRes()
 
 	return d1* (d1 > d2) + d2 * (d2 >= d1);
 }
+
 void MethodP2P::initSize(const StudyCase& cas){
 	_nAgentTrue = cas.getNagent();
 	_nAgent = _nAgentTrue + isAC * _nAgentTrue;
@@ -272,7 +272,12 @@ void MethodP2P::initSize(const StudyCase& cas){
 	else {
 		nVoisin = cas.getNvoi();
 	}
-	_nLine = cas.getNLine();
+	if(isAC){
+		_nLine = cas.getNLine(true);
+	} else {
+		_nLine = cas.getNLine();
+	}
+	
 	_nBus = cas.getNBus();
 	_nTrade = (int) nVoisin.sum();
 	_nTradeP = 0;
@@ -323,13 +328,11 @@ void MethodP2P::initSimParam(const Simparam& sim){
 	tempL2 = MatrixCPU(_nLine, 1, 0);
 }
 
-void MethodP2P::initLinForm(const Simparam& sim, const StudyCase& cas){
+void MethodP2P::initLinForm(const StudyCase& cas){
 	
 	MatrixCPU BETA(cas.getBeta());
 	MatrixCPU Ub(cas.getUb());
 	MatrixCPU Lb(cas.getLb());
-	LAMBDA = sim.getLambda(); 
-	trade = sim.getTrade();
 	
 	//std::cout << "mise sous forme lin�aire" << std::endl;
 
@@ -340,7 +343,6 @@ void MethodP2P::initLinForm(const Simparam& sim, const StudyCase& cas){
 	CoresLinTrans = MatrixCPU(_nTrade, 1);
 
 	Tlocal_pre = MatrixCPU(_nTrade, 1);
-	Tlocal = MatrixCPU(_nTrade, 1);
 	tradeLin = MatrixCPU(_nTrade, 1);
 	LAMBDALin = MatrixCPU(_nTrade, 1);
 
@@ -431,12 +433,12 @@ void MethodP2P::initDCEndoGrid(const StudyCase& cas){
 
 }
 
-
 void MethodP2P::initCaseParam(const Simparam& sim,const StudyCase& cas){
 
 	Tlocal = MatrixCPU(_nTrade, 1, 0);
 	P = MatrixCPU(_nAgent, 1, 0); // moyenne des trades
-	Pn = MatrixCPU(_nAgent, 1, 0); // somme des trades
+	LAMBDA = sim.getLambda();
+	trade = sim.getTrade();
 
 	// si cas AC, a, b ,Nvoisin, Pmin,Pma n'ont pas la bonne taille !!!
 	if (cas.isAC() && !isAC) {
@@ -452,7 +454,7 @@ void MethodP2P::initCaseParam(const Simparam& sim,const StudyCase& cas){
 		Pmax = MatrixCPU(_nAgent, 1);
 		MU = MatrixCPU(_nAgent, 1);
 		Tmoy = MatrixCPU(_nAgent, 1);
-
+		#pragma omp parallel for
 		for (int n = 0; n < _nAgent; n++) {
 			a.set(n, 0, aT.get(n, 0));
 			b.set(n, 0, bT.get(n, 0));
@@ -467,17 +469,14 @@ void MethodP2P::initCaseParam(const Simparam& sim,const StudyCase& cas){
 		throw std::invalid_argument("initCaseParam : Study Case is not AC, but this method require AC information");
 	}
 	else {
-		a = MatrixCPU(cas.geta());
-		b = MatrixCPU(cas.getb());
-		Pmin = MatrixCPU(cas.getPmin());
-		Pmax = MatrixCPU(cas.getPmax());
-		MU = MatrixCPU(sim.getMU()); // facteur reduit i.e lambda_l/_rho
-		Tmoy = MatrixCPU(sim.getPn());
+		a = cas.geta();
+		b = cas.getb();
+		Pmin = cas.getPmin();
+		Pmax = cas.getPmax();
+		MU = sim.getMU(); // facteur reduit i.e lambda_l/_rho
+		Tmoy = sim.getPn();
 	}
-
-
-
-
+	Pn = Tmoy;
 }
 
 void MethodP2P::initDCEndoMarket(){
@@ -504,16 +503,18 @@ void MethodP2P::initDCEndoMarket(){
 void MethodP2P::initP2PMarket(){
 	_at1 = _rhog; 
 	_at2 = _rhol;
-	Ap2 = a;
+
 	Ap1 = nVoisin;
+	Ap2 = a;
+	
 	Ap12 = MatrixCPU(_nAgent, 1);
 
 	Bt1 = MatrixCPU(_nTrade, 1);
 	Bt2 = MatrixCPU(_nTrade, 1);
 	Bp1 = MatrixCPU(_nAgent, 1);
+	
 	Cp = b;
 
-	
 	Pmin.divideT(&nVoisin);
 	Pmax.divideT(&nVoisin);
 	Tmoy.divideT(&nVoisin);
@@ -525,10 +526,81 @@ void MethodP2P::initP2PMarket(){
 	Ap2.multiplyT(&nVoisin);
 	Ap12.add(&Ap1, &Ap2);
 
+	/* not used by default but must exists for P0 */
+	Ap2a   = MatrixCPU(_nAgent, 1, 0);
+	Ap2b   = MatrixCPU(_nAgent, 1, 0);
+	Ap3    = MatrixCPU(_nAgent, 1, 0); 
+	Ap123  = MatrixCPU(_nAgent, 1, 0); 
+	Cp2    = MatrixCPU(_nAgent, 1, 0);
+
 }
 
+void MethodP2P::setResult(Simparam* result, bool casAC){
+	
+	if(_nLine){
+		Kappa1.projectNeg(); //delta1
+		Kappa2.projectNeg(); // delta2
+	}
+	
+	updatePn();
+	
+	#pragma omp parallel for
+	for(int lin = 0; lin <_nTradeP; lin++){
+		int idAgent  = (int) CoresLinAgent.get(lin, 0);
+		int idVoisin = (int) CoresLinVoisin.get(lin,0); 
+		trade.set(idAgent, idVoisin, tradeLin.get(lin, 0));
+		LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(lin, 0));
+	}
+	
+	#pragma omp parallel for
+	for(int lin = _nTradeP; lin < _nTrade; lin++){
+		int idAgent  = (int) CoresLinAgent.get(lin, 0);
+		int idVoisin = (int) CoresLinVoisin.get(lin,0) - _nAgentTrue; 
+		trade.set(idAgent, idVoisin, tradeLin.get(lin, 0));
+		LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(lin, 0));
+	}
+	
+	if(casAC == isAC){
+		result->setLAMBDA(&LAMBDA);
+		result->setTrade(&trade); 
+		result->setMU(&MU);
+		result->setPn(&Pn);
+	} else if (!casAC && isAC){
+		throw std::invalid_argument("setResult : method is AC and case is DC");
+	} else{
+		MatrixCPU tradeTot(2 * _nAgent, _nAgent);
+		MatrixCPU LAMBDATot(2 * _nAgent, _nAgent);
+		MatrixCPU PnTot(2 * _nAgent, 1);
+		MatrixCPU MUTot(2 * _nAgent, 1);
+		#pragma omp parallel for
+		for (int n = 0; n < _nAgent; n++) {
+			for (int m = 0; m < _nAgent; m++) {
+				tradeTot.set(n, m, trade.get(n, m));
+				LAMBDATot.set(n, m, LAMBDA.get(n, m));
+			}
+			PnTot.set(n, 0, Pn.get(n, 0));
+			MUTot.set(n, 0, MU.get(n, 0));
+		}
+		result->setLAMBDA(&LAMBDATot);
+		result->setTrade(&tradeTot);
+		result->setMU(&MUTot);
+		result->setPn(&PnTot);
+	}
+	
+	float fc = calcFc();
+	result->setResF(&resF);
+	result->setIter(_iterGlobal);
+	result->setFc(fc);
 
+	if (_nLine) {
+		result->setDelta1(&Kappa1);
+		result->setDelta2(&Kappa2);
+	}
 
+	tMarket = clock() - tMarket;
+	result->setTime((float)tMarket / CLOCKS_PER_SEC);
+	
+}
 
 float MethodP2P::calcFc()
 {
@@ -541,7 +613,7 @@ float MethodP2P::calcFc()
 	tempN1.multiplyT(&Pn);
 	
 	fc = fc + tempN1.sum();
-	tempNN.set(&trade);
+	tempNN.set(&tradeLin);
 	tempNN.multiplyT(&Ct);
 	
 
@@ -550,8 +622,6 @@ float MethodP2P::calcFc()
 	return fc;
 
 }
-
-
 
 void MethodP2P::updatePn()
 {

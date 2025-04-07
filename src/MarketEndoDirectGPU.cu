@@ -27,7 +27,7 @@ MarketEndoDirectGPU::MarketEndoDirectGPU(float rho) : MethodP2PGPU()
 	std::cout << "default MarketEndoDirectGPU Constructor" << std::endl;
 #endif // DEBUG_CONSTRUCTOR
 	_name = NAME;
-	_rho = rho;
+	_rhog = rho;
 	timePerBlock = MatrixCPU(1, 9, 0); // Fb0, Fb11, FB12, Fb2, Fb3, Fb4, Fb5, FB6, Fb0'
 	// si les sous ensemble ne sont pas accessible, tout est dans le premier.
 	occurencePerBlock = MatrixCPU(1, 9, 0); //nb de fois utilis� pendant la simu
@@ -39,7 +39,7 @@ MarketEndoDirectGPU::~MarketEndoDirectGPU()
 }
 void MarketEndoDirectGPU::setParam(float rho)
 {
-	_rho = rho;
+	_rhog = rho;
 }
 
 bool MarketEndoDirectGPU::chekcase()
@@ -75,7 +75,7 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	clock_t tall =clock();
+	tMarket =clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -96,22 +96,12 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #endif // INSTRUMENTATION
 	}
 	
-	_iterG = sim.getIterG();
-	_nIterL = sim.getIterL();
-	_stepG = sim.getStepG();
-	
-	
-	float epsG = sim.getEpsG();
-	_epsL = sim.getEpsL() / 20;
-
 	_epsL *= _epsL;
-	
-	float fc = 0;
-	float resG = 2 * epsG;
+	float resG = 2 * _epsG;
 	_iterGlobal = 0;
 	
 	
-	while (((_iterGlobal < _iterG) && (resG>epsG)) || (_iterGlobal <= _stepG)) {
+	while (((_iterGlobal < _iterG) && (resG>_epsG)) || (_iterGlobal <= _stepG)) {
 		/*std::cout << "---------------------------------" << std::endl;
 		std::cout << " X avant" << std::endl;
 		X.display(true);
@@ -128,8 +118,8 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 		Mu.display(true);
 		std::cout << " Chat "   << std::endl;
 		Chat.display(true);
-		std::cout << " Bp2 " << std::endl;
-		Bp2.display(true);
+		std::cout << " Bp3 " << std::endl;
+		Bp3.display(true);
 		std::cout << " P " << std::endl;
 		P.display(true);*/
 		//Pn.saveCSVForce("TestPnGPU2.csv", 11, 1);
@@ -218,57 +208,23 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 	
-
+	// FB 5
 	//setPnFromX << < _nBus, _blockSizeSmall >> > (Pn._matrixGPU, X._matrixGPU, _indiceBusBegin._matrixGPU, _CoresAgentBus._matrixGPU, _nAgentByBus._matrixGPU, _CoresAgentBusBegin._matrixGPU, _nAgent);
 	ComputePFromAgentToBus();
 
-	MatrixCPU tradeLinCPU;
-	tradeLin.toMatCPU(tradeLinCPU);
-	MatrixCPU LAMBDALinCPU;
-	LAMBDALin.toMatCPU(LAMBDALinCPU);
-	MatrixCPU PnCPU;
-	Pn.toMatCPU(PnCPU);
-	
 
-	int indice = 0;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLinCPU.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) {
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				trade.set(idAgent, idVoisin, tradeLinCPU.get(indice, 0));
-				LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(indice, 0));
-				indice = indice + 1;
-			}
-
-		}
-	}
-	
-	
 	/*PnCPU.set(0, 0, getPLoss());
 	PnCPU.set(_nAgentTrue, 0, getQLoss());
 	*/
 
-	//Ct.display();
-	//Tlocal.display();
-
-	fc = calcFc();
-	// FB 5
+	MatrixCPU Pb(getPb());
+	MatrixCPU Phi(getPhi());
+	MatrixCPU E(getE());
 	
-	result->setResF(&resF);
-	result->setIter(_iterGlobal);
-	result->setPn(&PnCPU);
-	result->setFc(fc);
-	result->setLAMBDA(&LAMBDA);
-	result->setTrade(&trade);
+	result->setE(&E);
+	result->setPhi(&Phi);
+	result->setPb(&Pb);
+	setResult(result, cas.isAC());
 
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize();  
@@ -278,10 +234,6 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
-	tall = clock() - tall;
-	timeMarketEndo = tall;
-	//display();
-	result->setTime((float)tall / CLOCKS_PER_SEC);
 	
 }
 
@@ -371,10 +323,8 @@ void MarketEndoDirectGPU::updateP0(const StudyCase& cas)
 
 void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 {
-	 
-
+	isAC = true;
 	if (_CoresChatBegin.getPos()) {
-
 		//_CoresChatBegin.transferCPU();
 		//_indiceBusBegin.transferCPU();
 
@@ -387,29 +337,17 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 		ZsIm.transferCPU();
 		ZsRe.transferCPU();
 	}
-	
-
-
 	// intitilisation des matrixs et variables 
-	
 	clock_t t = clock();
 	//std::cout << "init " << std::endl;
-	_rho = sim.getRho();
+	initSize(cas);
+	_nBusWLoss = _nBus + 1;
+	
+	initSimParam(sim);
 	
 	initMarket(sim, cas);
 	 
-
-	_iterG = sim.getIterG();
-	_stepG = sim.getStepG();
 	
-	float epsG = sim.getEpsG();
-	float epsGC = sim.getEpsGC();
-	_ratioEps = epsG / epsGC;
-	
-	_nBus = cas.getNBus();
-	_nBusWLoss = _nBus + 1;
-	_nLine = cas.getNLine(true); // ne doit pas �tre r�duit ici !!!
-
 	_debutloss =  3 * _nLine + 5 * _nBus + 2 * (_nAgentTrue - 1); // L = nChild.sum()
 	_sizeEndoMarketTotal = _debutloss;
 	_sizeChat = 4 * _nBus;
@@ -425,7 +363,7 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 	_numBlocksH = ceil((_sizeEndoMarketTotal + _blockSize - 1) / _blockSize);
 	
 	
-	_numLineByBlockY = _sizeEndoMarketTotal / 100 + 1; // on veut maimum de 100 blocks !!!
+	_numLineByBlockY = _sizeEndoMarketTotal / 100 + 1; // on veut maximum de 100 blocks !!!
 
 
 	//std::cout << _nAgentTrue << " " << _nBus << " " << _nLine << " " << _sizeEndoMarketTotal << std::endl;
@@ -467,12 +405,8 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 	nChild = MatrixGPU(nChildCPU, 1);
 
 
-	_rhoInv = 1 / _rho;
-	resF = MatrixCPU(3, (_iterG / _stepG) + 1);
-
-	
-	
-	
+	_rhoInv = 1 / _rhog;
+		
 	//std::cout << " local resolution " << std::endl;
 	// local resolution
 
@@ -489,14 +423,9 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 	removeLossAgent << <1, 1 >> > (_nAgentByBus._matrixGPU, _CoresAgentBusBegin._matrixGPU);
 	initPosAgent << <_nBus, _blockSizeSmall >> > (PosAgent._matrixGPU, _nAgentByBus._matrixGPU, _CoresAgentBusBegin._matrixGPU, _CoresAgentBus._matrixGPU);
 
-	//cudaDeviceSynchronize();
-	//CHECK_LAST_CUDA_ERROR();
-	//Pb.saveCSVForce("TestPbGPU2.csv", 11, 1);
+	
 	ComputePFromAgentToBus();
-	//Pb.saveCSVForce("TestPbGPU2.csv", 11, 1);
-	//cudaDeviceSynchronize();
-	//CHECK_LAST_CUDA_ERROR();
-	//_nAgentByBus.display();
+	
 
 	//std::cout << " creation " << std::endl;
 	X = MatrixGPU(_sizeEndoMarketTotal, 1, 0, 1);
@@ -666,7 +595,7 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 		//A[_nBus].set(1, 1, 1); // qloss
 		break;
 	}
-	Hinv.divide(_rho);
+	Hinv.divide(_rhog);
 	
 	//Hinv.display(true);
 	_indiceChildBegin.transferGPU();
@@ -698,84 +627,20 @@ void MarketEndoDirectGPU::init(const Simparam& sim, const StudyCase& cas)
 	//std::cout << "updateChat" << std::endl;
 	updateChat();
 	 
-	
-	/*std::cout << "--------" << std::endl;
-	std::cout << " Pn " << std::endl;
-	Pn.display();*/
-	/*for (int i = 0; i < _nBus; i++) {
-		std::cout << " X " << i << std::endl;
-		X[i].display();
-		std::cout << " Y " << i << std::endl;
-		Y[i].display();
-		std::cout << " Q " << i << std::endl;
-		Q[i].display();
-		std::cout << " Mu " << i << std::endl;
-		Mu[i].display();
-		std::cout << " Chat " << i << std::endl;
-		Chat[i].display();
-	}*/
-	
-
-	
-	//std::cout << "rho " << _rhog << " rhoL " << _rhol << " rho1 " << _rho1 << std::endl;
+	//std::cout << "rho " << _rhog << " rhoL " << _rhogl << " rho1 " << _rhog1 << std::endl;
 	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 	//std::cout << "---------------------------------------------------------------------------------------" << std::endl;
 }
 
 void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 {
-	if (CoresMatLin.getPos()) { // une copie en trop mais pour l'instant c'est ok...
-		CoresMatLin.transferCPU();
-
-		CoresLinAgent.transferCPU();
-		CoresAgentLin.transferCPU();
-		CoresLinVoisin.transferCPU();
-		CoresLinTrans.transferCPU();
-
-		Tlocal_pre.transferCPU();
-		tradeLin.transferCPU();
-		LAMBDALin.transferCPU();
-
-		matLb.transferCPU();
-		matUb.transferCPU();
-		Ct.transferCPU();
-
-		Pn.transferCPU();
-		Pmin.transferCPU();
-		Pmax.transferCPU();
-	}
-
-
-	_nAgentTrue = cas.getNagent();
-	_nAgent = 2 * _nAgentTrue;
-	
-	if (_rhol == 0) {
-		_rhol = _rho;
-	}
-	nVoisinCPU = cas.getNvoi();
-	nVoisin = MatrixGPU(nVoisinCPU, 1);
-	nVoisin.preallocateReduction();
-
-	_nTrade = nVoisin.sum();
-	_nTradeP = nVoisin.sum(0, _nAgentTrue);
 	//std::cout << "nTrade " << _nTrade << " " << _nTradeP << std::endl;
-	
-	_nTradeQ = _nTrade - _nTradeP;
-	if (_nTradeQ != (_nAgentTrue * (_nAgentTrue - 1))) {
-		std::cout << "err MarketEndoDirectGPU : " << _nAgent << " " << _nAgentTrue << " " << _nTrade << " " << _nTradeP << " " << _nTradeQ << std::endl;
-		throw std::invalid_argument("Agent must be fully conected for the Q echanges, WIP");
-	}
 	int nVoisinMax = nVoisin.max2();
 	if (_blockSize * NMAXPEERPERTRHREAD < nVoisinMax) {
 		std::cout << _blockSize << " " << NMAXPEERPERTRHREAD << " " << nVoisinMax << std::endl;
 		throw std::invalid_argument("For this Method, an agent must not have more than 5120 peers");
 	}
-	_numBlocksN = ceil((_nAgent + _blockSize - 1) / _blockSize);
-	_numBlocksM = ceil((_nTrade + _blockSize - 1) / _blockSize);
-	
-	
-	
-	
+	initCaseParam(sim, cas);
 	if (initWithMarketClear) {
 		ADMMMarketGPU market;
 		Simparam res(sim);
@@ -788,119 +653,49 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 		//std::cout << "****" << std::endl;
 		
 	}
-	else {
-		LAMBDA = sim.getLambda();
-		trade = sim.getTrade();
-		Pn = sim.getPn(); // somme des trades
-	}
-	Pmin = cas.getPmin();
-	Pmax = cas.getPmax();
-	 // unleash powe
-	Pmin.set(0, 0, -POWERLIMIT);
-	Pmax.set(_nAgentTrue, 0, POWERLIMIT);
-	Pmin.set(_nAgentTrue, 0, -POWERLIMIT);
+	 // unleash power
+	Pmin.set(0, 0, -POWERLIMIT, true);
+	Pmax.set(_nAgentTrue, 0, POWERLIMIT, true);
+	Pmin.set(_nAgentTrue, 0, -POWERLIMIT, true);
 	
-	Pn.transferGPU();
 	Pn.preallocateReduction();
-	Pmin.transferGPU();
-	Pmax.transferGPU();
-
+	
+	
 	if (Pn.max2() == 0) {
 		Pn.add(&Pmin, &Pmax);
 		Pn.divide(2);
 		Pn.set(0, 0, 0, true);
 	}
-	/*Pn.display();
-	LAMBDA.display();
-	trade.display();*/
-	 
-	//CHECK_LAST_CUDA_ERROR();
-
-	_at1 = _rho; // car that apparait 2 fois 
-	_at2 = _rhol;
-
-
+	
 	/*if (Ub.get(_nAgentTrue, 0) == 0) { // unleash power
 		Ub.set(_nAgentTrue, 0, POWERLIMIT);
 		Lb.set(_nAgentTrue, 0, -POWERLIMIT);
 	}*/
-
+	initLinForm(cas);
 	
-	// transfert des mises lineaire
-	matUb.transferGPU();
-	matLb.transferGPU();
-	Ct.transferGPU();
-
-	Tlocal_pre.transferGPU();
-	tradeLin.transferGPU();
-	LAMBDALin.transferGPU();
-
-	CoresAgentLin.transferGPU();
-	CoresLinAgent.transferGPU();
-	CoresLinVoisin.transferGPU();
-	CoresMatLin.transferGPU();
-	CoresLinTrans.transferGPU();
-
-	//std::cout << "autres donn�e sur CPU" << std::endl;
-	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
-	tempNN.preallocateReduction();
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plut�t que de re-allouer de la m�moire � chaque utilisation
-	//MatrixCPU temp1N(1, _nAgent, 0, 1);
-
-	/**/
-
-	
-
-	P = Pn; // moyenne des trades, ici c'est juste pour qu'il ait la m�me taille sans avoir besoin de se poser de question
-	P.divideT(&nVoisin);
-	Tlocal = MatrixGPU(_nTrade, 1, 0, 1);
-	Tlocal.preallocateReduction();
-
-	a = MatrixGPU(cas.geta(), 1);
-	b = MatrixGPU(cas.getb(), 1);
-	Ap1 = nVoisin;
-	Ap2 = nVoisin;
-	Ap3 = a;	
-	Ap123 = MatrixGPU(_nAgent, 1, 0, 1);
-
+	//std::cout << "autres donnee sur CPU" << std::endl;
+	initP2PMarket();
 	
 	
-	Cp = b;
-	Bp1 = MatrixGPU(_nAgent, 1, 0, 1);
-	Bp2 = MatrixGPU(_nAgent, 1, 0, 1);
-	Bt1 = MatrixGPU(_nTrade, 1, 0, 1);
-	Bt2 = MatrixGPU(_nTrade, 1, 0, 1);
+	Ap3 = nVoisin;	
+	Bp3 = MatrixGPU(_nAgent, 1, 0, 1);
+	
+	P = Tmoy;
+	/*std::cout << " A " <<std::endl;
+	Ap3.display(true);
+	Ap12.display(true);
+	Ap123.display(true);*/
 
-	MU = MatrixGPU(sim.getMU(), 1); // facteur reduit i.e lambda_l/_rho
-	Tmoy = P;
-
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-
-	/*std::cout << "Power bound" << std::endl;
-	Pmin.display();
-	Pmax.display();*/
-
-
-	Ap1.multiply(_rhol);
-	Ap2.multiply( _rho);
-	Ap2.multiplyT(&nVoisin);
-	Cp.multiplyT(&nVoisin);
-	Tmoy.divideT(&nVoisin);
-
+	Ap3.multiply( _rhog);
 	Ap3.multiplyT(&nVoisin);
-	Ap3.multiplyT(&nVoisin);
-	Ap123.add(&Ap1, &Ap2);
-	Ap123.add(&Ap3);
-
+	Ap123.add(&Ap12, &Ap3);
+	
 	//CoresLinTrans.display();
 	//CoresAgentLin.display();
 	/*std::cout << _at1 << " " << _at2 << std::endl;
 	
 	Ct.display(true);
 	Ap1.display(true);
-	Ap2.display(true);
 	Ap3.display(true);
 	Ap123.display(true);
 	Cp.display(true);
@@ -908,14 +703,11 @@ void MarketEndoDirectGPU::initMarket(const Simparam& sim, const StudyCase& cas)
 	Pmin.display(true);
 	Pmax.display(true);
 	matLb.display(true);
-	matUb.display(true);
-	std::cout << "fin init market" << std::endl;*/
+	matUb.display(true);*/
+	//std::cout << "fin init market" << std::endl;
 	
 	//CHECK_LAST_CUDA_ERROR();
 }
-
-
-
 
 void MarketEndoDirectGPU::updateGlobalProb() {
 	
@@ -1653,7 +1445,7 @@ void MarketEndoDirectGPU::updateXWOCurrentCPU()
 void MarketEndoDirectGPU::updatePMarket()
 {
 	/*std::cout << "objective loss P " << Y.get(17, 0, false) << " "<< Y.get(18, 0, false) << std::endl;
-	std::cout << Ap1.get(1, 0) << " " << Ap2.get(1, 0) << " " << Ap3.get(1, 0) << " "  << Bp2.get(1, 0) << " " << Cp.get(1, 0) << std::endl;
+	std::cout << Ap1.get(1, 0) << " " << Ap3.get(1, 0) << " " << Ap3.get(1, 0) << " "  << Bp3.get(1, 0) << " " << Cp.get(1, 0) << std::endl;
 	std::cout << _at1 << " " << _at2 << std::endl;
 	Ct.display();
 	
@@ -1695,7 +1487,7 @@ void MarketEndoDirectGPU::updatePMarket()
 
 void MarketEndoDirectGPU::updateMu()
 {
-	updateMUGPU << <_numBlocksH, _blockSize >> > (Mu._matrixGPU, Y._matrixGPU, X._matrixGPU, _rho, _sizeEndoMarketTotal);
+	updateMUGPU << <_numBlocksH, _blockSize >> > (Mu._matrixGPU, Y._matrixGPU, X._matrixGPU, _rhog, _sizeEndoMarketTotal);
 
 }
 
@@ -1765,34 +1557,34 @@ void MarketEndoDirectGPU::updateChat()
 	int numBlock = _nBus;
 	switch (_blockSizeSmall) {
 	case 512:
-		updateChatGPU3<512> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3<512> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	case 256:
-		updateChatGPU3<256> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3<256> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	case 128:
-		updateChatGPU3<128> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3<128> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	case 64:
-		updateChatGPU3< 64> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3< 64> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	case 32:
-		updateChatGPU3< 32> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3< 32> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	case 16:
-		updateChatGPU3< 16> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3< 16> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	case  8:
-		updateChatGPU3<  8> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3<  8> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	case  4:
-		updateChatGPU3<  4> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3<  4> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	case  2:
-		updateChatGPU3<  2> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3<  2> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	case  1:
-		updateChatGPU3<  1> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rho, losstype, _nBus);
+		updateChatGPU3<  1> << <numBlock, _blockSizeSmall >> > (Chat._matrixGPU, Y._matrixGPU, Mu._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, PosChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _CoresChatBegin._matrixGPU, _nAgentByBus._matrixGPU, _rhog, losstype, _nBus);
 		break;
 	}
 
@@ -1801,10 +1593,10 @@ void MarketEndoDirectGPU::updateChat()
 
 	
 	// pour puissance
-	updateBp2();
+	updateBp3();
 	
 	// pour �changes
-	updateLAMBDABt1GPU << <_numBlocksM, _blockSize >> > (Bt1._matrixGPU, LAMBDALin._matrixGPU, tradeLin._matrixGPU, _rho, CoresLinTrans._matrixGPU, _nTrade);
+	updateLAMBDABt1GPU << <_numBlocksM, _blockSize >> > (Bt1._matrixGPU, LAMBDALin._matrixGPU, tradeLin._matrixGPU, _rhog, CoresLinTrans._matrixGPU, _nTrade);
 
 	//Bt1.display();
 }
@@ -1820,7 +1612,7 @@ void MarketEndoDirectGPU::CommunicationX()
 
 	// Y = { Pi, Qi, vi, li, (pn ...), qn..., vAi,  Pci ... , Qci ... , lci ... for all child Ci }
 
-	updateQ << <_numBlocksH, _blockSize >> > (Q._matrixGPU, X._matrixGPU, Mu._matrixGPU, _rho, _sizeEndoMarketTotal);
+	updateQ << <_numBlocksH, _blockSize >> > (Q._matrixGPU, X._matrixGPU, Mu._matrixGPU, _rhog, _sizeEndoMarketTotal);
 
 
 }
@@ -1837,7 +1629,7 @@ float MarketEndoDirectGPU::updateResEndo(int indice)
 
 
 
-	float resSTemp = _rho *Y.max2(&Ypre); // 
+	float resSTemp = _rhog *Y.max2(&Ypre); // 
 
 	if (resSTemp > resS) {
 		resS = resSTemp;
@@ -1866,7 +1658,7 @@ float MarketEndoDirectGPU::updateResRhoFixe(int indice)
 
 
 
-	float resSTemp = _rho * Y.max2(&Ypre);
+	float resSTemp = _rhog * Y.max2(&Ypre);
 
 	if (resSTemp > resS) {
 		resS = resSTemp;
@@ -1965,54 +1757,54 @@ void MarketEndoDirectGPU::updateLocalProb() {
 	switch (_blockSize) {
 	case 512:
 		updateTradePGPUSharedResidual<512> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	case 256:
 		updateTradePGPUSharedResidual<256> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	case 128:
 		updateTradePGPUSharedResidual<128> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	case 64:
 		updateTradePGPUSharedResidual< 64> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	case 32:
 		updateTradePGPUSharedResidual< 32> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	case 16:
 		updateTradePGPUSharedResidual< 16> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	case  8:
 		updateTradePGPUSharedResidual<  8> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	case  4:
 		updateTradePGPUSharedResidual<  4> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	case  2:
 		updateTradePGPUSharedResidual<  2> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	case  1:
 		updateTradePGPUSharedResidual<  1> << <numBlocks, _blockSize >> > (Tlocal._matrixGPU, Tlocal_pre._matrixGPU, Tmoy._matrixGPU, P._matrixGPU, MU._matrixGPU, nVoisin._matrixGPU, _at1, _at2, Bt1._matrixGPU, Ct._matrixGPU,
-			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap2._matrixGPU, Ap123._matrixGPU, Bp2._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _nIterL);
+			matLb._matrixGPU, matUb._matrixGPU, Ap1._matrixGPU, Ap3._matrixGPU, Ap123._matrixGPU, Bp3._matrixGPU, Cp._matrixGPU, Pmin._matrixGPU, Pmax._matrixGPU, CoresAgentLin._matrixGPU, _epsL, _iterL);
 		break;
 	}
 }
 
 
-void MarketEndoDirectGPU::updateBp2()
+void MarketEndoDirectGPU::updateBp3()
 {
 	
-	updateBp2GPU << <_nBusWLoss, _blockSizeSmall >> > (Bp2._matrixGPU, Y._matrixGPU, Mu._matrixGPU, _indiceBusBegin._matrixGPU, _CoresAgentBusBegin._matrixGPU, _CoresAgentBus._matrixGPU, _nAgentByBus._matrixGPU, losstype, _rho, _nBus, _nAgentTrue);
+	updateBp3GPU << <_nBusWLoss, _blockSizeSmall >> > (Bp3._matrixGPU, Y._matrixGPU, Mu._matrixGPU, _indiceBusBegin._matrixGPU, _CoresAgentBusBegin._matrixGPU, _CoresAgentBus._matrixGPU, _nAgentByBus._matrixGPU, losstype, _rhog, _nBus, _nAgentTrue);
 
-	Bp2.divideT(&nVoisin);
+	Bp3.divideT(&nVoisin);
 
 }
 
@@ -2102,12 +1894,12 @@ void MarketEndoDirectGPU::display() {
 	}
 	else if (_iterGlobal < _iterG) {
 		std::cout << "method " << _name << " converged in " << _iterGlobal << " iterations." << std::endl;
-		std::cout << "Converged in " << (float) timeMarketEndo / CLOCKS_PER_SEC << " seconds" << std::endl;
+		std::cout << "Converged in " << (float) tMarket / CLOCKS_PER_SEC << " seconds" << std::endl;
 
 	}
 	else {
 		std::cout << "method " << _name << " not converged in " << _iterGlobal << " iterations." << std::endl;
-		std::cout << "time taken " << (float) timeMarketEndo / CLOCKS_PER_SEC << " seconds" << std::endl;
+		std::cout << "time taken " << (float) tMarket / CLOCKS_PER_SEC << " seconds" << std::endl;
 	}
 	std::cout << "The power error of this state is (constraint) " << resF.get(0, _iterGlobal / _stepG) << " and convergence " << resF.get(1, _iterGlobal / _stepG) << std::endl;
 	std::cout << "===============================================================|" << std::endl;
@@ -2198,7 +1990,7 @@ void MarketEndoDirectGPU::display() {
 
 
 template <unsigned int _blockSizeSmall>
-__global__ void updateChatGPU3(float* Chat, float* Y, float* MU, float* nChild, float* Ancestor, float* posChild, float* Childs, float* indiceBusBegin, float* indiceChildBegin, float* CoresChatBegin, float* nAgentByBus, float _rho, int losstype, int nBus) {
+__global__ void updateChatGPU3(float* Chat, float* Y, float* MU, float* nChild, float* Ancestor, float* posChild, float* Childs, float* indiceBusBegin, float* indiceChildBegin, float* CoresChatBegin, float* nAgentByBus, float _rhog, int losstype, int nBus) {
 
 	int bus = blockIdx.x;
 	int index = threadIdx.x;
@@ -2222,15 +2014,15 @@ __global__ void updateChatGPU3(float* Chat, float* Y, float* MU, float* nChild, 
 
 	if (index < borne) {
 		//float Phat, Qhat, lhat, vihat, pnhat..., qnhat...;
-		var = Y[beginBus + index] / divideVar - MU[beginBus + index] / (divideVar * _rho);
+		var = Y[beginBus + index] / divideVar - MU[beginBus + index] / (divideVar * _rhog);
 		if (bus > 0) {
 			if (index < 3) {
 				int nAi = nChild[Ai];
 				int nAgentAi = nAgentByBus[Ai];
 				int indiceAncBus = indiceBusBegin[Ai] + 5 + 2 * nAgentAi + nAi * index + c;
 				//var = indiceAncBus;
-				var += Y[indiceAncBus] / divideVar - MU[indiceAncBus] / (divideVar * _rho);
-				var += ((index == 2) && (losstype == 1)) ? (Y[indiceLoss + 2 + bus] / divideVar - MU[indiceLoss + 2 + bus] / (divideVar * _rho)) : 0;
+				var += Y[indiceAncBus] / divideVar - MU[indiceAncBus] / (divideVar * _rhog);
+				var += ((index == 2) && (losstype == 1)) ? (Y[indiceLoss + 2 + bus] / divideVar - MU[indiceLoss + 2 + bus] / (divideVar * _rhog)) : 0;
 			}
 		}
 	}
@@ -2243,7 +2035,7 @@ __global__ void updateChatGPU3(float* Chat, float* Y, float* MU, float* nChild, 
 		muhat += MU[indiceBusChild + 4 + 2 * nAgent2]; // pas du tout coalescent
 		vhat += Y[indiceBusChild + 4 + 2 * nAgent2]; // pas du tout coalescent
 	}
-	shArr[index] = vhat / (childCount + 1) - muhat / (_rho * (childCount + 1));
+	shArr[index] = vhat / (childCount + 1) - muhat / (_rhog * (childCount + 1));
 	__syncthreads();
 	for (int size = _blockSizeSmall / 2; size > 0; size /= 2) { //uniform
 		if (index < size) {
@@ -2254,7 +2046,7 @@ __global__ void updateChatGPU3(float* Chat, float* Y, float* MU, float* nChild, 
 
 	if (index < borne) {
 		if (index == 3) {
-			var = shArr[0] + Y[beginBus + 3] / (childCount + 1) - MU[beginBus + 3] / (_rho * (childCount + 1)); //shArr[0];
+			var = shArr[0] + Y[beginBus + 3] / (childCount + 1) - MU[beginBus + 3] / (_rhog * (childCount + 1)); //shArr[0];
 		}
 		Chat[beginChat + index] = var; // coalescent  !!!!
 	}
@@ -2277,48 +2069,48 @@ float phat, qhat;
 			//std::cout << "bus " << i << " agent " << n << " en pos " << In << " Y " << Y[i].get(5 + 2 * In, 0) << " " <<
 			//	Y[_nBus].get(n, 0) << " " << Mu[i].get(5 + 2 * In, 0) << " " << Mu[_nBus].get(n, 0);
 
-			phat = Y[i].get(5 + 2 * In, 0) - Mu[i].get(5 + 2 * In, 0) / _rho;
-			qhat = Y[i].get(6 + 2 * In, 0) - Mu[i].get(6 + 2 * In, 0) / _rho;
+			phat = Y[i].get(5 + 2 * In, 0) - Mu[i].get(5 + 2 * In, 0) / _rhog;
+			qhat = Y[i].get(6 + 2 * In, 0) - Mu[i].get(6 + 2 * In, 0) / _rhog;
 			if (losstype == LossType::POWER) {
-				phat += Y[_nBus].get(n, 0) - Mu[_nBus].get(n, 0) / (_rho);
-				qhat += Y[_nBus].get(n + _nAgentTrue, 0) - Mu[_nBus].get(n + _nAgentTrue, 0) / (_rho);
+				phat += Y[_nBus].get(n, 0) - Mu[_nBus].get(n, 0) / (_rhog);
+				qhat += Y[_nBus].get(n + _nAgentTrue, 0) - Mu[_nBus].get(n + _nAgentTrue, 0) / (_rhog);
 			}
-			//std::cout <<  " phat " << phat/divideP << " Bp2 " << phat / (divideP * nVoisin.get(n,0)) << std::endl;
-			//phat = (Y[i].get(5 + 2 * In, 0) + Y[_nBus].get(n, 0)) / 2			    - (Mu[i].get(5 + 2 * In, 0) + Mu[_nBus].get(n, 0)) / (2 * _rho);
-			//qhat = (Y[i].get(6 + 2 * In, 0) + Y[_nBus].get(n + _nAgentTrue, 0)) / 2 - (Mu[i].get(6 + 2 * In, 0) + Mu[_nBus].get(n + _nAgentTrue, 0)) / (2 * _rho);
+			//std::cout <<  " phat " << phat/divideP << " Bp3 " << phat / (divideP * nVoisin.get(n,0)) << std::endl;
+			//phat = (Y[i].get(5 + 2 * In, 0) + Y[_nBus].get(n, 0)) / 2			    - (Mu[i].get(5 + 2 * In, 0) + Mu[_nBus].get(n, 0)) / (2 * _rhog);
+			//qhat = (Y[i].get(6 + 2 * In, 0) + Y[_nBus].get(n + _nAgentTrue, 0)) / 2 - (Mu[i].get(6 + 2 * In, 0) + Mu[_nBus].get(n + _nAgentTrue, 0)) / (2 * _rhog);
 
 
-			Bp2.set(n, 0, phat / divideP);
-			Bp2.set(n + _nAgentTrue, 0, qhat / divideP);
+			Bp3.set(n, 0, phat / divideP);
+			Bp3.set(n + _nAgentTrue, 0, qhat / divideP);
 		}
 	}
 	// Y     (Ploss, Pn, Qloss Qn)
 
-	float phatLoss = 0; // Y[_nBus].get(0, 0) - Mu[_nBus].get(0, 0) / _rho;
-	float qhatLoss = 0; // Y[_nBus].get(1, 0) - Mu[_nBus].get(1, 0) / _rho;
+	float phatLoss = 0; // Y[_nBus].get(0, 0) - Mu[_nBus].get(0, 0) / _rhog;
+	float qhatLoss = 0; // Y[_nBus].get(1, 0) - Mu[_nBus].get(1, 0) / _rhog;
 	switch (losstype)
 	{
 	case LossType::POWER:
-		phatLoss = Y[_nBus].get(0, 0) - Mu[_nBus].get(0, 0) / _rho;
-		qhatLoss = Y[_nBus].get(_nAgentTrue, 0) - Mu[_nBus].get(_nAgentTrue, 0) / _rho;
+		phatLoss = Y[_nBus].get(0, 0) - Mu[_nBus].get(0, 0) / _rhog;
+		qhatLoss = Y[_nBus].get(_nAgentTrue, 0) - Mu[_nBus].get(_nAgentTrue, 0) / _rhog;
 
 
 		break;
 	case LossType::CURRENT:
-		phatLoss = Y[_nBus].get(0, 0) - Mu[_nBus].get(0, 0) / _rho;
-		qhatLoss = Y[_nBus].get(1, 0) - Mu[_nBus].get(1, 0) / _rho;
+		phatLoss = Y[_nBus].get(0, 0) - Mu[_nBus].get(0, 0) / _rhog;
+		qhatLoss = Y[_nBus].get(1, 0) - Mu[_nBus].get(1, 0) / _rhog;
 		break;
 	}
 
 
-Bp2.set(0, 0, phatLoss);
-Bp2.set(_nAgentTrue, 0, qhatLoss);
+Bp3.set(0, 0, phatLoss);
+Bp3.set(_nAgentTrue, 0, qhatLoss);
 
-Bp2.divideT(&nVoisin);
+Bp3.divideT(&nVoisin);
 
 */
 
-__global__ void updateBp2GPU(float* Bp2, float* Y, float* MU, float* indiceBusBegin, float* indiceAgentBegin, float* CoresAgentBus, float* nAgentByBus, int losstype, float rho, int nBus, int nAgent) {
+__global__ void updateBp3GPU(float* Bp3, float* Y, float* MU, float* indiceBusBegin, float* indiceAgentBegin, float* CoresAgentBus, float* nAgentByBus, int losstype, float rho, int nBus, int nAgent) {
 	
 	int bus	    = blockIdx.x;
 	int thIdx   = threadIdx.x;
@@ -2348,8 +2140,8 @@ __global__ void updateBp2GPU(float* Bp2, float* Y, float* MU, float* indiceBusBe
 			}
 			
 
-			Bp2[n] = phat / divideP;
-			Bp2[n + nAgent] = qhat / divideP;
+			Bp3[n] = phat / divideP;
+			Bp3[n + nAgent] = qhat / divideP;
 		}
 	}
 	else { // bus des pertes
@@ -2362,8 +2154,8 @@ __global__ void updateBp2GPU(float* Bp2, float* Y, float* MU, float* indiceBusBe
 				phat = Y[begin] - MU[begin] / rho;
 				qhat = Y[begin + 1] - MU[begin + 1] / rho;
 			}
-			Bp2[0] = phat;
-			Bp2[nAgent] = qhat;
+			Bp3[0] = phat;
+			Bp3[nAgent] = qhat;
 		}
 	}
 

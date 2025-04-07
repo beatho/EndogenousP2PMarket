@@ -323,9 +323,9 @@ void PAC::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	
 	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
 		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		int Nvoisinmax = (int) nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
+			int idVoisin = (int) omega.get(voisin, 0);
 			trade.set(idAgent, idVoisin, X[idAgent].get(voisin + 1, 0));
 		}
 		Pn.set(idAgent, 0, X[idAgent].get(0, 0));

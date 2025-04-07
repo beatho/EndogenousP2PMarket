@@ -275,10 +275,10 @@ void PACGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	
 	
 	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		int begin = CoresAgentLinCPU.get(idAgent, 0);
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
+		int begin = (int) CoresAgentLinCPU.get(idAgent, 0);
+		int Nvoisinmax = (int) nVoisinCPU.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = CoresLinVoisinCPU.get(begin + voisin + 1,0);
+			int idVoisin = (int) CoresLinVoisinCPU.get(begin + voisin + 1,0);
 			trade.set(idAgent, idVoisin, tradeLinCPU.get(begin + voisin + 1, 0));
 		}
 		Pn.set(idAgent, 0, tradeLinCPU.get(begin, 0));
@@ -286,7 +286,7 @@ void PACGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	int indice = 0;
 	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) {
 		indice = 0;
-		int begin = CoresAgentLinCPU.get(idAgent, 0);
+		int begin = (int) CoresAgentLinCPU.get(idAgent, 0);
 		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
 			if (idVoisin != (idAgent - _nAgentTrue)) {
 				trade.set(idAgent, idVoisin, tradeLinCPU.get(begin + indice + 1, 0));

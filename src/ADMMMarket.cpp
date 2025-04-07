@@ -45,7 +45,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	tMarket =clock();
+	tMarket = clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -66,10 +66,6 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	
 	_rhog = sim.getRho();
 	_at1 = _rhog;
-
-	
-	float fc = 0;
-
 	int iterLocal = 0;
 	_iterGlobal = 0;
 	float resG = 2 * _epsG;
@@ -105,7 +101,6 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 		if (iterLocal == _iterL) {
 			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
 		}
-		//std::cout << "*";
 #ifdef INSTRUMENTATION
 		occurencePerBlock.increment(0, 1, iterLocal);
 		occurencePerBlock.increment(0, 2, iterLocal);
@@ -140,7 +135,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 		
 		_iterGlobal++;
 	}
-	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (iterGlobal - 1) / stepG) << " " << resF.get(1, (iterGlobal - 1) / stepG) << " " << resF.get(2, (iterGlobal - 1) / stepG) << std::endl;
+	//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << std::endl;
 #ifdef INSTRUMENTATION	
 	occurencePerBlock.increment(0, 5, _iterGlobal);
 	occurencePerBlock.increment(0, 6, _iterGlobal / _stepG);
@@ -148,28 +143,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	int indice = 0;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) {
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
-				LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
-				indice = indice + 1;
-			}
-			
-		}
-	}
-	updatePn();
+	
 	/*trade.display();
 	std::cout << "Trade" << std::endl;
 	tradeLin.display();
@@ -180,24 +154,10 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 
 	//std::cout << "lambda" << std::endl;
 	//LAMBDALin.display();
-
-	fc = calcFc();
 	// FB 5
 	
-	
-	result->setResF(&resF);
-	
-	result->setLAMBDA(&LAMBDA);
-	
-	result->setTrade(&trade); 
-	
-	result->setIter(_iterGlobal);
-	
-	result->setMU(&MU);
-	
-	result->setPn(&Pn);
-	
-	result->setFc(fc);
+	setResult(result, cas.isAC());
+
 
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
@@ -206,9 +166,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
-	tMarket = clock() - tMarket;
-
-	result->setTime((float)tMarket / CLOCKS_PER_SEC);
+	//std::cout << "fin methode" <<std::endl;
 }
 
 void ADMMMarket::solveWithMinPower(Simparam* result, const Simparam& sim, const StudyCase& cas)
@@ -233,17 +191,21 @@ void ADMMMarket::init(const Simparam& sim, const StudyCase& cas)
 	
 	clock_t t = clock();
 	isAC = cas.isAC();
+	//std::cout << "init Size" << std::endl;
 	initSize(cas);
+	//std::cout << "init SimParam " << std::endl;
 	initSimParam(sim);
-
-	//std::cout << "mise sous forme lin�aire" << std::endl;
-	initLinForm(sim, cas);
+	//std::cout << "case Param" << std::endl;
+	initCaseParam(sim, cas);
+	//std::cout << "mise sous forme lineaire" << std::endl;
+	initLinForm(cas);
 	
 	//std::cout << "autres donnee sur CPU" << std::endl;
-	initCaseParam(sim, cas);
+	
 	
 	initP2PMarket();
 
+	//std::cout << " Global " << std::endl;
 	updateGlobalProb();
 	//std::cout << "rho " << _rhog << " rhoL " << _rhol << " rho1 " << _rho1 << std::endl;
 	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
@@ -272,8 +234,8 @@ void ADMMMarket::updateLocalProb() {
 #endif // INSTRUMENTATION	
 
 	for (int i = 0; i < _nAgent; i++) {
-		int nVoisinLocal = nVoisin.get(i, 0);
-		int beginLocal = CoresAgentLin.get(i, 0);
+		int nVoisinLocal = (int) nVoisin.get(i, 0);
+		int beginLocal = (int) CoresAgentLin.get(i, 0);
 		int endLocal = beginLocal + nVoisinLocal;
 		float m = 0;
 		for (int j = beginLocal; j < endLocal; j++) {
@@ -308,10 +270,10 @@ void ADMMMarket::updateBt1()
 	
 	// subtractTrans
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t,0);
+		int k = (int) CoresLinTrans.get(t,0);
 		Bt1.set(t, 0, tradeLin.get(t, 0) - tradeLin.get(k, 0));
 	}
-	Bt1.multiply(0.5*_rhog); 
+	Bt1.multiply(0.5f*_rhog); 
 	Bt1.subtract(&LAMBDALin);
 	Bt1.divide(_rhog);
 }
@@ -319,8 +281,8 @@ void ADMMMarket::updateBt1()
 void ADMMMarket::updateBt2()
 {
 	for (int i = 0; i < _nAgent; i++) {
-		int nVoisinLocal = nVoisin.get(i, 0);
-		int beginLocal = CoresAgentLin.get(i,0);
+		int nVoisinLocal = (int) nVoisin.get(i, 0);
+		int beginLocal = (int) CoresAgentLin.get(i,0);
 		int endLocal = beginLocal + nVoisinLocal; 
 		for (int j = beginLocal; j < endLocal; j++) {
 			float m = Tlocal_pre.get(j,0) - Tmoy.get(i, 0) + P.get(i, 0) - MU.get(i, 0); 

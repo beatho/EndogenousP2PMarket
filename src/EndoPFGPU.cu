@@ -54,7 +54,7 @@ void EndoPFGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	timeEndoPF = clock();
+	tMarket = clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -77,25 +77,19 @@ void EndoPFGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	_rhog = sim.getRho();
 	_at1 = _rhog;
 	
-	int iterL = sim.getIterL();
-	int stepL = sim.getStepL()/20;
-
-	float epsL = sim.getEpsL();
-	float epsG = sim.getEpsG();
-	
-	float resG = 2 * epsG;
-	float epsL2 = epsL * epsL;
+	float resG = 2 * _epsG;
+	float epsL2 = _epsL * _epsL;
 	_iterGlobal = 0;
 	//CHECK_LAST_CUDA_ERROR();
 	//Pn.display(true);
 	//std::cout << "*******" << std::endl;
-	while ((_iterGlobal < _iterG) && (resG>epsG) || (_iterGlobal <= _stepG)) {
+	while ((_iterGlobal < _iterG) && (resG>_epsG) || (_iterGlobal <= _stepG)) {
 		
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-		updateLocalProbGPU(epsL2, iterL);
+		updateLocalProbGPU(epsL2, _iterL);
 		//CHECK_LAST_CUDA_ERROR();
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
@@ -134,55 +128,11 @@ void EndoPFGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	cudaDeviceSynchronize();
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	float fc = calcFc();
-	
-	MatrixCPU tradeLinCPU;
-	tradeLin.toMatCPU(tradeLinCPU);
-	MatrixCPU LAMBDALinCPU;
-	LAMBDALin.toMatCPU(LAMBDALinCPU);
-	MatrixCPU PnCPU;
-	Pn.toMatCPU(PnCPU);
-	MatrixCPU MUCPU;
-	MU.toMatCPU(MUCPU);
-	//CHECK_LAST_CUDA_ERROR();
-	int indice = 0;
-	
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLinCPU.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
-
-
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) {
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				trade.set(idAgent, idVoisin, tradeLinCPU.get(indice, 0));
-				LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(indice, 0));
-				indice = indice + 1;
-			}
-
-		}
-	}
 	
 
 
 	// FB 5
-	result->setResF(&resF);
-	result->setLAMBDA(&LAMBDA);
-	result->setTrade(&trade);
-	//result->setDelta1(&delta1);
-	//result->setDelta2(&delta2);
-	result->setIter(_iterGlobal);
-	
-	result->setPn(&PnCPU);
-	result->setFc(fc);
-	result->setMU(&MUCPU);
+	setResult(result, cas.isAC());
 
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
@@ -190,139 +140,39 @@ void EndoPFGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	occurencePerBlock.increment(0, 7, 1);
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
-	timeEndoPF = clock() - timeEndoPF;
-	result->setTime((float)timeEndoPF / CLOCKS_PER_SEC);
 	
-}
-
-void EndoPFGPU::updateP0(const StudyCase& cas)
-{
-	_id = _id + 1;
-#ifdef INSTRUMENTATION
-	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-#endif // INSTRUMENTATION
-
-	matLb.transferCPU();
-	Pmin = MatrixGPU(cas.getPmin());
-	Pmax = MatrixGPU(cas.getPmax());
-
-
-	MatrixCPU Lb(cas.getLb());
-
-	b = cas.getb();
-	Cp1 = b;
-	int indice = 0;
-
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			indice = indice + 1;
-		}
-	}
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) {
-		for (int voisin = 0; voisin < (_nAgentTrue - 1); voisin++) {
-			matLb.set(indice, 0, Lb.get(idAgent, 0));
-			indice = indice + 1;
-		}
-	}
-
-	matLb.transferGPU();
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-	Cp1.multiplyT(&nVoisin);
-	
-
-#ifdef INSTRUMENTATION
-	cudaDeviceSynchronize();
-	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	timePerBlock.increment(0, 8, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
-	occurencePerBlock.increment(0, 8, 1);
-#endif // INSTRUMENTATION
-
-
 }
 
 void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 {
 	DELETEB(pf);
-	if (CoresMatLin.getPos()) { 
-		CoresMatLin.transferCPU();
-		CoresLinAgent.transferCPU();
-		CoresAgentLin.transferCPU();
-		CoresLinVoisin.transferCPU();
-		CoresLinTrans.transferCPU();
-
-		Tlocal_pre.transferCPU();
-		tradeLin.transferCPU();
-		LAMBDALin.transferCPU();
-
-		matLb.transferCPU();
-		matUb.transferCPU();
-		Ct.transferCPU();
-	}
-
-	// intitilisation des matrixs et variables 
-	
 	//std::cout << "init " << std::endl;
+	isAC = true;
 	if (!cas.isAC()) {
-		throw std::invalid_argument("Wrong studyCase must be AC");
+		throw std::invalid_argument("EndoPFGPU::init : Wrong studyCase must be AC");
 	}
+	initSize(cas);
+	_nLine = cas.getNLine(true);
+	_nVarPF = _nLine + 2 * _nBus;
+	initSimParam(sim);
+	tempL1 = MatrixGPU(_nVarPF, 1, 0, 1);
+	tempL1.preallocateReduction();
 
-	_rhog = sim.getRho();
-	_rho1 = sim.getRho1();
-	_iterG = sim.getIterG();
-	_stepG = sim.getStepG();
-	float epsG = sim.getEpsG();
-	float epsGC = sim.getEpsGC();
-	_ratioEps = epsG / epsGC;
 	isRadial = cas.isRadial();
-	_nAgentTrue = sim.getNAgent();
-	_nAgent = _nAgentTrue + _nAgentTrue;
-
-	_rhol = _rho; //*nAgent
-	//std::cout << "rho " << _rho << std::endl;
-	if (_rho == 0) {
-		_rhol = _rhog;
-	}
 	
-	nVoisinCPU = cas.getNvoi();
-	nVoisin = MatrixGPU(nVoisinCPU, 1);
-	nVoisin.preallocateReduction();
 	int nVoisinMax = nVoisin.max2();
 	if (_blockSize * NMAXPEERPERTRHREAD < nVoisinMax) {
 		std::cout << _blockSize << " " << NMAXPEERPERTRHREAD << " " << nVoisinMax << std::endl;
-		throw std::invalid_argument("For this Method, an agent must not have more than 5120 peers");
+		throw std::invalid_argument("EndoPFGPU::init For this Method, an agent must not have more than 5120 peers");
 	}
 
-	//CHECK_LAST_CUDA_ERROR();
-	_nLine = cas.getNLine(true);
-	//std::cout << "_nLine " << _nLine << std::endl;
-	_nBus = cas.getNBus();
-	_nVarPF = _nLine + 2 * _nBus;
-
-	//std::cout << _nVarPF << std::endl;
-	
-	_nTrade = nVoisin.sum();
-	_nTradeP = nVoisin.sum(0,_nAgentTrue);
-	//std::cout << "nTrade " << _nTrade << " " << _nTradeP << std::endl;
-	//CHECK_LAST_CUDA_ERROR();
-	_nTradeQ = _nTrade - _nTradeP;
-	//std::cout << "nTrade " << _nTradeQ << " " << nVoisin.sum(_nAgentTrue, _nAgent) << std::endl;
-	if (_nTradeQ != (_nAgentTrue * (_nAgentTrue - 1))) {
-		std::cout << "err EndoPFGPU : " << _nAgent << " " << _nAgentTrue << " " << _nTrade << " " << _nTradeP << " " << _nTradeQ << std::endl;
-		throw std::invalid_argument("Agent must be fully conected for the Q echanges, WIP");
-	}
-	_numBlocksN = ceil((_nAgent + _blockSize - 1) / _blockSize);
-	_numBlocksM = ceil((_nTrade + _blockSize - 1) / _blockSize);
-	_numBlocksL = ceil((_nLine + _blockSize - 1) / _blockSize);
 	_numBlocksBL = ceil((_nVarPF + _blockSize - 1) / _blockSize);
 	
 	
 	//std::cout << _numBlocksN << " " << _numBlocksM << " " << _numBlocksL << " " << _numBlocksBL << std::endl;
 	
 	//std::cout <<  _blockSize << std::endl;
+	initCaseParam(sim, cas);
 	if (initWithMarketClear) {
 		ADMMMarketGPU market;
 		Simparam res(sim);
@@ -330,119 +180,15 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 		//res.display();
 		LAMBDA = res.getLambda();
 		trade = res.getTrade();
-		Pnpre = MatrixGPU(res.getPn(), 1);
+		Pn = MatrixGPU(res.getPn(), 1);
+		Tmoy = Pn;
 
-	}
-	else {
-		LAMBDA = sim.getLambda();
-		trade = sim.getTrade();
-		Pnpre = MatrixGPU(sim.getPn(), 1);
 	}
 	//Pnpre.display(true);
-	Tmoy = Pnpre;
-	Tmoy.divideT(&nVoisin);
-	//std::cout << "*******" << std::endl;
-	
-	
-	_at1 = _rhog; // represente en fait 2*a
-	_at2 = _rhol;
-
-	resF = MatrixCPU(3, (_iterG / _stepG) + 1);
-	resX = MatrixCPU(4, (_iterG / _stepG) + 1);
-
-	MatrixGPU BETA(cas.getBeta());
-	
-	MatrixGPU Ub(cas.getUb());
-	MatrixGPU Lb(cas.getLb());
-	
-	 
-	//std::cout << "mise sous forme lin�aire" << std::endl;
 	
 
-
-	CoresMatLin = MatrixGPU(_nAgent, _nAgentTrue, -1);
-	CoresLinAgent = MatrixGPU(_nTrade, 1);
-	CoresAgentLin = MatrixGPU(_nAgent + 1, 1);
-	CoresLinVoisin = MatrixGPU(_nTrade, 1);
-	CoresLinTrans = MatrixGPU(_nTrade, 1);
-
-	Tlocal_pre = MatrixGPU(_nTrade, 1);
-	tradeLin = MatrixGPU(_nTrade, 1);
-	LAMBDALin = MatrixGPU(_nTrade, 1);
-
-	matLb = MatrixGPU(_nTrade, 1);
-	matUb = MatrixGPU(_nTrade, 1);
-	Ct = MatrixGPU(_nTrade, 1);
-	
-
-	int indice = 0;
-	//std::cout << " P " << std::endl;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) { // P
-		MatrixGPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			if(Lb.getNCol()== 1){
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-			} else {
-				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
-				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
-			}
-			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-			CoresLinAgent.set(indice, 0, idAgent);
-			CoresLinVoisin.set(indice, 0, idVoisin);
-			CoresMatLin.set(idAgent, idVoisin, indice);
-			indice = indice + 1;
-		}
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	//std::cout << " Q " << std::endl;
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) { // Q
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-				//Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-				tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-				Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-				LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-				CoresLinAgent.set(indice, 0, idAgent);
-				CoresLinVoisin.set(indice, 0, idVoisin + _nAgentTrue);
-				CoresMatLin.set(idAgent, idVoisin, indice);
-				indice = indice + 1;
-			}
-		}
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	for (int lin = 0; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
-		if (lin >= _nTradeP) {
-			i -= _nAgentTrue;
-		}
-
-		int k = CoresMatLin.get(j, i);
-		CoresLinTrans.set(lin, 0, k);
-	}
-	// transfert des mises lineaire
-	matUb.transferGPU();
-	matLb.transferGPU();
-	Ct.transferGPU();
-
-	Tlocal_pre.transferGPU();
-	tradeLin.transferGPU();
-	LAMBDALin.transferGPU();
-
-	CoresAgentLin.transferGPU();
-	CoresLinAgent.transferGPU();
-	CoresLinVoisin.transferGPU();
-	CoresMatLin.transferGPU();
-	CoresLinTrans.transferGPU();
-
+	//std::cout << "mise sous forme lineaire" << std::endl;
+	initLinForm(cas);
 	
 	//CHECK_LAST_CUDA_ERROR();
 	//std::cout << "donnees sur CPU pour le grid" << std::endl;
@@ -483,58 +229,14 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 
 	
 	//CHECK_LAST_CUDA_ERROR();
-	//std::cout << "autres donn�e sur CPU" << std::endl;
-	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
-	tempNN.preallocateReduction();
-	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plut�t que de re-allouer de la m�moire � chaque utilisation
-	tempL1 = MatrixGPU(_nVarPF, 1, 0, 1);
-	tempL1.preallocateReduction();
-	//MatrixGPU temp1N(1, _nAgent, 0, 1);
-
-	Tlocal = MatrixGPU(_nTrade, 1, 0, 1);
-	Tlocal.preallocateReduction();
+	//std::cout << "autres donnee sur CPU" << std::endl;
 	
-
-	P = MatrixGPU(_nAgent, 1, 0, 1); // moyenne des trades
-	Pn = MatrixGPU(sim.getPn(), 1);
+	initP2PMarket();
+	//std::cout << "*******" << std::endl;
 	dP = MatrixGPU(_nAgent, 1, 0, 1);
-
-	a = MatrixGPU(cas.geta(), 1);
-	b = MatrixGPU(cas.getb(), 1);
-	Ap2 = a;
-	Ap1 = nVoisin;
-	Ap12 = MatrixGPU(_nAgent, 1, 0, 1);
-
-	Bt1 = MatrixGPU(_nTrade, 1, 0, 1);
-	Bt2 = MatrixGPU(_nTrade, 1, 0, 1);
-	Cp = MatrixGPU(_nAgent, 1, 0, 1);
-	Cp2 = MatrixGPU(_nAgent, 1, 0, 1);
-	Cp1 = b;
-	Bp1 = MatrixGPU(_nAgent, 1, 0, 1);
-
-	Pmin = MatrixGPU(cas.getPmin(), 1);
-	Pmax = MatrixGPU(cas.getPmax(), 1);
-	
-
-	MU = MatrixGPU(sim.getMU(), 1); // facteur reduit i.e lambda_l/_rho
-	
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-	
-	
-
-
-	Ap1.multiply(_rhol);
-	Ap2.multiplyT(&nVoisin);
-	Ap2.multiplyT(&nVoisin);
-	Ap12.add(&Ap1, &Ap2);
-
-	Cp1.multiplyT(&nVoisin);
 	
 	
 	
-
 	//std::cout << "update Global" << std::endl;
 	updateGlobalProbGPU();
 	//std::cout << "rho " << _rhog << " rhoL " << _rhol << " rho1 " << _rho1 << std::endl;
@@ -810,12 +512,12 @@ void EndoPFGPU::display() {
 	}
 	else if (_iterGlobal < _iterG) {
 		std::cout << "method " << _name << " converged in " << _iterGlobal << " iterations." << std::endl;
-		std::cout << "Converged in " << (float) timeEndoPF / CLOCKS_PER_SEC << " seconds" << std::endl;
+		std::cout << "Converged in " << (float) tMarket / CLOCKS_PER_SEC << " seconds" << std::endl;
 
 	}
 	else {
 		std::cout << "method " << _name << " not converged in " << _iterGlobal << " iterations." << std::endl;
-		std::cout << "time taken " << (float) timeEndoPF / CLOCKS_PER_SEC << " seconds" << std::endl;
+		std::cout << "time taken " << (float) tMarket / CLOCKS_PER_SEC << " seconds" << std::endl;
 	}
 	std::cout << "The power error of this state is (constraint) " << resF.get(0, _iterGlobal / _stepG) << " and convergence " << resF.get(1, _iterGlobal / _stepG) << std::endl;
 	std::cout << "===============================================================|" << std::endl;

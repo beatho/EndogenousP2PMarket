@@ -102,7 +102,7 @@ ResultInterface* System::solvePF(ResultInterface* res, ParamInterface* param, St
 		
 		res->setvarPhysic(_methodePFGPU->getW(), MatrixCPU(2*sizes.get(0, nLineP_ind), 1), _methodePFGPU->getE());
 		res->setResult(_methodePFGPU->getIter(), 1, _methodePFGPU->getTime(), _methodePFGPU->getRes(), MatrixCPU(0,0));
-		_methodePFGPU->display(true);
+		//_methodePFGPU->display(true);
 
 	} else{
 		MatrixCPU PQ = _case.getPobj();
@@ -114,7 +114,7 @@ ResultInterface* System::solvePF(ResultInterface* res, ParamInterface* param, St
 
 		res->setvarPhysic(_methodePF->getW(), MatrixCPU(2*sizes.get(0, nLineP_ind), 1), _methodePF->getE());
 		res->setResult(_methodePF->getIter(), 1, _methodePF->getTime(), _methodePF->getRes(), MatrixCPU(0,0));
-		_methodePF->display(true);
+		//_methodePF->display(true);
 	}
 
 

@@ -416,7 +416,6 @@ void Simparam::convertToResultInterface(ResultInterface* res){
 	res->setProbleme(_trade, _Pn);
 	res->setDual(_LAMBDA, _MU);
 	res->setDelta(_delta1, _delta2);
-	
 	res->setvarPhysic(_Pb, _Phi, _E);
 	//std::cout << "recuperation resultat" << std::endl;
 }

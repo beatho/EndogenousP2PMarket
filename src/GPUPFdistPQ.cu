@@ -17,7 +17,7 @@ void GPUPFdistPQ::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD * PnD, bo
         std::cout << "WARNING : double precision computation is not yet implemented for this method" << std::endl;
     } 
 
-    std::cout << "init PF GPUPFdistPQ" <<std::endl;
+    //std::cout << "init PF GPUPFdistPQ" <<std::endl;
     //PQ->display(true);
     Nagent = cas.getNagent();
     Nbus = cas.getNBus();

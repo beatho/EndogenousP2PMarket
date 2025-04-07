@@ -1086,13 +1086,13 @@ MatrixCPU GPUPF::getE()
 MatrixCPU GPUPF::getW()
 {
     if (_useDouble) {
-        if (WD.get(0,0)== 0)
+        if (WD.get(0,0,false)== 0)
         {
            calcW(true);
         }
         W = WD;
     }
-    if(W.get(0,0)== 0){
+    if(W.get(0,0, false)== 0){
         calcW(true);
     }
 

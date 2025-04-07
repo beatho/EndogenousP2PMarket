@@ -58,14 +58,15 @@ void ADMMGPUConst2::init(const Simparam& sim, const StudyCase& cas)
 		throw std::invalid_argument("For this Method, an agent must not have more than 5120 peers");
 	}
 	
+	initCaseParam(sim, cas);
 	//std::cout << "mise sous forme lineaire" << std::endl;
-	initLinForm(sim, cas);
+	initLinForm(cas);
 
 	//std::cout << "donnees sur GPU pour le grid" << std::endl;
 	initDCEndoGrid(cas);
 
 	//std::cout << "autres donnee sur GPU" << std::endl;
-	initCaseParam(sim, cas);
+	
 	
 	initDCEndoMarket();
 	
@@ -83,7 +84,7 @@ void ADMMGPUConst2::solve(Simparam* result, const Simparam& sim, const StudyCase
 #endif // DEBUG_SOLVE
 	
 	
-	clock_t tall = clock();
+	tMarket = clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -117,12 +118,12 @@ void ADMMGPUConst2::solve(Simparam* result, const Simparam& sim, const StudyCase
 	
 	float resG = 2 * _epsG;
 	float resL = 2 * _epsL;
-	int iterGlobal = 0;
+	_iterGlobal = 0;
 	int iterLocal = 0;
 
 	
 	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
-	while ((iterGlobal < _iterG) && (resG>_epsG)) {
+	while ((_iterGlobal < _iterG) && (resG>_epsG)) {
 		resL = 2 * _epsL;
 		iterLocal = 0;
 		while (iterLocal< _iterL && resL>_epsL) {
@@ -156,7 +157,7 @@ void ADMMGPUConst2::solve(Simparam* result, const Simparam& sim, const StudyCase
 			iterLocal++;
 		}
 		if (iterLocal == _iterL) {
-			std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
+			std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
 		}
 #ifdef INSTRUMENTATION
 		occurencePerBlock.increment(0, 1, iterLocal);
@@ -167,12 +168,12 @@ void ADMMGPUConst2::solve(Simparam* result, const Simparam& sim, const StudyCase
 		Tlocal.swap(&Tlocal_pre); // on �viter d'echanger lorsque qu'il ne faut pas
 		tradeLin.swap(&Tlocal); // echange juste les pointeurs	
 		updateGlobalProbGPU();
-		if (!(iterGlobal % _stepG)) {
+		if (!(_iterGlobal % _stepG)) {
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResEndo(iterGlobal / _stepG);
+			resG = updateResEndo(_iterGlobal / _stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
@@ -180,7 +181,7 @@ void ADMMGPUConst2::solve(Simparam* result, const Simparam& sim, const StudyCase
 #endif // INSTRUMENTATION
 		}
 		//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG) << " " << resF.get(1, iterGlobal / stepG) << std::endl;
-		iterGlobal++;
+		_iterGlobal++;
 	}
 #ifdef INSTRUMENTATION
 	occurencePerBlock.increment(0, 5, iterGlobal);
@@ -193,47 +194,7 @@ void ADMMGPUConst2::solve(Simparam* result, const Simparam& sim, const StudyCase
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 
-
-	Kappa1.projectNeg(); //delta1
-	Kappa2.projectNeg(); // delta2
-
-	float fc = calcFc();
-	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
-	MatrixCPU tradeLinCPU;
-	tradeLin.toMatCPU(tradeLinCPU);
-	MatrixCPU LAMBDALinCPU;
-	LAMBDALin.toMatCPU(LAMBDALinCPU);
-	MatrixCPU PnCPU;
-	Pn.toMatCPU(PnCPU);
-	MatrixCPU MUCPU;
-	MU.toMatCPU(MUCPU);
-	MatrixCPU delta1CPU;
-	Kappa1.toMatCPU(delta1CPU);
-	MatrixCPU delta2CPU;
-	Kappa2.toMatCPU(delta2CPU);
-	int indice = 0;
-	for (int idAgent = 0;idAgent < _nAgent; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLinCPU.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
-
-	result->setResF(&resF);
-	result->setLAMBDA(&LAMBDA);
-	result->setTrade(&trade);
-	result->setDelta1(&delta1CPU);
-	result->setDelta2(&delta2CPU);
-	result->setIter(iterGlobal);
-	result->setPn(&PnCPU);
-	result->setFc(fc);
-	result->setMU(&MUCPU);
-	result->setRho(_rhog);
-
+	setResult(result, cas.isAC());
 
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize();
@@ -243,9 +204,6 @@ void ADMMGPUConst2::solve(Simparam* result, const Simparam& sim, const StudyCase
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
 	
-
-	tall = clock() - tall;
-	result->setTime((float)tall / CLOCKS_PER_SEC);
 }
 
 void ADMMGPUConst2::updateLocalProbGPU( MatrixGPU* Tlocal, MatrixGPU* P) {

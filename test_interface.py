@@ -515,7 +515,7 @@ class TestInterfaceMethod(unittest.TestCase):
         methodes = ["EndoMarketCons", "EndoMarketDirect", "EndoMarketConsGPU", "EndoMarketDirectGPU"]
         for methode in methodes :
             EndoCuda.solveACFromInterface(test, methode)
-            #test.display(13)
+            #test.display(12)
             res = test.getResults()
             Pn = test.getPn()
             for i in range(len(Pn)):

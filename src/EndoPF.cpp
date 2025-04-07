@@ -52,7 +52,7 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	clock_t tall =clock();
+	tMarket = clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -74,24 +74,15 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	_rhog = sim.getRho();
 	_at1 = _rhog;
 	
-	int iterL = sim.getIterL();
-	int stepL = sim.getStepL();
-
-	float epsL = sim.getEpsL();
-	float epsG = sim.getEpsG();
-	
-
-	float fc = 0;
-
 	int iterLocal = 0;
-	float resG = 2 * epsG;
-	float resL = 2 * epsL;
+	float resG = 2 * _epsG;
+	float resL = 2 * _epsL;
 	_iterGlobal = 0;
 	//Pn.display();
 	//std::cout << "*******" << std::endl;
-	while ((_iterGlobal < _iterG) && (resG>epsG) || (_iterGlobal <= _stepG)) {
+	while ((_iterGlobal < _iterG) && (resG>_epsG) || (_iterGlobal <= _stepG)) {
 		
-		resL = 2 * epsL;
+		resL = 2 * _epsL;
 		iterLocal = 0;
 		/*std::cout << "probl�me local" << std::endl;
 		std::cout << _at1 << " " << _at2 << std::endl;
@@ -109,10 +100,10 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 #ifdef INSTRUMENTATION
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-		while (iterLocal< iterL && resL>epsL) {
+		while (iterLocal< _iterL && resL>_epsL) {
 			updateLocalProb();
 			//FB 3
-			if (!(iterLocal % stepL)) {
+			if (!(iterLocal % _stepL)) {
 
 				resL = calcRes();
 		
@@ -123,10 +114,7 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
 		timePerBlock.increment(0, 1, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
-
 #endif // INSTRUMENTATION	
-
-		
 		/*td::cout << "********power**************" << std::endl;
 		P.display();
 		Pmin.display();
@@ -164,28 +152,7 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 	
-	int indice = 0;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) {
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
-				LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
-				indice = indice + 1;
-			}
-
-		}
-	}
-	updatePn();
+	setResult(result, cas.isAC());
 
 	/*pf->display2(true);
 	std::cout << " Y " << std::endl;
@@ -204,36 +171,13 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	Pmax.display();
 	*/
 
-	fc = calcFc();
 
-	// FB 5
-	
-	result->setResF(&resF);
-	
-	result->setLAMBDA(&LAMBDA);
-	
-	result->setTrade(&trade);
-	
-	//result->setDelta1(&delta1);
-	
-	//result->setDelta2(&delta2);
-	
-	result->setIter(_iterGlobal);
-	
-	result->setMU(&MU);
-	
-	result->setPn(&Pn);
-	
-	result->setFc(fc);
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
 	timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 7, 1);
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
-	tall = clock() - tall;
-	result->setTime((float)tall / CLOCKS_PER_SEC);
-	
 }
 
 void EndoPF::updateP0(const StudyCase& cas)
@@ -254,7 +198,7 @@ void EndoPF::updateP0(const StudyCase& cas)
 	int indice = 0;
 
 	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		int Nvoisinmax = (int) nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			matLb.set(indice, 0, Lb.get(idAgent, 0));
 			indice = indice + 1;
@@ -282,43 +226,15 @@ void EndoPF::init(const Simparam& sim, const StudyCase& cas)
 	if (!cas.isAC()) {
 		throw std::invalid_argument("Wrong studyCase must be AC");
 	}
-
-
-	_rhog = sim.getRho();
-	_rho1 = sim.getRho1();
-	_iterG = sim.getIterG();
-	_stepG = sim.getStepG();
-	float epsG = sim.getEpsG();
-	float epsGC = sim.getEpsGC();
-	_ratioEps = epsG / epsGC;
+	isAC = true;
+	initSize(cas);
 	isRadial = cas.isRadial();
-	_nAgentTrue = sim.getNAgent();
-	_nAgent = _nAgentTrue + _nAgentTrue;
-
-	_rhol = _rho; //*nAgent
-	//std::cout << "rho " << _rho << std::endl;
-	if (_rho == 0) {
-		_rhol = _rhog;
-	}
-
-	nVoisin = cas.getNvoi();
-
 	_nLine = cas.getNLine(true);
-	//std::cout << "_nLine " << _nLine << std::endl;
-	_nBus = cas.getNBus();
 	_nVarPF = _nLine + 2 * _nBus;
 
-	_nTrade = nVoisin.sum();
-	_nTradeP = 0;
-	
-	for (int n = 0; n < _nAgentTrue; n++) {
-		_nTradeP += nVoisin.get(n, 0);
-	}
-	_nTradeQ = _nTrade - _nTradeP;
-	if (_nTradeQ != (_nAgentTrue * (_nAgentTrue - 1))) {
-		std::cout << "err ADMM : " << _nAgent << " " << _nAgentTrue << " " << _nTrade << " " << _nTradeP << " " << _nTradeQ << std::endl;
-		throw std::invalid_argument("Agent must be fully conected for the Q echanges, WIP");
-	}
+	initSimParam(sim);
+
+	initCaseParam(sim, cas);
 	if (initWithMarketClear) {
 		ADMMMarket market;
 		Simparam res(sim);
@@ -326,7 +242,7 @@ void EndoPF::init(const Simparam& sim, const StudyCase& cas)
 		//res.display();
 		LAMBDA = res.getLambda();
 		trade = res.getTrade();
-		Pnpre = res.getPn();
+		Pn = res.getPn();
 
 	}
 	else {
@@ -334,98 +250,14 @@ void EndoPF::init(const Simparam& sim, const StudyCase& cas)
 		trade = sim.getTrade();
 		Pnpre = sim.getPn(); // somme des trades
 	}
+	Pnpre = Pn;
 	//Pnpre.display();
 	Tmoy = Pnpre;
-	Tmoy.divideT(&nVoisin);
+	
 	//std::cout << "*******" << std::endl;
+	//std::cout << "mise sous forme lineaire" << std::endl;
 	
-	_at1 = _rhog; // represente en fait 2*a
-	_at2 = _rhol;
-
-	resF = MatrixCPU(3, (_iterG / _stepG) + 1);
-	resX = MatrixCPU(4, (_iterG / _stepG) + 1);
-
-	MatrixCPU BETA(cas.getBeta());
-	
-	MatrixCPU Ub(cas.getUb());
-	MatrixCPU Lb(cas.getLb());
-	
-
-	//std::cout << "mise sous forme lin�aire" << std::endl;
-	
-	CoresMatLin = MatrixCPU(_nAgent, _nAgentTrue, -1);
-	CoresLinAgent = MatrixCPU(_nTrade, 1);
-	CoresAgentLin = MatrixCPU(_nAgent + 1, 1);
-	CoresLinVoisin = MatrixCPU(_nTrade, 1);
-	CoresLinTrans = MatrixCPU(_nTrade, 1);
-
-	Tlocal_pre = MatrixCPU(_nTrade, 1);
-	tradeLin = MatrixCPU(_nTrade, 1);
-	LAMBDALin = MatrixCPU(_nTrade, 1);
-
-	matLb = MatrixCPU(_nTrade, 1);
-	matUb = MatrixCPU(_nTrade, 1);
-	Ct = MatrixCPU(_nTrade, 1);
-	Bt2 = MatrixCPU(_nTrade, 1);
-
-	int indice = 0;
-	//std::cout << " P " << std::endl;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) { // P
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			if(Lb.getNCol()==1){
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-			} else {
-				matLb.set(indice, 0, Lb.get(idAgent, idVoisin));
-				matUb.set(indice, 0, Ub.get(idAgent, idVoisin));
-			}
-			Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-			tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-			Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-			LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-			CoresLinAgent.set(indice, 0, idAgent);
-			CoresLinVoisin.set(indice, 0, idVoisin);
-			CoresMatLin.set(idAgent, idVoisin, indice);
-			indice = indice + 1;
-		}
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	//std::cout << " Q " << std::endl;
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) { // Q
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				matLb.set(indice, 0, Lb.get(idAgent, 0));
-				matUb.set(indice, 0, Ub.get(idAgent, 0));
-				//Ct.set(indice, 0, BETA.get(idAgent, idVoisin));
-				tradeLin.set(indice, 0, trade.get(idAgent, idVoisin));
-				Tlocal_pre.set(indice, 0, trade.get(idAgent, idVoisin));
-				LAMBDALin.set(indice, 0, LAMBDA.get(idAgent, idVoisin));
-				CoresLinAgent.set(indice, 0, idAgent);
-				CoresLinVoisin.set(indice, 0, idVoisin + _nAgentTrue);
-				CoresMatLin.set(idAgent, idVoisin, indice);
-				indice = indice + 1;
-			}
-		}
-		CoresAgentLin.set(idAgent + 1, 0, indice);
-	}
-	for (int lin = 0; lin < _nTrade; lin++) {
-		int i = CoresLinAgent.get(lin, 0);
-		int j = CoresLinVoisin.get(lin, 0);
-		if (lin >= _nTradeP) {
-			i -= _nAgentTrue;
-		}
-
-		int k = CoresMatLin.get(j, i);
-		CoresLinTrans.set(lin, 0, k);
-	}
-
-	
-	// transfert des mises lineaire
-	//matLb.display();
-	//matUb.display();
+	initLinForm(cas);
 
 	//std::cout << "donnees sur CPU pour le grid" << std::endl;
 	delta1 = MatrixCPU(_nVarPF, 1, 0);
@@ -467,49 +299,14 @@ void EndoPF::init(const Simparam& sim, const StudyCase& cas)
 
 
 	//std::cout << "autres donn�e sur CPU" << std::endl;
-	tempNN = MatrixCPU(_nTrade, 1, 0);
-	tempN1 = MatrixCPU(_nAgent, 1, 0); // plut�t que de re-allouer de la m�moire � chaque utilisation
-	tempL1 = MatrixCPU(_nVarPF, 1, 0);
-	//MatrixCPU temp1N(1, _nAgent, 0, 1);
-
-	Tlocal = MatrixCPU(_nTrade, 1, 0);
-	P = MatrixCPU(_nAgent, 1, 0); // moyenne des trades
-	Pn = MatrixCPU(sim.getPn());
 	
 	dP = MatrixCPU(_nAgent, 1, 0);
 
-	a = MatrixCPU(cas.geta());
-	b = MatrixCPU(cas.getb());
-	Ap2 = a;
-	Ap1 = nVoisin;
-	Ap12 = MatrixCPU(_nAgent, 1, 0);
-
-	Bt1 = MatrixCPU(_nTrade, 1, 0);
-	Cp = MatrixCPU(_nAgent, 1, 0);
+	initP2PMarket();
+	
 	Cp2 = MatrixCPU(_nAgent, 1, 0);
 	Cp1 = b;
-	Bp1 = MatrixCPU(_nAgent, 1, 0);
-
-	Pmin = MatrixCPU(cas.getPmin());
-	Pmax = MatrixCPU(cas.getPmax());
-	MU = MatrixCPU(sim.getMU()); // facteur reduit i.e lambda_l/_rho
-	//Tmoy = MatrixCPU(sim.getPn());
-
-
-	Pmin.divideT(&nVoisin);
-	Pmax.divideT(&nVoisin);
-	//Tmoy.divideT(&nVoisin);
-
-	Ap1.multiply(_rhol);
-	Ap2.multiplyT(&nVoisin);
-	Ap2.multiplyT(&nVoisin);
-	Ap12.add(&Ap1, &Ap2);
-
 	Cp1.multiplyT(&nVoisin);
-	
-	
-	
-
 	
 	updateGlobalProb();
 	//std::cout << "rho " << _rhog << " rhoL " << _rhol << " rho1 " << _rho1 << std::endl;
@@ -618,17 +415,12 @@ void EndoPF::updateGlobalProb() {
 
 void EndoPF::updateLocalProb() {
 	// FB 1a
-
-
-
 	updateBt2();
 	updateTl();
 
-	
-	
 	for (int i = 0; i < _nAgent; i++) {
-		int nVoisinLocal = nVoisin.get(i, 0);
-		int beginLocal = CoresAgentLin.get(i, 0);
+		int nVoisinLocal = (int) nVoisin.get(i, 0);
+		int beginLocal = (int) CoresAgentLin.get(i, 0);
 		int endLocal = beginLocal + nVoisinLocal;
 		float m = 0;
 		for (int j = beginLocal; j < endLocal; j++) {
@@ -636,9 +428,6 @@ void EndoPF::updateLocalProb() {
 		}
 		Tmoy.set(i, 0, m/nVoisinLocal);
 	}
-
-	
-
 	updateBp1();
 	updateP();
 	updateMU();
@@ -648,13 +437,12 @@ void EndoPF::updateLocalProb() {
 
 void EndoPF::updateBt1()
 {
-	
 	// subtractTrans
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t,0);
+		int k = (int) CoresLinTrans.get(t,0);
 		Bt1.set(t, 0, tradeLin.get(t, 0) - tradeLin.get(k, 0));
 	}
-	Bt1.multiply(0.5*_rhog); 
+	Bt1.multiply(0.5f*_rhog); 
 	Bt1.subtract(&LAMBDALin);
 	Bt1.divide(_rhog);
 }
@@ -662,8 +450,8 @@ void EndoPF::updateBt1()
 void EndoPF::updateBt2()
 {
 	for (int i = 0; i < _nAgent; i++) {
-		int nVoisinLocal = nVoisin.get(i,0);
-		int beginLocal = CoresAgentLin.get(i,0);
+		int nVoisinLocal = (int) nVoisin.get(i,0);
+		int beginLocal = (int) CoresAgentLin.get(i,0);
 		int endLocal = beginLocal + nVoisinLocal; 
 		for (int j = beginLocal; j < endLocal; j++) {
 			float m = Tlocal_pre.get(j,0) - Tmoy.get(i, 0) + P.get(i, 0) - MU.get(i, 0); 

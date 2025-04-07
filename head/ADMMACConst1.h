@@ -15,7 +15,6 @@ public:
 	void setParam(float rho);
 	void setTau(float tau);
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
-	virtual void updateP0(const StudyCase& cas);
 	virtual void init(const Simparam& sim, const StudyCase& cas);
 	std::string NAME ="ADMMConst";
 	void updateGlobalProb();
@@ -43,14 +42,9 @@ private:
 	int _nVoisinRef = 0;
 	float Ploss = 0;
 	float Qloss = 0;
-	int iterGlobal = 0;
-
+	
 	MatrixCPU PQ;
 
-
-
-	MatrixCPU Ap3;
-	MatrixCPU Ap123;
 	MatrixCPU rhoMn;
 	MatrixCPU rhoMn2;
 	MatrixCPU UpperBound;

@@ -19,7 +19,6 @@ public:
 	void setParam(float rho);
 	void setTau(float tau);
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas);
-	virtual void updateP0(const StudyCase& cas);
 	virtual void init(const Simparam& sim, const StudyCase& cas);
 	std::string NAME ="EndoPFGPU";
 	void updateGlobalProbGPU();
@@ -36,24 +35,13 @@ public:
 private:
 	// ne change pas avec P0
 	int _numBlocksBL = 0;
-
-	int _nAgentTrue = 0; // _nAgent = _nAgentTrue + (isAc)*_nAgent
-	int _nTradeP = 0;
-	int _nTradeQ = 0;
 	
-	int _iterGlobal = 0;
-	int _iterG = 0;
-	int _stepG = 0;
-	clock_t timeEndoPF = 0;
-
 	MatrixGPU Pnpre;
 	MatrixGPU dP;
 
 	MatrixGPU Bt2;
 	MatrixGPU Bp1;
 	
-
-
 	// Pour le reseau
 	
 	int _nVarPF; // _nLine + 2 * _nBus

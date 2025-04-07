@@ -66,9 +66,10 @@ void ADMMGPUConstCons3::init(const Simparam& sim, const StudyCase& cas)
 	_Msize = _nAgent + L2 + 1;
 	_Asize = L2 * _nAgent;
 	//std::cout << _nAgent << " " << _nLine << " " << _Msize << std::endl;
+	initCaseParam(sim, cas);
 	
 	//std::cout << "mise sous forme lineaire" << std::endl;
-	initLinForm(sim, cas);
+	initLinForm(cas);
 		
 	//std::cout << "donnees sur GPU pour le grid" << std::endl;
 	if (_nLine) {
@@ -127,7 +128,6 @@ void ADMMGPUConstCons3::init(const Simparam& sim, const StudyCase& cas)
 	Pso.preallocateReduction();
 
 	//std::cout << "autres donn�e sur GPU" << std::endl;
-	initCaseParam(sim, cas);
 	
 	initDCEndoMarket();
 
@@ -325,7 +325,7 @@ void ADMMGPUConstCons3::solve(Simparam* result, const Simparam& sim, const Study
 #endif // DEBUG_SOLVE
 	
 	
-	clock_t tall = clock();
+	tMarket = clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -351,10 +351,10 @@ void ADMMGPUConstCons3::solve(Simparam* result, const Simparam& sim, const Study
 	
 	float resG = 2 * _epsG;
 	float epsL2 = _epsL * _epsL;
-	int iterGlobal = 0;
+	_iterGlobal = 0;
 	
 	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
-	while ((iterGlobal < _iterG) && (resG > _epsG)) {
+	while ((_iterGlobal < _iterG) && (resG > _epsG)) {
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t1 = std::chrono::high_resolution_clock::now();
@@ -372,12 +372,12 @@ void ADMMGPUConstCons3::solve(Simparam* result, const Simparam& sim, const Study
 		
 		updateGlobalProbGPU();
 		
-		if (!(iterGlobal % _stepG)) {
+		if (!(_iterGlobal % _stepG)) {
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResEndo(iterGlobal / _stepG);
+			resG = updateResEndo(_iterGlobal / _stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
@@ -385,7 +385,7 @@ void ADMMGPUConstCons3::solve(Simparam* result, const Simparam& sim, const Study
 #endif // INSTRUMENTATION
 		}
 		//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG) << " " << resF.get(1, iterGlobal / stepG) << std::endl;
-		iterGlobal++;
+		_iterGlobal++;
 	}
 #ifdef INSTRUMENTATION
 	occurencePerBlock.increment(0, 1, iterGlobal);
@@ -400,41 +400,13 @@ void ADMMGPUConstCons3::solve(Simparam* result, const Simparam& sim, const Study
 	
 	
 
-	float fc = calcFc();
 	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
 	std::cout << "valeur finale des contraintes de l'opf : " << std::endl;
-	
 	c.display(true);
-	MatrixCPU tradeLinCPU;
-	tradeLin.toMatCPU(tradeLinCPU);
-	MatrixCPU LAMBDALinCPU;
-	LAMBDALin.toMatCPU(LAMBDALinCPU);
-	MatrixCPU PnCPU;
-	Pn.toMatCPU(PnCPU);
-	MatrixCPU MUCPU;
-	MU.toMatCPU(MUCPU);
 	
+	setResult(result, cas.isAC());
 
-	int indice = 0;
-	for (int idAgent = 0;idAgent < _nAgent; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLinCPU.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
-	result->setResF(&resF);
-	result->setLAMBDA(&LAMBDA);
-	result->setTrade(&trade);
-	
-	result->setIter(iterGlobal);
-	result->setPn(&PnCPU);
-	result->setFc(fc);
-	result->setMU(&MUCPU);
-	result->setRho(_rhog);
+
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize();
 	t2 = std::chrono::high_resolution_clock::now();
@@ -442,9 +414,6 @@ void ADMMGPUConstCons3::solve(Simparam* result, const Simparam& sim, const Study
 	occurencePerBlock.increment(0, 9, 1);
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
-
-	tall = clock() - tall;
-	result->setTime((float)tall / CLOCKS_PER_SEC);
 }
 
 void ADMMGPUConstCons3::updateLocalProbGPU(float epsL, int nIterL) {

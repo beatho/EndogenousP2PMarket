@@ -92,7 +92,7 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ)
     }
     W0 = MatrixCPU(B2, 1);
     for (int n = 1; n < Nagent; n++) {
-        int bus = I.get(n, 0);
+        int bus = (int) I.get(n, 0);
         W0.increment(bus, 0, PQ->get(n, 0));
         W0.increment(bus + Nbus, 0, PQ->get(n + Nagent, 0));
     }
@@ -181,7 +181,7 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool us
     _name = "Gauss-Seidel";
     _useDouble = useDouble;
     status = 0;
-    std::cout << "init " << _name << std::endl;
+    //std::cout << "init " << _name << std::endl;
     I = cas.getCoresBusAgentLin();
 
 
@@ -234,7 +234,6 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool us
             }
         }
 
-
         RgridD = MatrixCPUD(Nbus, 1);
         XgridD = MatrixCPUD(Nbus, 1);
         RMGgridD = MatrixCPUD(Nbus, Nbus);
@@ -243,14 +242,14 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool us
         VoltageRealImD = MatrixCPUD(B2, 1);
 
         for (int i = 0; i < Nbus; i++) {
-            float norm = (GgridD.get(i, i) * GgridD.get(i, i) + BgridD.get(i, i) * BgridD.get(i, i));
-            float r = GgridD.get(i, i) / norm;
-            float x = -BgridD.get(i, i) / norm;
+            double norm = (GgridD.get(i, i) * GgridD.get(i, i) + BgridD.get(i, i) * BgridD.get(i, i));
+            double r =  GgridD.get(i, i) / norm;
+            double x = -BgridD.get(i, i) / norm;
             RgridD.set(i, 0, r);
             XgridD.set(i, 0, x);
             for (int j = 0; j < Nbus; j++) {
-                float m = GgridD.get(i, j) * r - BgridD.get(i, j) * x;
-                float n = BgridD.get(i, j) * r + GgridD.get(i, j) * x;
+                double m = GgridD.get(i, j) * r - BgridD.get(i, j) * x;
+                double n = BgridD.get(i, j) * r + GgridD.get(i, j) * x;
                 RMGgridD.set(i, j, m);
                 RPGgridD.set(i, j, n);
             }
@@ -261,7 +260,7 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool us
  
         W0D = MatrixCPUD(B2, 1);
         for (int n = 1; n < Nagent; n++) {
-            int bus = I.get(n, 0);
+            int bus = (int) I.get(n, 0);
             W0D.increment(bus, 0, PQD->get(n, 0));
             W0D.increment(bus + Nbus, 0, PQD->get(n + Nagent, 0));
         }
@@ -322,7 +321,7 @@ void CPUPFGS::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD* PQD, bool us
         }
         W0 = MatrixCPU(B2, 1);
         for (int n = 1; n < Nagent; n++) {
-            int bus = I.get(n, 0);
+            int bus = (int) I.get(n, 0);
             W0.increment(bus, 0, PQ->get(n, 0));
             W0.increment(bus + Nbus, 0, PQ->get(n + Nagent, 0));
         }
@@ -394,7 +393,7 @@ void CPUPFGS::updatePQ(MatrixCPU* PQ)
     W0 = MatrixCPU(B2, 1);
     //PQ->display();
     for (int n = 1; n < Nagent; n++) {
-        int bus = I.get(n, 0);
+        int bus = (int) I.get(n, 0);
         W0.increment(bus, 0, PQ->get(n, 0));
         W0.increment(bus + Nbus, 0, PQ->get(n + Nagent, 0));
     }
@@ -414,9 +413,9 @@ void CPUPFGS::calcW(bool end)
 
         WD.set(0.0);
         for (int i = 0; i < Nbus; i++) {
-            int k = CoresBusLin.get(i, 0);
+            int k = (int) CoresBusLin.get(i, 0);
             for (int voisin = k; voisin < (k + nLines.get(i, 0)); voisin++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                 double a = GgridLinD.get(voisin, 0) * VoltageRealImD.get(j, 0) - BgridLinD.get(voisin, 0) * VoltageRealImD.get(j + Nbus, 0);
                 double b = BgridLinD.get(voisin, 0) * VoltageRealImD.get(j, 0) + GgridLinD.get(voisin, 0) * VoltageRealImD.get(j + Nbus, 0);
                
@@ -514,10 +513,10 @@ void CPUPFGS::calcW(bool end)
 
         W.set(0.0);
         for (int i = 0; i < Nbus; i++) {
-            int k = CoresBusLin.get(i, 0);
+            int k = (int) CoresBusLin.get(i, 0);
 
             for (int voisin = k; voisin < (k + nLines.get(i, 0)); voisin++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                
                 double a = GgridLin.getD(voisin, 0) * VoltageRealIm.get(j, 0) - BgridLin.getD(voisin, 0) * VoltageRealIm.get(j + Nbus, 0);
                 double b = BgridLin.getD(voisin, 0) * VoltageRealIm.get(j, 0) + GgridLin.getD(voisin, 0) * VoltageRealIm.get(j + Nbus, 0);
@@ -616,9 +615,9 @@ int CPUPFGS::calcVoltage()
             double d = (W0D.get(i, 0) * wi - W0D.get(i + Nbus, 0) * vi) / norm;
             double sum1 = c * RgridD.get(i, 0) - d * XgridD.get(i, 0);
             double sum2 = d * RgridD.get(i, 0) + c * XgridD.get(i, 0);
-            int k = CoresBusLin.get(i, 0);
+            int k = (int) CoresBusLin.get(i, 0);
             for (int voisin = k + 1; voisin < (k + nLines.get(i, 0)); voisin++) { //for (int j = i + 1; j < Nbus; j++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                 if (i < j) {
                     sum1 = sum1 - (RMGgridD.get(i, j) * VoltageRealImD.get(j, 0) - RPGgridD.get(i, j) * VoltageRealImD.get(j + Nbus, 0));
                     sum2 = sum2 - (RPGgridD.get(i, j) * VoltageRealImD.get(j, 0) + RMGgridD.get(i, j) * VoltageRealImD.get(j + Nbus, 0));
@@ -639,9 +638,9 @@ int CPUPFGS::calcVoltage()
         //VoltageRealImD.display();
 
         for (int iter = 0; iter < Nbus-1; iter++) {
-            int k = CoresBusLin.get(iter, 0);
+            int k = (int) CoresBusLin.get(iter, 0);
             for (int voisin = k + 1; voisin < (k + nLines.get(iter, 0)); voisin++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                 if (j > iter) {
                     double db1 = RMGgridD.get(j, iter) * VoltageRealImD.get(iter, 0) - RPGgridD.get(j, iter) * VoltageRealImD.get(iter + Nbus, 0);
                     double db2 = RPGgridD.get(j, iter) * VoltageRealImD.get(iter, 0) + RMGgridD.get(j, iter) * VoltageRealImD.get(iter + Nbus, 0);
@@ -671,9 +670,9 @@ int CPUPFGS::calcVoltage()
             double d = (W0.get(i, 0) * wi - W0.get(i + Nbus, 0) * vi) / norm;
             double sum1 = c * Rgrid.get(i, 0) - d * Xgrid.get(i, 0);
             double sum2 = d * Rgrid.get(i, 0) + c * Xgrid.get(i, 0);
-            int k = CoresBusLin.get(i, 0);
+            int k = (int) CoresBusLin.get(i, 0);
             for (int voisin = k + 1; voisin < (k + nLines.get(i, 0)); voisin++) { //for (int j = i + 1; j < Nbus; j++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                 if (i < j) {
                     sum1 = sum1 - (RMGgrid.get(i, j) * VoltageRealIm.get(j, 0) - RPGgrid.get(i, j) * VoltageRealIm.get(j + Nbus, 0));
                     sum2 = sum2 - (RPGgrid.get(i, j) * VoltageRealIm.get(j, 0) + RMGgrid.get(i, j) * VoltageRealIm.get(j + Nbus, 0));
@@ -692,9 +691,9 @@ int CPUPFGS::calcVoltage()
         //VoltageRealIm.display();
 
         for (int iter = 0; iter < Nbus - 1; iter++) {
-            int k = CoresBusLin.get(iter, 0);
+            int k = (int) CoresBusLin.get(iter, 0);
             for (int voisin = k + 1; voisin < (k + nLines.get(iter, 0)); voisin++) {
-                int j = CoresVoiLin.get(voisin, 0);
+                int j = (int) CoresVoiLin.get(voisin, 0);
                 if (j > iter) {
                     double db1 = RMGgrid.get(j, iter) * VoltageRealIm.get(iter, 0) - RPGgrid.get(j, iter) * VoltageRealIm.get(iter + Nbus, 0);
                     double db2 = RPGgrid.get(j, iter) * VoltageRealIm.get(iter, 0) + RMGgrid.get(j, iter) * VoltageRealIm.get(iter + Nbus, 0);
@@ -748,13 +747,13 @@ int CPUPFGS::calcVoltage()
 
 void CPUPFGS::calcE()
 {
-    std::cout << "calculE de CPUPFGS" << std::endl;
+    //std::cout << "calculE de CPUPFGS" << std::endl;
     if (_useDouble) {
         for (int i = 0; i < Nbus; i++) {
-            float Rev = VoltageRealImD.get(i, 0);
-            float Imv = VoltageRealImD.get(i + Nbus, 0);
-            float Enorm = sqrt(Rev * Rev + Imv * Imv);
-            float Eangle = atan2(Imv, Rev);
+            double Rev = VoltageRealImD.get(i, 0);
+            double Imv = VoltageRealImD.get(i + Nbus, 0);
+            double Enorm = sqrt(Rev * Rev + Imv * Imv);
+            double Eangle = atan2(Imv, Rev);
             ED.set(i + Nbus, 0, Enorm);
             ED.set(i, 0, Eangle);
         }
@@ -783,8 +782,8 @@ void CPUPFGS::setE(MatrixCPU* Enew)
     if (_useDouble) {
         E.toMatCPUD(ED);
         for (int i = 0; i < Nbus; i++) {
-            float v = ED.get(i + Nbus, 0);
-            float theta = ED.get(i, 0);
+            double v = ED.get(i + Nbus, 0);
+            double theta = ED.get(i, 0);
             VoltageRealImD.set(i, 0, v * cos(theta));
             VoltageRealImD.set(i + Nbus, 0, v * sin(theta));
 
@@ -837,8 +836,8 @@ void CPUPFGS::setE(MatrixCPUD* Enew)
     ED = *Enew;
     if (_useDouble) {
         for (int i = 0; i < Nbus; i++) {
-            float v = ED.get(i + Nbus, 0);
-            float theta = ED.get(i, 0);
+            double v = ED.get(i + Nbus, 0);
+            double theta = ED.get(i, 0);
             VoltageRealImD.set(i, 0, v * cos(theta));
             VoltageRealImD.set(i + Nbus, 0, v * sin(theta));
 

@@ -38,13 +38,14 @@ public:
 	float updateRes(int indice);
 	float updateResRhoFixe(int indice);
 	virtual int feasiblePoint();
+	
 
 	//Market
 	void initMarket(const Simparam& sim, const StudyCase& cas);
 	void updateBt1();
 	void updateBt2();
 	void updateBp1();
-	void updateBp2();
+	void updateBp3();
 	void updateTl();
 	void updateP();
 	void updateMU();
@@ -55,7 +56,7 @@ public:
 	bool initWithMarketClear = true;
 
 
-	void display();
+	virtual void display();
 	void computePb();
 	virtual MatrixCPU getPb();
 	virtual MatrixCPU getPhi();
@@ -80,8 +81,7 @@ private:
 	
 	float _Ploss = 0;
 	float _Qloss = 0;
-	clock_t timeMarketEndo = 0;
-
+	
 
 	
 	// problem : TradeLin tempN2 cost1 cost2
@@ -89,12 +89,8 @@ private:
 
 	MatrixCPU tempB2; // size : (_nBus  *2, 1)
 
+	MatrixCPU Bp3;
 	
-	MatrixCPU Ap3;
-	MatrixCPU Ap123;
-	MatrixCPU Bp2;
-	MatrixCPU Cp;
-
 
 	// Reseau
 	MatrixCPU* tempM1 = nullptr; //

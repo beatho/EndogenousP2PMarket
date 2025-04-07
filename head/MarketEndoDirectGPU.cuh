@@ -49,7 +49,7 @@ public:
 	//Market
 	void initMarket(const Simparam& sim, const StudyCase& cas);
 	
-	void updateBp2();
+	void updateBp3();
 	
 	void updateLocalProb();
 	
@@ -68,7 +68,6 @@ private:
 	int _numBlocksB;
 	int _numBlocksH;
 
-	int _nBus = 0;
 	int _nBusWLoss = 0;
 	
 	int _nAgentOn0 = 0;
@@ -88,29 +87,19 @@ private:
 	double root6[4];
 	double coefPoly3[3];
 	
-	int _iterGlobal = 0;
-	int _iterG = 0;
-	int _stepG = 0;
-	float _epsL = 0;
-	int _nIterL = 0;
-
+	
 	
 	float _Ploss = 0;
 	float _Qloss = 0;
-	clock_t timeMarketEndo = 0;
-
+	
 	// market
-	int _nAgentTrue = 0; // _nAgent = _nAgentTrue + (isAc)*_nAgent
-	int _nTradeP = 0;
-	int _nTradeQ = 0;
-
+	
 	
 	LossType losstype = LossType::CURRENT;
 
 	// Reste sur CPU
 	
 	MatrixCPU _nAgentByBusCPU;
-	MatrixCPU resF;
 	MatrixCPU nChildCPU;
 	MatrixCPU CoresLineBusCPU;
 	
@@ -121,15 +110,8 @@ private:
 
 	MatrixGPU tempB2; // size : (_nBus  *2, 1)
 
-
-	MatrixGPU Ap3;
-	MatrixGPU Ap123;
-
-	MatrixGPU Bt2;
-	MatrixGPU Bp1;
-	MatrixGPU Bp2;
+	MatrixGPU Bp3;
 	
-
 	// Reseau
 	MatrixGPU tempM1; //
 	MatrixGPU tempM; //
@@ -162,8 +144,6 @@ private:
 
 	MatrixGPU ZsRe;
 	MatrixGPU ZsIm;
-
-	
 	
 	MatrixGPU Childs;
 	MatrixGPU PosChild; 
@@ -172,8 +152,6 @@ private:
 
 	MatrixGPU sizeMarketEndoDirectGPU;
 	MatrixGPU sizeMarketEndoDirectGPUBig;
-
-
 
 	// special GPU
 	MatrixGPU _CoresAgentBus;
@@ -191,6 +169,6 @@ template <unsigned int _blockSizeSmall>
 __global__ void updateChatGPU3(float* Chat, float* Y, float* MU, float* nChild, float* Ancestor, float* posChild, float* Childs, float* indiceBusBegin, float* indiceChildBegin, float* CoresChatBegin, float* nAgentByBus, float _rho, int LossType, int nBus);
 	
 
-__global__ void updateBp2GPU(float* Bp2, float* Y, float* MU, float* indiceBusBegin, float* indiceAgentBegin, float* CoresAgentBus, float* nAgentByBus, int losstype, float rho, int nBus, int nAgent);
+__global__ void updateBp3GPU(float* Bp2, float* Y, float* MU, float* indiceBusBegin, float* indiceAgentBegin, float* CoresAgentBus, float* nAgentByBus, int losstype, float rho, int nBus, int nAgent);
 
 

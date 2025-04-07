@@ -32,13 +32,15 @@ public:
 	float updateResEndo(int iter);
 	float calcRes();
 
-	void initLinForm(const Simparam& sim, const StudyCase& cas);
+	void initLinForm(const StudyCase& cas);
 	void initSize(const StudyCase& cas);
 	void initSimParam(const Simparam& sim);
 	void initDCEndoGrid(const StudyCase& cas); // init with G transposed
 	void initCaseParam(const Simparam& sim, const StudyCase& cas);
 	void initDCEndoMarket();
 	void initP2PMarket();
+
+	void setResult(Simparam* result, bool casAC);
 	// compute : fc = 0.5 * cost1 * pn^2 + cost2 * pn + BETA * trade
 	float calcFc();
 
@@ -96,7 +98,9 @@ protected:
 	MatrixCPU Ap2;
 	MatrixCPU Ap2a;
 	MatrixCPU Ap2b;
+	MatrixCPU Ap3;
 	MatrixCPU Ap12;
+	MatrixCPU Ap123;
 
 
 	MatrixCPU Bt1;

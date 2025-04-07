@@ -33,15 +33,15 @@ void CPUPFdistPQ::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD * PnD, bo
     theta0 = cas.gettheta0();
 
    // std::cout << "V0 :" << V0 << " theta0 " << theta0 << std::endl;
-    v0 = V0 * cos(theta0);
-    w0 = V0 * sin(theta0);
+    v0 = (float) (V0 * cos(theta0));
+    w0 = (float) (V0 * sin(theta0));
     _name = "Power summation method"; // meilleure covergence quand c'est beaucoup charg�
 
     W0 = MatrixCPU(B2, 1);
     I = cas.getCoresBusAgentLin(); // I_n = bus de l'agent n, l'agent 0 est pour g�rer les pertes du march�, il n'existe pas vraiment
     
     for (int n = 1; n < Nagent; n++) {
-        int bus = I.get(n, 0);
+        int bus = (int) I.get(n, 0);
         W0.increment(bus, 0, PQ->get(n, 0));
         W0.increment(bus + Nbus, 0, PQ->get(n + Nagent, 0));
     }
@@ -100,7 +100,7 @@ void CPUPFdistPQ::init(const StudyCase& cas, MatrixCPU* PQ, MatrixCPUD * PnD, bo
     }
     else {
         for (int lold = 0; lold < Nline; lold++) {
-            int busTo = CoresLineBus.get(lold, 1);
+            int busTo = (int) CoresLineBus.get(lold, 1);
             F.set(busTo, 0, CoresLineBus.get(lold, 0));
         }
     }
@@ -167,7 +167,7 @@ void CPUPFdistPQ::updatePQ(MatrixCPU* PQ)
     W0 = MatrixCPU(B2, 1);
     //PQ->display();
     for (int n = 1; n < Nagent; n++) {
-        int bus = I.get(n, 0);
+        int bus = (int) I.get(n, 0);
         W0.increment(bus, 0, PQ->get(n, 0));
         W0.increment(bus + Nbus, 0, PQ->get(n + Nagent, 0));
     }
@@ -301,7 +301,7 @@ void CPUPFdistPQ::calcS()
 
 
         int k = l + 1; // busTo
-        int i = F.get(k, 0); // busFrom
+        int i = (int) F.get(k, 0); // busFrom
         int lprev = i - 1;
 
         float SRe = St.get(l,0);
@@ -347,10 +347,10 @@ void CPUPFdistPQ::calcW(bool end)
     VoltageRealIm.display();*/
 
     for (int i = 0; i < Nbus; i++) {
-        int k = CoresBusLin.get(i, 0);
+        int k = (int) CoresBusLin.get(i, 0);
 
         for (int voisin = k; voisin < (k + nLines.get(i, 0)); voisin++) {
-            int j = CoresVoiLin.get(voisin, 0);
+            int j = (int) CoresVoiLin.get(voisin, 0);
 
             double a = GgridLin.getD(voisin, 0) * VoltageRealIm.getD(j, 0) - BgridLin.getD(voisin, 0) * VoltageRealIm.getD(j + Nbus, 0);
             double b = BgridLin.getD(voisin, 0) * VoltageRealIm.getD(j, 0) + GgridLin.getD(voisin, 0) * VoltageRealIm.getD(j + Nbus, 0);
@@ -382,7 +382,7 @@ int CPUPFdistPQ::calcVoltage()
     for (int k = 1; k < Nbus; k++) {
         // branch l entre le bus i=F(k) et k = l + 1;
         
-        int i = F.get(k, 0); // busFrom
+        int i = (int) F.get(k, 0); // busFrom
         int l = k - 1; // line
 
        
@@ -410,7 +410,7 @@ int CPUPFdistPQ::calcVoltage()
 
 void CPUPFdistPQ::calcE()
 {
-    std::cout << "calculE de CPUPFDistPQ" << std::endl;
+    //std::cout << "calculE de CPUPFDistPQ" << std::endl;
     for (int i = 0; i < Nbus; i++) {
         float Rev = VoltageRealIm.get(i, 0);
         float Imv = VoltageRealIm.get(i + Nbus, 0);
@@ -435,13 +435,13 @@ MatrixCPU CPUPFdistPQ::getY()
     int line = 0;
    
     for (int i = 0; i < Nbus; i++) {
-        int k = CoresBusLin.get(i, 0);
+        int k = (int) CoresBusLin.get(i, 0);
 
         float ei = VoltageRealIm.get(i, 0);
         float fi = VoltageRealIm.get(Nbus + i, 0);
 
         for (int voisin = k + 1; voisin < (k + nLines.get(i, 0)); voisin++) {
-            int j = CoresVoiLin.get(voisin, 0);
+            int j = (int) CoresVoiLin.get(voisin, 0);
             float ej = VoltageRealIm.get(j, 0);
             float fj = VoltageRealIm.get(j + Nbus, 0);
             if (j > i) {
@@ -510,7 +510,7 @@ void CPUPFdistPQ::display(bool all)
 {
     std::cout.precision(3);
     calcE();
-    float errV = err;
+    float errV = (float) err;
     if (iter == 0) {
         std::cout << "algorithm not launch" << std::endl;
         calcW(true);
@@ -570,7 +570,7 @@ void CPUPFdistPQ::display(bool all)
 
         //std::cout << 0 << "      " << E.get(Nbus, 0) << "             " << E.get(0, 0) * (abs(E.get(0, 0)) > 0.0001) * 180 / 3.1415 << "              " << (abs(W.get(0, 0)) > 0.0001) * W.get(0, 0) << "         " << (abs(W.get(Nbus, 0)) > 0.0001) * W.get(Nbus, 0) << std::endl;
 
-        float seuil = 0.0001;
+        float seuil = 0.0001f;
        
         
         std::cout << std::setw(5) << 0 << "|" << std::setw(11) << E.get(Nbus, 0) << "*|" << std::setw(11) << E.get(0, 0) * (abs(E.get(0, 0)) > seuil) * 180 / 3.1415
@@ -590,7 +590,7 @@ void CPUPFdistPQ::display(bool all)
         
     }
     else {
-        float seuil = 0.0001;
+        float seuil = 0.0001f;
         std::cout << " Bus |          Voltage        |  Power = Generation  + Load   |  Init = Generation  + Load    |" << std::endl;
         std::cout << "  #  |    Mag(pu) |  Ang(deg)  |    P (pu)     |     Q (pu)    |    P (pu)     |     Q (pu)    |" << std::endl;
         std::cout << "-----|------------|------------|---------------|---------------|---------------|---------------|" << std::endl;

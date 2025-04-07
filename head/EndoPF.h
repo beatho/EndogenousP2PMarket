@@ -40,16 +40,6 @@ public:
 private:
 	// ne change pas avec P0
 	
-	int _nAgentTrue = 0; // _nAgent = _nAgentTrue + (isAc)*_nAgent
-	int _nTradeP = 0;
-	int _nTradeQ = 0;
-	
-
-	int _iterGlobal = 0;
-	int _iterG = 0;
-	int _stepG = 0;
-
-	
 	MatrixCPU Pnpre;
 	MatrixCPU dP;
 

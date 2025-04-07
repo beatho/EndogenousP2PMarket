@@ -52,7 +52,7 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	clock_t tall =clock();
+	tMarket = clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -79,8 +79,8 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	int iterLocal = 0;
 	float resG = 2 * _epsG;
 	float resL = 2 * _epsL;
-	int iterGlobal = 0;
-	while ((iterGlobal < _iterG) && (resG>_epsG)) {
+	_iterGlobal = 0;
+	while ((_iterGlobal < _iterG) && (resG>_epsG)) {
 		resL = 2 * _epsL;
 		iterLocal = 0;
 #ifdef INSTRUMENTATION
@@ -108,11 +108,11 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 		updateGlobalProb();
 
 		// FB 4
-		if (!(iterGlobal % _stepG)) {
+		if (!(_iterGlobal % _stepG)) {
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResEndo(iterGlobal / _stepG);
+			resG = updateResEndo(_iterGlobal / _stepG);
 			//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG)
 			//	<< " " << resF.get(1, iterGlobal / stepG) << " " << resF.get(2, iterGlobal / stepG) << std::endl;
 #ifdef INSTRUMENTATION
@@ -120,7 +120,7 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 			timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION		
 		}
-		iterGlobal++;
+		_iterGlobal++;
 	}
 	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (iterGlobal - 1) / stepG) << " " << resF.get(1, (iterGlobal - 1) / stepG) << " " << resF.get(2, (iterGlobal - 1) / stepG) << std::endl;
 #ifdef INSTRUMENTATION
@@ -132,72 +132,17 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	Kappa1.projectNeg(); //delta1
-	Kappa2.projectNeg(); // delta2
-
-
-	int indice = 0;
-	for (int idAgent = 0; idAgent < _nAgent; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
 	
-	fc = calcFc();
-	// FB 5
-	if (cas.isAC()) {
-		MatrixCPU tradeTot(2 * _nAgent, _nAgent);
-		MatrixCPU LAMBDATot(2 * _nAgent, _nAgent);
-		MatrixCPU PnTot(2 * _nAgent, 1);
-		MatrixCPU MUTot(2 * _nAgent, 1);
 
-		for (int n = 0; n < _nAgent; n++) {
-			for (int m = 0; m < _nAgent; m++) {
-				tradeTot.set(n, m, trade.get(n, m));
-				LAMBDATot.set(n, m, LAMBDA.get(n, m));
-			}
-			PnTot.set(n, 0, Pn.get(n, 0));
-			MUTot.set(n, 0, MU.get(n, 0));
-		}
-		result->setLAMBDA(&LAMBDATot);
-		result->setTrade(&tradeTot);
-		result->setMU(&MUTot);
-		result->setPn(&PnTot);
-
-	}
-	else {
-		
-		result->setLAMBDA(&LAMBDA);
-		result->setTrade(&trade);
-		result->setMU(&MU);
-		result->setPn(&Pn);
-	}
-
-
-	result->setResF(&resF);
-	if (_nLine) {
-		result->setDelta1(&Kappa1);
-		result->setDelta2(&Kappa2);
-	}
-	result->setIter(iterGlobal);
+	setResult(result, cas.isAC());
 	
-	
-	
-	result->setFc(fc);
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
 	timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 	occurencePerBlock.increment(0, 7, 1);
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
-	tall = clock() - tall;
-	result->setTime((float)tall / CLOCKS_PER_SEC);
-	
+
 }
 
 void ADMMConst::init(const Simparam& sim, const StudyCase& cas)
@@ -206,22 +151,22 @@ void ADMMConst::init(const Simparam& sim, const StudyCase& cas)
 	
 	//std::cout << "init " << std::endl;
 	isAC = false;
-	initSimParam(sim);
 	initSize(cas);
 
-	//std::cout << "mise sous forme lin�aire" << std::endl;
-	initLinForm(sim, cas);
-	
+	initSimParam(sim);
 
 
-	// transfert des mises lineaire
+	initCaseParam(sim, cas);
+	//std::cout << "mise sous forme lineaire" << std::endl;
+	initLinForm(cas);
 	
 
 	//std::cout << "donnees sur CPU pour le grid" << std::endl;
-	
+	initDCEndoGrid(cas);
+
 	//std::cout << "autres donn�e sur CPU" << std::endl;
 		
-	initCaseParam(sim, cas);
+	
 	initDCEndoMarket();
 
 
@@ -285,9 +230,9 @@ void ADMMConst::updateLocalProb() {
 
 	
 	for (int i = 0; i < _nAgent; i++) {
-		int nVoisinLocal = nVoisin.get(i, 0);
-		int beginLocal = CoresAgentLin.get(i, 0);
-		int endLocal = beginLocal + nVoisinLocal;
+		int nVoisinLocal = (int) nVoisin.get(i, 0);
+		int beginLocal = (int) CoresAgentLin.get(i, 0);
+		int endLocal =  beginLocal + nVoisinLocal;
 		float m = 0;
 		for (int j = beginLocal; j < endLocal; j++) {
 			m += Tlocal.get(j, 0);
@@ -310,10 +255,10 @@ void ADMMConst::updateBt1()
 	
 	// subtractTrans
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t,0);
+		int k = (int) CoresLinTrans.get(t,0);
 		Bt1.set(t, 0, tradeLin.get(t, 0) - tradeLin.get(k, 0));
 	}
-	Bt1.multiply(0.5*_rhog); 
+	Bt1.multiply(0.5f*_rhog); 
 	Bt1.subtract(&LAMBDALin);
 	Bt1.divide(_rhog);
 }
@@ -321,8 +266,8 @@ void ADMMConst::updateBt1()
 void ADMMConst::updateBt2()
 {
 	for (int i = 0; i < _nAgent; i++) {
-		int nVoisinLocal = nVoisin.get(i,0);
-		int beginLocal = CoresAgentLin.get(i,0);
+		int nVoisinLocal = (int) nVoisin.get(i,0);
+		int beginLocal = (int) CoresAgentLin.get(i,0);
 		int endLocal = beginLocal + nVoisinLocal; 
 		for (int j = beginLocal; j < endLocal; j++) {
 			float m = Tlocal_pre.get(j,0) - Tmoy.get(i, 0) + P.get(i, 0) - MU.get(i, 0); 

@@ -28,7 +28,7 @@ public:
 
 	virtual void updatePn();
 
-	void initLinForm(const Simparam& sim, const StudyCase& cas);
+	void initLinForm(const StudyCase& cas);
 	void initSize(const StudyCase& cas);
 	void initSimParam(const Simparam& sim); // AFTER initSize
 	void initDCEndoGrid(const StudyCase& cas); // init with G transposed
@@ -36,6 +36,7 @@ public:
 	void initP2PMarket();
 	void initCaseParam(const Simparam& sim, const StudyCase& cas);
 
+	virtual void setResult(Simparam* result, bool casAC);
 
 	virtual void solveWithMinPower(Simparam* result, const Simparam& sim, const StudyCase& cas);
 	
@@ -44,6 +45,8 @@ public:
 
 protected:
 	// ne change pas avec P0
+	clock_t tMarket;
+
 	float _mu = 40.0f;
 	float _mu1 = 40.0f;
 	float _mul = 40.0f;
@@ -107,6 +110,8 @@ protected:
 	MatrixGPU Ap123;
 
 	MatrixGPU Bt1;
+	MatrixGPU Bt2;
+	MatrixGPU Bp1;
 	MatrixGPU Ct;
 	MatrixGPU matUb;
 	

@@ -38,32 +38,13 @@ public:
 	bool initWithMarketClear = true;
 private:
 	// ne change pas avec P0
-	float _delta = 0.01;
-	float _epsLim = 0.1;
-
-
-	int _nAgentTrue = 0;
-	int _nTradeP = 0;
-	int _nTradeQ = 0;
-
-
+	float _delta = 0.01f;
 	float _resG = 0;
-	int _iterGlobal = 0;
-	int _stepG = 0;
-	int _iterG = 0;
-	int _stepL = 0;
-	int _stepIntern = 0;
-
-	clock_t timeMarketEndo;
-
 	
-	MatrixCPU Ap123;
-
-
+	
 	// Pour le r�seau
 
 	float _rhoSO = 0;
-	MatrixCPU Ap3;
 	bool _radial = false;
 	
 	MethodOPF* OPF = nullptr;

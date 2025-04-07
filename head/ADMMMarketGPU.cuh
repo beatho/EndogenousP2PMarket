@@ -26,10 +26,6 @@ public:
 private:
 	// ne change pas avec P0
 	
-	int _iterGlobal = 0;
-	clock_t tMarket;
-
-
 };
 
 __global__ void setMinPowerForSolve(float* Pmax, float* Pmin, int nCons);

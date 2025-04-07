@@ -38,25 +38,9 @@ private:
 	// ne change pas avec P0
 	
 	float _delta = 1;
-	float _epsLim = 0.1;
-	int _stepIntern = 0;
-
-	int _nAgentTrue = 0;
-	int _nTradeP = 0;
-	int _nTradeQ = 0;
-
-	
 	float _resG = 0;
-	int _iterGlobal = 0;
-	int _stepG = 0;
-	int _iterG = 0;
-	int _stepL = 0;
-	clock_t timeMarketEndo;
-
-
-	MatrixGPU Ap123;
-	MatrixGPU Bp1;
 	
+
 	// Matrices kept on CPU
 	MatrixCPU PSOCPU;
 	MatrixCPU PnCPU;
@@ -64,7 +48,6 @@ private:
 	// Pour le r�seau
 
 	float _rhoSO = 0;
-	MatrixGPU Ap3;
 	bool _radial = false;
 	
 	MethodOPFGPU* OPF = nullptr;

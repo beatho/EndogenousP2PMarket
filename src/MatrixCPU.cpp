@@ -646,7 +646,7 @@ void MatrixCPU::subtractRow(int row1, int row2, float factor)
 void MatrixCPU::subtractAbs(MatrixCPU* m1, MatrixCPU* m2)
 {
     if (!dim(m1) || !dim(m2)) {
-        throw std::invalid_argument("not the same dimension , (substractAbs)");
+        throw std::invalid_argument("subtractAbs not the same dimension");
     }
     for (int i = 0; i < _row; ++i)
     {

@@ -65,7 +65,7 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	tMarket =clock();
+	tMarket = clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -91,8 +91,6 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 	
 	
 	float epsL2 = _epsL * _epsL;
-	float fc = 0;
-
 	float resG = 2 * _epsG;
 	float resL = 2 * _epsL;
 	_iterGlobal = 0;
@@ -142,7 +140,7 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 
 		_iterGlobal++;
 	}
-	//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << std::endl;
+	//std::cout << _iterGlobal << " " << resL << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << std::endl;
 #ifdef INSTRUMENTATION	
 
 	cudaDeviceSynchronize();
@@ -152,56 +150,7 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 	
-	
-	updatePn();
-
-	/*std::cout << "power" << std::endl;
-	Tmoy.display(true);
-	P.display(true);
-	Pn.display(true); 
-
-	std::cout << "lambda" << std::endl;
-	LAMBDALin.display(true);*/
-
-	fc = calcFc();
-	MatrixCPU tradeLinCPU;
-	tradeLin.toMatCPU(tradeLinCPU);
-	MatrixCPU LAMBDALinCPU;
-	LAMBDALin.toMatCPU(LAMBDALinCPU);
-	MatrixCPU PnCPU;
-	Pn.toMatCPU(PnCPU);
-	MatrixCPU MUCPU;
-	MU.toMatCPU(MUCPU);
-	int indice = 0;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisinCPU.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLinCPU.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) {
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				trade.set(idAgent, idVoisin, tradeLinCPU.get(indice, 0));
-				LAMBDA.set(idAgent, idVoisin, LAMBDALinCPU.get(indice, 0));
-				indice = indice + 1;
-			}
-
-		}
-	}
-
-	result->setResF(&resF);
-	result->setLAMBDA(&LAMBDA);
-	result->setTrade(&trade);
-	result->setIter(_iterGlobal);
-	result->setPn(&PnCPU);
-	result->setFc(fc);
-	result->setMU(&MUCPU);
-	//result->setRho(_rhog);
+	setResult(result, cas.isAC());
 
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize();
@@ -210,10 +159,8 @@ void ADMMMarketGPU::solve(Simparam* result, const Simparam& sim, const StudyCase
 	occurencePerBlock.increment(0, 7, 1);
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
-
-	tMarket = clock() - tMarket;
-
-	result->setTime((float)tMarket / CLOCKS_PER_SEC);
+	//std::cout << "fin method " << std::endl; 
+	
 }
 
 void ADMMMarketGPU::init(const Simparam& sim, const StudyCase& cas)
@@ -222,17 +169,19 @@ void ADMMMarketGPU::init(const Simparam& sim, const StudyCase& cas)
 	
 	clock_t t = clock();
 	isAC = cas.isAC();
+	//std::cout << "init Size" << std::endl;
 	initSize(cas);
+	//std::cout << "init SimParam " << std::endl;
 	initSimParam(sim);
-
-	//std::cout << "mise sous forme lineaire" << std::endl;
-	initLinForm(sim, cas);
-		
-	//std::cout << "autres donnee sur GPU" << std::endl;
+	//std::cout << "case Param" << std::endl;
 	initCaseParam(sim, cas);
-
-	initP2PMarket();
+	//std::cout << "mise sous forme lineaire" << std::endl;
+	initLinForm(cas);
 	
+	//std::cout << "autres donnee sur CPU" << std::endl;
+	initP2PMarket();
+
+	//std::cout << " Global " << std::endl;
 	updateGlobalProb();
 	//std::cout << "rho " << _rhog << " rhoL " << _rhol << " rho1 " << _rho1 << std::endl;
 	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;

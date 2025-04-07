@@ -208,7 +208,7 @@ void ResultInterface::setDual(MatrixCPU lambda, MatrixCPU MU){
     //_lambda.display();
 }
 void ResultInterface::setDelta(MatrixCPU delta1, MatrixCPU delta2){
-    for(int i=0; i<_sizes.get(0,nLineCons_ind); i++){
+    for(int i=0; i< delta1.getNLin(); i++){
         _delta.set(i, 0, delta1.get(i,0));
         _delta.set(i, 1, delta2.get(i,0));
     }
@@ -380,7 +380,7 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
         int Nbus  = (int) _sizes.get(0, nBusP_ind);
         int Nline = (int) _sizes.get(0, nLineP_ind);
         std::cout << "===============================================================|" << std::endl;
-        std::cout << "        Market Simulation result :  System Summary             |" << std::endl;
+        std::cout << "  Market Endogeneous Simulation result :  System Summary       |" << std::endl;
         std::cout << "===============================================================|" << std::endl;
         std::cout << "Agents' count :  " << _sizes.get(0, nAgentP_ind) << std::endl;
         std::cout << "Buses            " <<  Nbus << std::endl;
@@ -389,9 +389,6 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
         std::cout << "iter : " << _results.get(0, iterF_ind) << std::endl;
         std::cout << "Residuals : symetrie " << _results.get(0, resR_ind) << " convergence " << _results.get(0, resS_ind) << " grid " << _results.get(0, resX_ind) << std::endl;
         std::cout << "Computation time : " << _results.get(0, temps_ind) << std::endl;
-        std::cout << std::endl << std::endl;
-        std::cout << std::endl << std::endl;
-	
         std::cout << std::endl << std::endl;
         std::cout << std::endl << std::endl;
         std::cout << "========================================================================================================|" << std::endl;
@@ -403,9 +400,9 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
 
         std::cout << std::setw(8) << 0 << "|" << std::setw(9) <<  0 << " |" << std::setw(10)
                 << 0 << "|" << std::setw(10) << _Pn.get(0, 0) << "|" << std::setw(12)
-                << Pmin.get(0, 0) << "|" << std::setw(12) << Pmax.get(0, 0)
+                << "-inf" << "|" << std::setw(12) << "0"
                 << "|" << std::setw(11) << _Pn.get((nAgent+1), 0) << "|" << std::setw(12) << "-inf"
-                << "|" << std::setw(11) << 0 << "|" << std::endl;
+                << "|" << std::setw(11) << "inf" << "|" << std::endl;
         for (int n = 1; n < nAgent + 1; n++) {
             std::cout << std::setw(8) << n << "|" << std::setw(9) << a.get(n, 0) << " |" << std::setw(10)
                 << b.get(n, 0) << "|" << std::setw(10) << _Pn.get(n, 0) << "|" << std::setw(12)
@@ -413,6 +410,7 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
                 << "|" << std::setw(11) << _Pn.get(n + (nAgent+1), 0) << "|" << std::setw(12) << Pmin.get(n + (nAgent+1), 0)
                 << "|" << std::setw(11) << Pmax.get(n + (nAgent+1), 0) << "|" << std::endl;
         }
+        std::cout << std::endl << std::endl;
         std::cout << "============================================================================================|" << std::endl;
         std::cout << "      Line Data                                                                             |" << std::endl;
         std::cout << "============================================================================================|" << std::endl;
@@ -423,7 +421,6 @@ void ResultInterface::display(StudyCaseInterface* _case, int type){
         //std::cout << 0 << "      " << E.get(Nbus, 0) << "             " << E.get(0, 0) * (abs(E.get(0, 0)) > 0.0001) * 180 / 3.1415 << "              " << (abs(W.get(0, 0)) > 0.0001) * W.get(0, 0) << "         " << (abs(W.get(Nbus, 0)) > 0.0001) * W.get(Nbus, 0) << std::endl;
 
         float seuil = 0.0001f;
-
         std::cout << std::setw(5) << "**" << "|" << std::setw(5) << 0 << "|" << std::setw(14) << sqrt(_E.get(Nbus, 0)) << "* |"
             << std::setw(13) << _Pb.get(0, 0) << "|" << std::setw(13) << _Pb.get(Nbus, 0)
             << "|" << std::setw(9) << sqrt(_E.get(0, 0))<< "* |" << std::setw(11) << 0 << "|" << std::setw(11) << 0  << "|"<< std::endl;

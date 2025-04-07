@@ -157,9 +157,9 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 #endif // INSTRUMENTATION
 		#pragma omp parallel for
 		for (int t = 0; t < _nTrade; t++) {
-			int k = CoresLinTrans.get(t, 0);
-			float lamb = LAMBDALin.get(t, 0) + 0.5 * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
-			float bt = 0.5 * (tradeLin.get(t, 0) - tradeLin.get(k, 0)) - lamb / _rhog;
+			int k = (int) CoresLinTrans.get(t, 0);
+			float lamb = LAMBDALin.get(t, 0) + 0.5f * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
+			float bt = 0.5f * (tradeLin.get(t, 0) - tradeLin.get(k, 0)) - lamb / _rhog;
 			LAMBDALin.set(t, 0, lamb);
 			Bt1.set(t, 0, bt);
 		}
@@ -188,28 +188,7 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	int indice = 0;
-	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		MatrixCPU omega(cas.getVoisin(idAgent));
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
-		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
-			int idVoisin = omega.get(voisin, 0);
-			trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
-			LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
-			indice = indice + 1;
-		}
-	}
-	for (int idAgent = _nAgentTrue; idAgent < _nAgent; idAgent++) {
-		for (int idVoisin = 0; idVoisin < _nAgentTrue; idVoisin++) {
-			if (idVoisin != (idAgent - _nAgentTrue)) {
-				trade.set(idAgent, idVoisin, tradeLin.get(indice, 0));
-				LAMBDA.set(idAgent, idVoisin, LAMBDALin.get(indice, 0));
-				indice = indice + 1;
-			}
-			
-		}
-	}
-	updatePn();
+	
 	/*std::cout << "Trade" << std::endl;
 	tradeLin.display();
 	std::cout << "power" << std::endl;
@@ -217,23 +196,11 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 	P.display();
 	Pn.display();*/
 
-	fc = calcFc();
+	
 	// FB 5
 	//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << " " << fc << std::endl;
 
-	result->setResF(&resF);
-	
-	result->setLAMBDA(&LAMBDA);
-	
-	result->setTrade(&trade); 
-	
-	result->setIter(_iterGlobal);
-	
-	result->setMU(&MU);
-	
-	result->setPn(&Pn);
-	
-	result->setFc(fc);
+	setResult(result, cas.isAC());
 
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
@@ -242,9 +209,6 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 
 	result->setTimeBloc(&timePerBlock, &occurencePerBlock);
 #endif // INSTRUMENTATION
-	tMarket = clock() - tMarket;
-
-	result->setTime((float)tMarket / CLOCKS_PER_SEC);
 }
 
 void ADMMMarketOpenMP::updateP0(const StudyCase& cas)
@@ -264,7 +228,7 @@ void ADMMMarketOpenMP::updateP0(const StudyCase& cas)
 	Cp = b;
 	int indice = 0;
 	for (int idAgent = 0; idAgent < _nAgentTrue; idAgent++) {
-		int Nvoisinmax = nVoisin.get(idAgent, 0);
+		int Nvoisinmax = (int) nVoisin.get(idAgent, 0);
 		for (int voisin = 0; voisin < Nvoisinmax; voisin++) {
 			matLb.set(indice, 0, Lb.get(idAgent, 0));
 			indice = indice + 1;
@@ -305,26 +269,22 @@ void ADMMMarketOpenMP::init(const Simparam& sim, const StudyCase& cas)
 
 	//std::cout << isAC << " " <<  _nAgentTrue << " " << _nAgent << " " << _nTrade << " " << _nTradeP << " " << _nTradeQ << std::endl;
 	
-
-
 	_at1 = _rhog; // represente en fait 2*a
 	_at2 = _rhol;
 
 	
-
-	//std::cout << "mise sous forme lineaire" << std::endl;
-	initLinForm(sim, cas);
-	//std::cout << "autres donnee sur CPU" << std::endl;
 	initCaseParam(sim, cas);
+	//std::cout << "mise sous forme lineaire" << std::endl;
+	initLinForm(cas);
+	//std::cout << "autres donnee sur CPU" << std::endl;
+	
 	initP2PMarket();
 
-
-
-#pragma omp parallel for
+	#pragma omp parallel for
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
-		float lamb = LAMBDALin.get(t, 0) + 0.5 * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
-		float bt = 0.5 * (tradeLin.get(t, 0) - tradeLin.get(k, 0)) - lamb / _rhog;
+		int k = (int) CoresLinTrans.get(t, 0);
+		float lamb = LAMBDALin.get(t, 0) + 0.5f * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
+		float bt = 0.5f * (tradeLin.get(t, 0) - tradeLin.get(k, 0)) - lamb / _rhog;
 		LAMBDALin.set(t, 0, lamb);
 		Bt1.set(t, 0, bt);
 	}
