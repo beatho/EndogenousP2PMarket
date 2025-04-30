@@ -97,7 +97,7 @@ int main2() {
 		//testMarket();
 		//testCPUPF();
 		//testOPF();
-		testMarketEndo();
+		//testMarketEndo();
 
 		//SimuTemporalWOConstraint("Italy");
 		//SimuTemporalTestFeederEndo();
@@ -4448,8 +4448,6 @@ void SimuStatMarketEndoACAgent() {
 	//sys.setMethod(nullptr);
 }
 
-
-
 void SimuTemporalTestFeederEndo() {
 	std::string path = "data/ACGrid/";
 	std::string fileName2 = "SimutemporalFBTestFeederShort.csv";
@@ -6174,7 +6172,7 @@ void testMarket()
 	results.display();
 }
 
-void testMarketEndo()
+void testMarketEndo(int choseCase, std::string chosenCase)
 {
 	MarEndoCons* marketEndoCPU = new MarEndoCons;
 	MarEndoConsGPU* marketEndoGPU = new MarEndoConsGPU;
@@ -6193,10 +6191,9 @@ void testMarketEndo()
 	bool methodeToSimule[8] = { true, true, true, true, true, true, true, true }; ///false
 
 	int million = 1000000;
-	int choseCase = 0;
 	bool doubleSolve = false; // true  false
 	std::string fileName = "TimeByBlockMarketEndo";
-	std::string chosenCase = "";
+	//std::string chosenCase = "";
 	float Power = 0;
 	int offsetAgent = 0; // which agent we kept the value to compare results
 	
@@ -6224,15 +6221,17 @@ void testMarketEndo()
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
 
+	std::cout << choseCase << " " << chosenCase <<std::endl;
+
 	switch (choseCase)
 	{
 	case 0:
-		chosenCase = "case10ba";// 9, 30 57  118 case30  // radial case10ba case4_dist case85 case69
+		//chosenCase = "case10ba";// 9, 30 57  118 case30  // radial case10ba case4_dist case85 case69
 		cas.SetACFromFile(chosenCase); //case_ACTIVSg2000	
 		cas.display();
 		break;
 	case 1:
-		chosenCase = "RandRadial";
+		//chosenCase = "RandRadial";
 		cas.genGridBT(100, 80, 200, 0.001, 0.0005);
 		cas.genAgentsAC(20, 0.4, 0.25, 0.5, 0.1, 1, 0.1, 0.005, 1, 0.1, 1, 0.2);
 		cas.genLinkGridAgent();
@@ -6240,35 +6239,35 @@ void testMarketEndo()
 		
 		break;
 	case 2:
-		chosenCase = "RandHTB";
+		//chosenCase = "RandHTB";
 		cas.genGridHTB(10, 20, 1, 0.01, 0.0005);
 		cas.genAgentsAC(16, 0.5, 0.5, Power, 0, 1, 0, 0.5, Power, 0, 1, 0.2);
 		cas.genLinkGridAgent();
 		break;
 	case 3:
-		chosenCase = "EuropeTestFeeder";
+		//chosenCase = "EuropeTestFeeder";
 		cas.SetEuropeTestFeeder();
 		cas.display();
 		break;
 	case 4:
-		chosenCase = "2node";
+		//chosenCase = "2node";
 		cas.SetAC2node();
 		cas.display();
 		break;
 	case 5:
-		chosenCase = "3node";
+		//chosenCase = "3node";
 		cas.SetAC3Bus();
 		cas.display();
 		cas.display(1);
 		
 		break;
 	case 6:
-		chosenCase = "case30";// 9, 30 57 69 118  // radial case10ba case4_dist case85
+		//chosenCase = "case30";// 9, 30 57 69 118  // radial case10ba case4_dist case85
 		cas.SetACFromFileSimplify(chosenCase); //case_ACTIVSg2000	
 		//cas.display();
 		break;
 	default:
-		std::cout << "unknown choice, case 0" << std::endl;
+		//std::cout << "unknown choice, case 0" << std::endl;
 		return;
 	}
 	if (cas.isAC() && (methodeToSimule[3] || methodeToSimule[7])) {

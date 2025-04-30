@@ -42,20 +42,7 @@
 #include "TestUtilities.cuh"
 #include "TestMatrixGPU.cuh"
 
-#include "TestMatrixCPU.h"
-#include "TestAgent.h"
-#include "TestStudyCase.h"
-#include "TestADMMConst.h"
 
-
-#include "TestPAC.h"
-#include "TestPACConst.h"
-#include "TestSimparam.h"
-#include "TestSysteme.h"
-
-#include "TestMatrixCPU.h"
-
-#include "Utilities.h"
 
 
 
@@ -115,7 +102,7 @@ void testCPUPF();
 void testOPF();
 void testADMMACConst();
 void testMarket();
-void testMarketEndo();
+
 
 void getErrorSensiPwerLine();
 

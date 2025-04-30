@@ -65,3 +65,5 @@
 #include "TestMatrixCPU.h"
 
 int main2();
+
+void testMarketEndo(int numCase, std::string caseName);

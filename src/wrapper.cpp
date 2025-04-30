@@ -30,6 +30,19 @@ PyObject* callMainFunction(PyObject* self, PyObject* arg){
     return Py_None;
 }
 
+PyObject* callTestMarketEndo(PyObject* self, PyObject* arg){
+    std::string filename; 
+    char* buffer;
+    int numCase = 0;
+    PyArg_ParseTuple(arg, "is", &numCase, &buffer);
+    filename = buffer;
+
+    std::cout << numCase << " " << filename << std::endl;
+    testMarketEndo(numCase, filename);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 PyObject* setStudyCaseFromFile(PyObject* self, PyObject* args){
 
     std::string filename; 
@@ -393,6 +406,12 @@ PyMethodDef EndoCudaFunction[] = {
         callMainFunction,
         METH_VARARGS,
         "this function call the main of the c program"
+    },
+    {
+        "callTestMarketEndo",
+        callTestMarketEndo,
+        METH_VARARGS,
+        "this function call the testMarketEndo of the c program"
     },
     {NULL, NULL, 0, NULL}
 };

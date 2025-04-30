@@ -318,21 +318,23 @@ void MethodP2PGPU::initSize(const StudyCase& cas){
 	}
 	nVoisin = MatrixGPU(nVoisinCPU, 1);
 	nVoisin.preallocateReduction();
-	if(isAC){
-		_nLine = cas.getNLine(true);
-	} else{
-		_nLine = cas.getNLine();
-	}
+
 	_nBus = cas.getNBus();
 	_nTrade = (int) nVoisin.sum();
 	_nTradeP = 0;
-	if(!isAC){
-		_nTradeP = _nTrade;
-		_nTradeQ = 0;
-	} else{
+
+	if(isAC){
+		_nLine = cas.getNLine(true);
 		_nTradeP = (int) nVoisin.sum(0, _nAgentTrue);
 		_nTradeQ = _nTrade - _nTradeP;
+
+	} else{
+		_nLine = cas.getNLine();
+		_nTradeP = _nTrade;
+		_nTradeQ = 0;
 	}
+	
+	
 	_numBlocksN  =MYMAX(ceil((_nAgent + _blockSize - 1) / _blockSize), 1);
 	_numBlocksM  =MYMAX(ceil((_nTrade + _blockSize - 1) / _blockSize), 1);
 	_numBlocksL  =MYMAX(ceil((_nLine + _blockSize - 1) / _blockSize), 1);

@@ -498,6 +498,7 @@ void MethodP2P::initDCEndoMarket(){
 	Ap2.multiplyT(&nVoisin);
 	Ap2.multiplyT(&nVoisin);
 	Ap12.add(&Ap1, &Ap2);
+	
 	Cp = Cp1;
 }
 void MethodP2P::initP2PMarket(){

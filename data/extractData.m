@@ -1,5 +1,5 @@
 %% create data for my PF
-name = "case10ba"; 
+name = "case69"; 
 
 % dist : case4_dist case10ba case85
 % case3 case9 case39 case85 case141 case_ACTIVSg200 case_ACTIVSg500 case1888rte 
@@ -9,7 +9,7 @@ name = "case10ba";
 %  case14 case18 case_ieee30  case57 case69  case118  case145  
 %case1888rte case2383wp case300  case_ACTIVSg2000 case136ma case_ACTIVSg10k
 % case_ACTIVSg25k case_ACTIVSg70k case3012wp
-cas = name+ ".m";
+cas = name + ".m";
 mpopt = mpoption('verbose',1, 'pf.alg', 'NR'); % GS NR
 open(cas);
 name1 = strcat('ACGrid/Agent', name, '.txt');
@@ -162,10 +162,6 @@ disp("**************************************************************************
 %     
 % 
 % end
-
-
-
-
 
 
 Ub1 = test2.bus(1,BASE_KV);
