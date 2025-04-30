@@ -727,7 +727,11 @@ void MatrixCPU::multiply(MatrixCPU* m1, MatrixCPU* m2)
 {
     if ((m1->getNCol() != m2->getNLin()) || (_row != m1->getNLin()) || (_column != m2->getNCol()) )
     {
-        std::cout << m1->getNCol() << " " << m2->getNLin() << " " << _row << " " <<  m1->getNLin() << " " << _column << " " <<  m2->getNCol() << std::endl;
+        std::cout <<_row << " " << _column << std::endl;
+        std::cout << m1->getNCol() << " " <<  m1->getNLin()  << std::endl;
+        std::cout << m2->getNLin() << " " <<  m2->getNCol() << std::endl;
+
+        
         throw std::invalid_argument("not the good dimension (multiply)");
     }
     float r = 0;

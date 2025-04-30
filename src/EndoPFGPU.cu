@@ -151,13 +151,15 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 	if (!cas.isAC()) {
 		throw std::invalid_argument("EndoPFGPU::init : Wrong studyCase must be AC");
 	}
+	
 	initSize(cas);
-	_nLine = cas.getNLine(true);
+	//_nLine = cas.getNLine(true);
 	_nVarPF = _nLine + 2 * _nBus;
 	initSimParam(sim);
+	
 	tempL1 = MatrixGPU(_nVarPF, 1, 0, 1);
 	tempL1.preallocateReduction();
-
+	
 	isRadial = cas.isRadial();
 	
 	int nVoisinMax = nVoisin.max2();
@@ -166,11 +168,10 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 		throw std::invalid_argument("EndoPFGPU::init For this Method, an agent must not have more than 5120 peers");
 	}
 
-	_numBlocksBL = ceil((_nVarPF + _blockSize - 1) / _blockSize);
+	_numBlocksBL = MYMAX(ceil((_nVarPF + _blockSize - 1) / _blockSize), 1);
 	
 	
 	//std::cout << _numBlocksN << " " << _numBlocksM << " " << _numBlocksL << " " << _numBlocksBL << std::endl;
-	
 	//std::cout <<  _blockSize << std::endl;
 	initCaseParam(sim, cas);
 	if (initWithMarketClear) {
@@ -184,13 +185,12 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 		Tmoy = Pn;
 
 	}
+	Pnpre = Pn;
 	//Pnpre.display(true);
 	
-
 	//std::cout << "mise sous forme lineaire" << std::endl;
 	initLinForm(cas);
 	
-	//CHECK_LAST_CUDA_ERROR();
 	//std::cout << "donnees sur CPU pour le grid" << std::endl;
 	delta1 = MatrixGPU(_nVarPF, 1, 0, 1);
 	delta2 = MatrixGPU(_nVarPF, 1, 0, 1);
@@ -213,7 +213,7 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 	//Ylimit.display(true);
 	//YOffset.display(true);
 	
-	CHECK_LAST_CUDA_ERROR();
+	//CHECK_LAST_CUDA_ERROR();
 
 	//std::cout << " PF " << std::endl;
 	if (isRadial) {
@@ -225,7 +225,7 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 	//Ylimit.display();
 	//YOffset.display();
 
-	pf->init(cas, &Pnpre);
+	pf->init(cas, &Pn);
 
 	
 	//CHECK_LAST_CUDA_ERROR();
@@ -234,7 +234,9 @@ void EndoPFGPU::init(const Simparam& sim, const StudyCase& cas)
 	initP2PMarket();
 	//std::cout << "*******" << std::endl;
 	dP = MatrixGPU(_nAgent, 1, 0, 1);
-	
+	Cp2 = MatrixGPU(_nAgent, 1, 0, 1);
+	Cp1 = b;
+	Cp1.multiplyT(&nVoisin);
 	
 	
 	//std::cout << "update Global" << std::endl;

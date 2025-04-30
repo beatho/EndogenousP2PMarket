@@ -53,10 +53,12 @@ void GPUPFdistPQ::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD * PnD, bo
 
     removeLossAgent << <1, 1 >> > (NagentByBus._matrixGPU, CoresAgentBusBegin._matrixGPU);
 
-    //CHECK_LAST_CUDA_ERROR();
-
+    CHECK_LAST_CUDA_ERROR();
+    if(!PQ->getPos()){
+        PQ->transferGPU();
+    }
     calculW0Bis(PQ);
-    //CHECK_LAST_CUDA_ERROR();
+    CHECK_LAST_CUDA_ERROR();
     /*std::cout << " W0 : " << std::endl;
     W0.display(true);*/
     Y = MatrixGPU(2 * Nbus + Nline, 1, 0, 1);
@@ -96,7 +98,7 @@ void GPUPFdistPQ::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD * PnD, bo
     _CoresBusLin = MatrixGPU(cas.getCoresBusLin(), 1);
     _nLines = MatrixGPU(cas.getNLines(), 1);
     
-    //CHECK_LAST_CUDA_ERROR();
+    CHECK_LAST_CUDA_ERROR();
 
 
     //Bgrid = cas.getLineSuceptance();
@@ -136,7 +138,7 @@ void GPUPFdistPQ::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD * PnD, bo
     LastBus = cas.getLastBus(); 
     //CoresLineBus.display();
     //std::cout << "LastBus " << LastBus << std::endl;
-    //CHECK_LAST_CUDA_ERROR();
+    CHECK_LAST_CUDA_ERROR();
     int debutChild = 0;
     MatrixCPU nChildTemp(Nbus, 1, 0);
     _indiceChildBegin = MatrixGPU(Nline, 1);
@@ -161,7 +163,7 @@ void GPUPFdistPQ::init(const StudyCase& cas, MatrixGPU* PQ, MatrixGPUD * PnD, bo
     _indiceChildBegin.transferGPU();
     
    
-    //CHECK_LAST_CUDA_ERROR();
+    CHECK_LAST_CUDA_ERROR();
    
     St = MatrixGPU(2 * Nline, 1, -1, 1);
     Sf = MatrixGPU(2 * Nline, 1, -1, 1);

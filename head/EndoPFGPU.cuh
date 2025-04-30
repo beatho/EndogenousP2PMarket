@@ -38,9 +38,6 @@ private:
 	
 	MatrixGPU Pnpre;
 	MatrixGPU dP;
-
-	MatrixGPU Bt2;
-	MatrixGPU Bp1;
 	
 	// Pour le reseau
 	

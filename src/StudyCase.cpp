@@ -658,7 +658,7 @@ void StudyCase::SetEuropeTestFeeder(std::string path, int typeOfAgentGen, int be
 		throw std::invalid_argument("WIP not implemented");
 		break;
 	}
-	
+	//_CoresBusAgentLin.display();
 	createGrid(false);
 	((StudyCaseACGrid*)SCGrid)->SetEuropeTestFeeder(path);
 	_nBus = SCGrid->getNBus();
@@ -666,7 +666,7 @@ void StudyCase::SetEuropeTestFeeder(std::string path, int typeOfAgentGen, int be
 	_nAgent = SCAg.getNagent();
 
 
-	genCoresBusAgent();
+	genCoresBusAgent(true);
 	computeSensiPower();
 
 }

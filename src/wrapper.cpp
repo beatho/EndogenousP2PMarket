@@ -21,6 +21,14 @@ sortie python :
 #include <string>
 #include "../head/System.h"
 #include "../head/interface.h"
+#include "../head/main.h"
+
+
+PyObject* callMainFunction(PyObject* self, PyObject* arg){
+    main2();
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
 PyObject* setStudyCaseFromFile(PyObject* self, PyObject* args){
 
@@ -379,6 +387,12 @@ PyMethodDef EndoCudaFunction[] = {
         testAffichage,
         METH_VARARGS,
         "this function test the interaction with custom Python object in c"
+    },
+    {
+        "callMainFunction",
+        callMainFunction,
+        METH_VARARGS,
+        "this function call the main of the c program"
     },
     {NULL, NULL, 0, NULL}
 };

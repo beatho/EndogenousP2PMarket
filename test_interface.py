@@ -355,7 +355,8 @@ class TestInterfaceMethod(unittest.TestCase):
         test = EndoCuda.interface(2,2,1)
         #test.display(20)
 
-
+    def test_main(self):
+        EndoCuda.callMainFunction()
     
     '''float Plim1[2] = { -30, 0 };
 	float Plim2[2] = { 0, 60 };
@@ -552,7 +553,7 @@ class TestInterfaceMethod(unittest.TestCase):
             Pb = test.getPb()
             for i in range(len(Pb)):
                 self.assertAlmostEqual(Pb[i], PbExpected[i]/ Sbase, 2)
-                print("{0:g} ".format(Pb[i]), end="")
+                #print("{0:g} ".format(Pb[i]), end="")
             #print("\n perte = ", sum(Pn))
             #print("\n", res)
             #print("***************************************")

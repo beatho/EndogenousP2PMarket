@@ -47,7 +47,7 @@ MatrixGPU::MatrixGPU() {
     _row = 0;
     _column = 0;
     _N = _row * _column;
-     _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize),1);
+    _numBlocks = MYMAX(ceil((_N + _blockSize - 1) / _blockSize),1);
 }
 
 MatrixGPU::MatrixGPU(int l, int c, float value, bool pos)
@@ -1113,6 +1113,7 @@ void MatrixGPU::add(float c)
 void MatrixGPU::add(MatrixGPU* m1, MatrixGPU* m2)
 {
     if (!m1->dim(m2)) {
+        std::cout << m1->_row << " " << m2->_row << " " << m1->_column << " " << m2->_column << std::endl;
         throw std::invalid_argument("not the same dimension, fct add, m1 with m2");
     }
     if (!dim(m1)) {

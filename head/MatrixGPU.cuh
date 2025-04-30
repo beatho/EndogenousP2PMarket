@@ -50,7 +50,7 @@ public:
     float* _matrixCPU = nullptr;
     float* _matrixGPU = nullptr;
     const int _blockSize = 256;
-    int _numBlocks = 0;
+    int _numBlocks = 1;
     bool preallocation = false;
     MatrixGPU();
     MatrixGPU(int line, int column, float value = 0.0f, bool pos=false);

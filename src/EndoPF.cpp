@@ -229,7 +229,7 @@ void EndoPF::init(const Simparam& sim, const StudyCase& cas)
 	isAC = true;
 	initSize(cas);
 	isRadial = cas.isRadial();
-	_nLine = cas.getNLine(true);
+	//_nLine = cas.getNLine(true);
 	_nVarPF = _nLine + 2 * _nBus;
 
 	initSimParam(sim);
@@ -244,11 +244,6 @@ void EndoPF::init(const Simparam& sim, const StudyCase& cas)
 		trade = res.getTrade();
 		Pn = res.getPn();
 
-	}
-	else {
-		LAMBDA = sim.getLambda();
-		trade = sim.getTrade();
-		Pnpre = sim.getPn(); // somme des trades
 	}
 	Pnpre = Pn;
 	//Pnpre.display();

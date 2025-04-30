@@ -333,10 +333,10 @@ void MethodP2PGPU::initSize(const StudyCase& cas){
 		_nTradeP = (int) nVoisin.sum(0, _nAgentTrue);
 		_nTradeQ = _nTrade - _nTradeP;
 	}
-	_numBlocksN = ceil((_nAgent + _blockSize - 1) / _blockSize);
-	_numBlocksM = ceil((_nTrade + _blockSize - 1) / _blockSize);
-	_numBlocksL = ceil((_nLine + _blockSize - 1) / _blockSize);
-	_numBlocksNL = ceil((_nAgent*_nLine + _blockSize - 1) / _blockSize);
+	_numBlocksN  =MYMAX(ceil((_nAgent + _blockSize - 1) / _blockSize), 1);
+	_numBlocksM  =MYMAX(ceil((_nTrade + _blockSize - 1) / _blockSize), 1);
+	_numBlocksL  =MYMAX(ceil((_nLine + _blockSize - 1) / _blockSize), 1);
+	_numBlocksNL =MYMAX(ceil((_nAgent*_nLine + _blockSize - 1) / _blockSize), 1);
 
 
 }
@@ -414,6 +414,13 @@ void MethodP2PGPU::initDCEndoMarket(){
 	initP2PMarket();
 
 	Ap2a = a;
+	Ap2b = MatrixGPU(_nAgent, 1, 0, 1);
+
+	Cp2 = MatrixGPU(_nAgent, 1, 0, 1);
+	Cp1 = b;
+
+	Cp1.multiplyT(&nVoisin);
+
 	Ap2b.sum(&G2);
 	Ap2b.multiply(2 * _rho1);
 	Ap2.add(&Ap2a, &Ap2b);
@@ -421,6 +428,8 @@ void MethodP2PGPU::initDCEndoMarket(){
 	Ap2.multiplyT(&nVoisin);
 	Ap2.multiplyT(&nVoisin);
 	Ap12.add(&Ap1, &Ap2);
+
+	Cp = Cp1;
 }
 void MethodP2PGPU::initP2PMarket(){
 	_at1 = _rhog; 
@@ -428,26 +437,28 @@ void MethodP2PGPU::initP2PMarket(){
 
 	Ap1 = nVoisin;
 	Ap2 = a;
+
 	Ap12 = MatrixGPU(_nAgent, 1, 0, 1);
 
 	Bp1 = MatrixGPU(_nAgent, 1, 0, 1);
 	Bt1 = MatrixGPU(_nTrade, 1, 0, 1);
 	Bt2 = MatrixGPU(_nTrade, 1, 0, 1);
 	
-	Cp1 = b;
+	Cp = b;
 	
 	Pmin.divideT(&nVoisin);
 	Pmax.divideT(&nVoisin);
 	Tmoy.divideT(&nVoisin);
 
 	Ap1.multiply(_rhol);
-	Cp1.multiplyT(&nVoisin);
+	Cp.multiplyT(&nVoisin);
 	
 	
 	Ap2.multiplyT(&nVoisin);
 	Ap2.multiplyT(&nVoisin);
 	Ap12.add(&Ap1, &Ap2);
-	Cp = Cp1;
+
+
 
 	/* not used by default but must exists for P0 */
 	Ap2a   = MatrixGPU(_nAgent, 1, 0, 1);
@@ -508,9 +519,10 @@ void MethodP2PGPU::initCaseParam(const Simparam& sim,const StudyCase& cas){
 }
 
 void MethodP2PGPU::setResult(Simparam* result, bool casAC){
-	Kappa1.projectNeg(); //delta1
-	Kappa2.projectNeg(); // delta2
-
+	if(_nLine){
+		Kappa1.projectNeg(); //delta1
+		Kappa2.projectNeg(); // delta2
+	}
 	updatePn();
 
 	float fc = calcFc();
@@ -568,9 +580,11 @@ void MethodP2PGPU::setResult(Simparam* result, bool casAC){
 
 	result->setLAMBDA(&LAMBDA);
 	result->setTrade(&trade);
-
-	result->setDelta1(&delta1CPU);
-	result->setDelta2(&delta2CPU);
+	
+	if (_nLine) {
+		result->setDelta1(&delta1CPU);
+		result->setDelta2(&delta2CPU);
+	}
 
 	result->setResF(&resF);
 	result->setIter(_iterGlobal);

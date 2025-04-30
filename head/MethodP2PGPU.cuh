@@ -80,10 +80,10 @@ protected:
 
 
 	int _blockSize = 512;
-	int _numBlocksN = 0;
-	int _numBlocksM = 0;
-	int _numBlocksL = 0;
-	int _numBlocksNL = 0;
+	int _numBlocksN = 1;
+	int _numBlocksM = 1;
+	int _numBlocksL = 1;
+	int _numBlocksNL = 1;
 
 	
 	float _at1 = 0.0f;
@@ -101,10 +101,10 @@ protected:
 	MatrixGPU Pn; // somme des trades
 
 	MatrixGPU a;
+	MatrixGPU Ap1;
 	MatrixGPU Ap2; // Mn^2 * (Ap2a + Ap2b)
 	MatrixGPU Ap2a; // a
 	MatrixGPU Ap2b; // 2 * _rho1 * sum(G^2) 
-	MatrixGPU Ap1;
 	MatrixGPU Ap12;
 	MatrixGPU Ap3; // rho1*Mn^2 when used
 	MatrixGPU Ap123;

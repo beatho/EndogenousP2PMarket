@@ -74,8 +74,6 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	_at1 = _rhog;
 		
 
-	float fc = 0;
-
 	int iterLocal = 0;
 	float resG = 2 * _epsG;
 	float resL = 2 * _epsL;
@@ -90,9 +88,7 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 			updateLocalProb();
 			// FB 3
 			if (!(iterLocal % _stepL)) {
-
 				resL = calcRes();
-
 			}
 			Tlocal_pre.swap(&Tlocal); 
 			iterLocal++;
@@ -174,7 +170,11 @@ void ADMMConst::init(const Simparam& sim, const StudyCase& cas)
 	//std::cout << "rho " << _rhog << " rhoL " << _rhol << " rho1 " << _rho1 << std::endl;
 	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 	//std::cout << "fin init " << std::endl;
-
+	/*Bp1.display();
+	Bt1.display();
+	Cp1.display();
+	Cp2.display();
+	Cp.display();*/
 }
 
 void ADMMConst::updateGlobalProb() {
@@ -196,9 +196,11 @@ void ADMMConst::updateGlobalProb() {
 	// FB 3b
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	alpha.multiplyTVector(&G, &Pn, 0);
-	updateQ();
-	
+	if(_nLine>0){
+		alpha.multiplyTVector(&G, &Pn, 0);
+		updateQ();
+	}
+		
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
 	timePerBlock.increment(0, 4, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());

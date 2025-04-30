@@ -58,21 +58,26 @@ void ADMMGPUConst4::init(const Simparam& sim, const StudyCase& cas)
 	}
 	//std::cout << "mise sous forme lineaire" << std::endl;
 	initCaseParam(sim, cas);
-	
+	//CHECK_LAST_CUDA_ERROR();
 	initLinForm(cas);
-	
+	//CHECK_LAST_CUDA_ERROR();
 	//std::cout << "donnees sur GPU pour le grid" << std::endl;
 	initDCEndoGrid(cas);
-
+	//CHECK_LAST_CUDA_ERROR();
 	//std::cout << "autres donn�e sur GPU" << std::endl;
 	
 
 	initDCEndoMarket();
-
+	//CHECK_LAST_CUDA_ERROR();
 	updateGlobalProbGPU();
 	//std::cout << "rho " << _rhog << " rhoL " << _rhol << " _rho1 " << _rho1 << std::endl;
 	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 	
+	/*Bp1.display(true);
+	Bt1.display(true);
+	Cp1.display(true);
+	Cp2.display(true);
+	Cp.display(true);*/
 }
 
 void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
@@ -130,7 +135,6 @@ void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase
 		cudaDeviceSynchronize();
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-
 		updateLocalProbGPU(epsL2, _iterL);
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
@@ -145,7 +149,6 @@ void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-
 			resG = updateResEndo(_iterGlobal / _stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
@@ -256,11 +259,12 @@ void ADMMGPUConst4::updateGlobalProbGPU()
 	cudaDeviceSynchronize();
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION	
-
-	updateAlphaTrans << < _numBlocksNL, _blockSize >> > (alpha._matrixGPU, GTrans._matrixGPU, Pn._matrixGPU, _nLine, _nAgent);
-	updateQpartTrans << < _nLine, _blockSize, _nAgent * sizeof(float) >> > (Qpart._matrixGPU, alpha._matrixGPU, _nAgent, _nLine);
-	updateQtotTrans << <_numBlocksL, _blockSize >> > (Qtot._matrixGPU, Qpart._matrixGPU, alpha._matrixGPU, _nLine);
-
+	if(_nLine>0){
+		updateAlphaTrans << < _numBlocksNL, _blockSize >> > (alpha._matrixGPU, GTrans._matrixGPU, Pn._matrixGPU, _nLine, _nAgent);
+		updateQpartTrans << < _nLine, _blockSize, _nAgent * sizeof(float) >> > (Qpart._matrixGPU, alpha._matrixGPU, _nAgent, _nLine);
+		updateQtotTrans << <_numBlocksL, _blockSize >> > (Qtot._matrixGPU, Qpart._matrixGPU, alpha._matrixGPU, _nLine);
+	}
+	
 
 #ifdef INSTRUMENTATION
 	cudaDeviceSynchronize();

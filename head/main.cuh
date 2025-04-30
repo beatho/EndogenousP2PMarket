@@ -1,86 +1,60 @@
 // utilile
-#include "MatrixCPU.h"
-#include "MatrixCPUD.h"
+
 #include "MatrixGPU.cuh"
 #include "MatrixGPUD.cuh"
-#include "StudyCase.h"
-#include "Simparam.h"
 #include "System.cuh"
-#include "System.h"
+
 
 //Market
-#include "ADMMMarket.h"
-#include "ADMMMarketOpenMP.h"
-#ifdef OSQP
-    #include "OSQP.h" 
-    #include "OSQPCentralized2.h"
-    #include <osqp.h>
-#endif
 
-#include "PAC.h" 
-#include "PACOpenMP.h" 
 #include "PACGPU.cuh"
 #include "ADMMMarketGPU.cuh"
 
 
 //PF
-#include "CPUPF.h"
-#include "GPUPF.cuh"
-#include "CPUPFGS.h"
-#include "GPUPFGS.cuh"
-#include "CPUPFdist.h"
-#include "CPUPFdistPQ.h"
 #include "GPUPFdistPQ.cuh"
-
+#include "GPUPF.cuh"
+#include "GPUPFGS.cuh"
 //OPF
-#include "OPFADMM.h"
-#include "OPFADMM2.h"
+
 #include "OPFADMMGPU.cuh"
 #include "OPFADMMGPU2.cuh"
-#include "OPFADMMCons.h" // fonction cout pour les pertes !!!
 #include "OPFADMMConsGPU.cuh" // fonction cout pour les pertes !!!
 
 // Market Endo
-#include "MarEndoCons.h"
-#include "EndoPF.h"
-#include "MarketEndoDirect.h"
 #include "EndoPFGPU.cuh"
 #include "MarketEndoDirectGPU.cuh"
 #include "MarEndoConsGPU.cuh"
 
-
-#include <stdio.h>
-#include <iostream>
-#include <time.h>
-#include <cuda_runtime.h>
-#include <algorithm>
-#include <iterator>
-#include <random>
-#include <vector>
 #include <cudaProfiler.h>
+#include <cuda_runtime.h>
 
 
 
 
 
 // fichier de test
+#include "TestADMMGPUConst1.cuh"
+#include "TestADMMGPUConst1T.cuh"
+#include "TestADMMGPUConst2.cuh"
+#include "TestADMMGPUConst3.cuh"
+#include "TestKernel.cuh"
+#include "TestUtilities.cuh"
+#include "TestMatrixGPU.cuh"
+
 #include "TestMatrixCPU.h"
 #include "TestAgent.h"
 #include "TestStudyCase.h"
 #include "TestADMMConst.h"
 
-#include "TestADMMGPUConst1.cuh"
-#include "TestADMMGPUConst1T.cuh"
-#include "TestADMMGPUConst2.cuh"
-#include "TestADMMGPUConst3.cuh"
+
 #include "TestPAC.h"
 #include "TestPACConst.h"
 #include "TestSimparam.h"
 #include "TestSysteme.h"
-#include "TestMatrixGPU.cuh"
+
 #include "TestMatrixCPU.h"
-#include "TestKernel.cuh"
-#include "TestUtilities.cuh"
+
 #include "Utilities.h"
 
 

@@ -88,7 +88,6 @@ void MarEndoCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 		PSO.display();
 		std::cout << " Bp3 " << std::endl;
 		Bp3.display();*/
-
 		/*std::cout << " Tlocal " << std::endl;
 		Tlocal.display();
 		std::cout << " Bt1 " << std::endl;
@@ -97,11 +96,9 @@ void MarEndoCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 		matLb.display();
 		std::cout << " matUb " << std::endl;
 		matUb.display();*/
-		
-		
+			
 		resL = 2 * _epsL;
 		iterLocal = 0;
-
 #ifdef INSTRUMENTATION
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -110,9 +107,7 @@ void MarEndoCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 			updateLocalProb();
 			// FB 3
 			if (!(iterLocal % _stepL)) {
-
 				resL = calcRes();
-			
 			}
 			Tlocal_pre.swap(&Tlocal); 
 			iterLocal++;

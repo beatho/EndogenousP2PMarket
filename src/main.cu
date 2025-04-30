@@ -1,5 +1,6 @@
 
 #include "../head/main.cuh"
+#include "../head/main.h"
 
 // pour l'agent des pertes de Q, lui permettre de consommer et de vendre peut poser probl�me 
 // car il peut faire les 2 alors que l'on aimerait qu'il soit inactif, en vrai il fait juste intermediaire mais bon...
@@ -29,7 +30,7 @@
 
 // Simulation
 
-int main2(int argc, char* argv[]) {
+int main2() {
 #ifdef DEBUG_TEST
 	std::cout << "test Agent err =" << testAgent() << std::endl;
 	std::cout << "-------------------------------------------------------- " << std::endl;
@@ -96,7 +97,7 @@ int main2(int argc, char* argv[]) {
 		//testMarket();
 		//testCPUPF();
 		//testOPF();
-		//testMarketEndo();
+		testMarketEndo();
 
 		//SimuTemporalWOConstraint("Italy");
 		//SimuTemporalTestFeederEndo();
@@ -120,7 +121,7 @@ int main2(int argc, char* argv[]) {
 		//SimuStatMarketEndoACAgent();
 		//SimuSensiStudyCase();
 		//SimuTemporalWOConstraint("Europe");
-		SimuStatMarketEndoGrid();
+		//SimuStatMarketEndoGrid();
 		//std::cout << testCalculVGS(2) / BILLION << " s" << std::endl;
 		//SimuTemporalTestFeeder();
 		//std::cout << testCalculPnShared(0, 512, 1) / BILLION << " s" << std::endl;
@@ -5706,12 +5707,12 @@ void testMarket()
 {
 	StudyCase cas;
 	int million = 1000000;
-	int choseCase = 4;
+	int choseCase = 2;
 	std::string fileName = "MarketTimeByBlock"; //MarketTimeByBlock
 	std::string chosenCase = "";
 	
 	int nMethode = 8;
-	bool methodeToSimule[10] = { true, true, true, true, true, true, true, true, false, false };
+	bool methodeToSimule[10] = {false, true, true, true, false, false, false, false, false, false };
 
 	int method = 0;
 	std::chrono::high_resolution_clock::time_point t1;
@@ -5731,7 +5732,7 @@ void testMarket()
 	float propCons = 0.4;
 	float propPro = 0;
 
-	bool AC = false;// true
+	bool AC = true;// true false
 
 	// for european case
 	int nCons = 1494;
@@ -5740,8 +5741,8 @@ void testMarket()
 	MatrixCPU P0Global(nCons, Nhour);
 	MatrixCPU P0(nCons, 1);
 	std::string nameP0 = path + "Europe/load/Month/2012-01.txt";
-	P0Global.setFromFile(nameP0, 1);
-	P0Global.getBloc(&P0, 0, nCons, 0, 1); // 1ere heure de l'ann�e
+	//P0Global.setFromFile(nameP0, 1);
+	//P0Global.getBloc(&P0, 0, nCons, 0, 1); // 1ere heure de l'ann�e
 	//int nStep = 1; // WIP
 	//int nSimu = 1; // WIP
 
@@ -5763,7 +5764,7 @@ void testMarket()
 			cas.setReduce(true);
 			chosenCase = "case2node";
 		}
-		cas.display();
+		//cas.display();
 		break;
 	case 1:
 		
@@ -5778,7 +5779,7 @@ void testMarket()
 			cas.setReduce(true);
 			chosenCase = "case29node";
 		}
-		cas.display();
+		//cas.display();
 		break;
 	case 2:
 		if (AC) {
@@ -5805,7 +5806,7 @@ void testMarket()
 			cas.setReduce(true);
 			chosenCase = "case3node";
 		}
-		cas.display();
+		//cas.display();
 		break;
 	case 4:
 		if (AC) {
@@ -5819,7 +5820,7 @@ void testMarket()
 			cas.setReduce(true);
 			chosenCase = "random" + std::to_string(agents);
 		}
-		cas.display();
+		//cas.display();
 		break;
 	default:
 		throw std::invalid_argument("unknown choseCase");
@@ -5840,8 +5841,8 @@ void testMarket()
 	ADMMGPUConst4 admmMarketEndoGPU;
 
 	Simparam param(cas.getNagent(), cas.getNLine(true), cas.getNLine(), AC);
-	float epsG = 0.1f;
-	float epsL = 0.01f; //float epsL = 0.0005f;
+	float epsG = 0.01f;
+	float epsL = 0.001f; //float epsL = 0.0005f;
 	//float epsG = 0.001f;
 	int iterGlobal = 100000; // 100000
 	int iterLocal = 2000;
@@ -5900,10 +5901,10 @@ void testMarket()
 #endif // INSTRUMENTATION
 		res.display();
 	}
-
+#endif
 
 	method++;
-#endif
+
 
 	std::cout << "**************************     ADMMMarket      ****************************************" << std::endl;
 
@@ -5985,7 +5986,7 @@ void testMarket()
 	if (method > (nMethode + 1)) {
 		throw std::invalid_argument("nMethod is too small");
 	}
-
+	CHECK_LAST_CUDA_ERROR();
 	std::cout << "********************************** OSQP  *****************************************" << std::endl;
 #ifdef OSQP
 	if (methodeToSimule[method]) {
@@ -6009,13 +6010,11 @@ void testMarket()
 
 		res.display();
 	}
+#endif
 	method++;
 	if (method > (nMethode)) {
 		throw std::invalid_argument("nMethod is too small");
 	}
-
-#endif
-
 
 	std::cout << "******************************       PAC     ***************************************" << std::endl;
 
@@ -6102,7 +6101,7 @@ void testMarket()
 	if (method > (nMethode)) {
 		throw std::invalid_argument("nMethod is too small");
 	}
-
+	CHECK_LAST_CUDA_ERROR();
 	std::cout << "********************************  admmMarketEndo  ***************************************" << std::endl;
 
 	if (!AC && methodeToSimule[method]) {
@@ -6163,6 +6162,7 @@ void testMarket()
 
 	}
 	method++;
+	CHECK_LAST_CUDA_ERROR();
 	std::cout << "*****************************************************************************" << std::endl;
 	std::cout << "OSQPCen,  ADMMMarket , ADMMMarketOpenMP, ADMMMarketGPU, OSQP, PAC, PAC OpenMp, PACGPU ";
 	if (!AC) {
@@ -6200,6 +6200,25 @@ void testMarketEndo()
 	float Power = 0;
 	int offsetAgent = 0; // which agent we kept the value to compare results
 	
+	int stepG = 1;
+	int stepL = 1;
+	int stepIntern = 1;
+
+	if(stepG < stepIntern){
+		stepG = stepIntern;
+	}
+
+	int iterL = 5000;
+	int iterG  = 10000;
+	int iterIntern = 5000;
+
+	float epsL = 0.001f;
+	float epsG = 0.05f;
+	float epsGC = 0.01f;
+	float epsIntern = 0.001f;
+
+	float rhoInit = 10; // 1 pour cas 2 noeuds, 5 pour cas9, cas 10, 10 cas 69
+
 	MatrixCPU results(5, nMethode, nanf(""));
 	int method = 0;
 	std::chrono::high_resolution_clock::time_point t1;
@@ -6208,7 +6227,7 @@ void testMarketEndo()
 	switch (choseCase)
 	{
 	case 0:
-		chosenCase = "case85";// 9, 30 57  118 case30  // radial case10ba case4_dist case85 case69
+		chosenCase = "case10ba";// 9, 30 57  118 case30  // radial case10ba case4_dist case85 case69
 		cas.SetACFromFile(chosenCase); //case_ACTIVSg2000	
 		cas.display();
 		break;
@@ -6261,14 +6280,16 @@ void testMarketEndo()
 	}
 	fileName += chosenCase + ".csv";
 	Simparam param(cas.getNagent(), cas.getNLine(true), true);
-	float epsL = 0.0001f; // 0.0001f FB
+	
 	param.setEpsL(epsL);
-	param.setEpsG(0.005f);//0.005f FB
-	param.setEpsGC(0.001f); //0.001f FB
-	param.setItG(10000); //20000 500000
-	param.setItL(5000);
-	param.setStep(1, 1);
-	float rhoInit = 10; // 1 pour cas 2 noeuds, 5 pour cas9, cas 10, 10 cas 69
+	param.setEpsG(epsG);//0.005f FB
+	param.setEpsGC(epsGC); //0.001f FB
+	param.setEpsIntern(epsIntern);
+	param.setItG(iterG); //20000 500000
+	param.setItL(iterL);
+	param.setItIntern(iterIntern);
+	param.setStep(stepG, stepL, stepIntern);
+	
 	//for (int i = 0; i < 5; i++) {
 	param.setRho(rhoInit);
 	Simparam res(param);
@@ -6397,7 +6418,7 @@ void testMarketEndo()
 	method++;
 	std::cout << "********************* Market Endogen GPU Direct ************************************" << std::endl;
 
-
+	CHECK_LAST_CUDA_ERROR();
 	param.setRho(rhoInit);
 	if (radial && methodeToSimule[method])
 	{
@@ -6423,7 +6444,7 @@ void testMarketEndo()
 
 		res.display();
 	}
-
+	CHECK_LAST_CUDA_ERROR();
 
 	method++;
 	std::cout << "********************* Market Endogen GPU  ************************************" << std::endl;
@@ -6455,7 +6476,7 @@ void testMarketEndo()
 	}
 
 	method++;
-	
+	CHECK_LAST_CUDA_ERROR();
 	
 	std::cout << "********************* Endo with PF GPU  ************************************" << std::endl;
 
@@ -6485,7 +6506,7 @@ void testMarketEndo()
 
 
 	method++;
-
+	CHECK_LAST_CUDA_ERROR();
 	
 	
 	std::cout << "********************* Endo with DC-PF GPU  ************************************" << std::endl;
@@ -6516,7 +6537,7 @@ void testMarketEndo()
 
 
 	method++;
-
+	CHECK_LAST_CUDA_ERROR();
 	
 	std::cout << "*****************************************************************************" << std::endl;
 	std::cout << "EndoDirect - EndoCons - ACEndo - DCEndo - EndoDirectGPU - EndoConsGPU - ACEndoGPU - DCEndoGPU" << std::endl;
