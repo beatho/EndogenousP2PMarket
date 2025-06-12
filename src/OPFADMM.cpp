@@ -248,8 +248,9 @@ void OPFADMM::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	// FB 5
 	
 	result->setResF(&resF);
-	/*std::cout << "--------" << std::endl;
-	std::cout << " Pn " << std::endl;
+	
+
+	/*std::cout << " Pn " << std::endl;
 	Pn.display();
 	std::cout << " PnTilde " << std::endl;
 	PnTilde.display();*/

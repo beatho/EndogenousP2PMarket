@@ -34,11 +34,55 @@ PyObject* callTestMarketEndo(PyObject* self, PyObject* arg){
     std::string filename; 
     char* buffer;
     int numCase = 0;
+    int N = 0;
+    int B = 0;
+    PyArg_ParseTuple(arg, "is|ii", &numCase, &buffer, &N, &B);
+    filename = buffer;
+
+    std::cout << numCase << " " << filename << std::endl;
+    
+    if(N==0){
+        testMarketEndo(numCase, filename);
+    } else if (B==0){
+        testMarketEndo(numCase, filename, N);
+    } else {
+        testMarketEndo(numCase, filename, N, B);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+PyObject* callTestMarket(PyObject* self, PyObject* arg){
+    std::string filename; 
+    char* buffer;
+    int numCase = 0;
+    bool AC = false;
+    int N = 0;
+    PyArg_ParseTuple(arg, "isp|i", &numCase, &buffer, &AC, &N);
+    filename = buffer;
+
+    std::cout << numCase << " " << filename << " " << AC << std::endl;
+    if(N==0){
+        testMarket(numCase, filename, AC);
+    } else {
+        testMarket(numCase, filename, AC, N);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+PyObject* callTestOPF(PyObject* self, PyObject* arg){
+    std::string filename; 
+    char* buffer;
+    int numCase = 0;
     PyArg_ParseTuple(arg, "is", &numCase, &buffer);
     filename = buffer;
 
     std::cout << numCase << " " << filename << std::endl;
-    testMarketEndo(numCase, filename);
+    testOPF(numCase, filename);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -412,6 +456,18 @@ PyMethodDef EndoCudaFunction[] = {
         callTestMarketEndo,
         METH_VARARGS,
         "this function call the testMarketEndo of the c program"
+    },
+    {
+        "callTestMarket",
+        callTestMarket,
+        METH_VARARGS,
+        "this function call the testMarket of the c program"
+    },
+    {
+        "callTestOPF",
+        callTestOPF,
+        METH_VARARGS,
+        "this function call the testOPF of the c program"
     },
     {NULL, NULL, 0, NULL}
 };

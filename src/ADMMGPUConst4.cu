@@ -70,7 +70,7 @@ void ADMMGPUConst4::init(const Simparam& sim, const StudyCase& cas)
 	initDCEndoMarket();
 	//CHECK_LAST_CUDA_ERROR();
 	updateGlobalProbGPU();
-	//std::cout << "rho " << _rhog << " rhoL " << _rhol << " _rho1 " << _rho1 << std::endl;
+	std::cout << "rhog " << _rhog << " rhoL " << _rhol << " _rho1 " << _rho1 << std::endl;
 	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 	
 	/*Bp1.display(true);
@@ -87,16 +87,12 @@ void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	
 	tMarket = clock();
 
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;	
 #endif // INSTRUMENTATION
-
-
-
 
 	if (_id == 0) {
 #ifdef INSTRUMENTATION
@@ -129,7 +125,6 @@ void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase
 	float epsL2 = _epsL * _epsL;
 	_iterGlobal = 0;
 	
-	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
 	while ((_iterGlobal < _iterG) && (resG>_epsG)) {
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
@@ -141,7 +136,7 @@ void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase
 		t2 = std::chrono::high_resolution_clock::now();
 		timePerBlock.increment(0, 1, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 #endif // INSTRUMENTATION
-
+	CHECK_LAST_CUDA_ERROR();
 		tradeLin.swap(&Tlocal); // echange juste les pointeurs	
 		updateGlobalProbGPU();
 		if (!(_iterGlobal % _stepG)) {
@@ -169,7 +164,7 @@ void ADMMGPUConst4::solve(Simparam* result, const Simparam& sim, const StudyCase
 	cudaDeviceSynchronize();
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	
+CHECK_LAST_CUDA_ERROR();
 
 	//std::cout << "fin simu temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 

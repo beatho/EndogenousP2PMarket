@@ -79,7 +79,7 @@ protected:
 	int _nTradeQ = 0;
 
 
-	int _blockSize = 512;
+	int _blockSize = 256;
 	int _numBlocksN = 1;
 	int _numBlocksM = 1;
 	int _numBlocksL = 1;

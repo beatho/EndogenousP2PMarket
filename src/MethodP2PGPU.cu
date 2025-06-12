@@ -35,16 +35,16 @@ float MethodP2PGPU::updateRes(int iter)
 }
 float MethodP2PGPU::updateResEndo(int iter)
 {
+	
 	float resS = Tlocal.max2(&tradeLin);
 	updateDiffGPU << <_numBlocksM, _blockSize >> > (tempNN._matrixGPU, tradeLin._matrixGPU, CoresLinTrans._matrixGPU, _nTrade);
+	
 	float resR = tempNN.max2();
 
 	updateResX << <_numBlocksL, _blockSize >> > (tempL1._matrixGPU, Kappa1._matrixGPU, Kappa2._matrixGPU, Kappa1_pre._matrixGPU, Kappa2_pre._matrixGPU, _nLine);
-
-
+	
 	float resXf = _ratioEps * sqrt(tempL1.max2());
 	
-
 	resF.set(0, iter, resR);
 	resF.set(1, iter, resS);
 	resF.set(2, iter, resXf);
@@ -79,7 +79,7 @@ void MethodP2PGPU::updateKappa()
 }
 void MethodP2PGPU::updatePn()
 {
-	Pn.set(&Tmoy);
+	Pn.set(&P);
 	Pn.multiplyT(&nVoisin);
 }
 
@@ -498,7 +498,7 @@ void MethodP2PGPU::initCaseParam(const Simparam& sim,const StudyCase& cas){
 		a.setFromBloc(0, _nAgent, 0, 1, &aT);
 		b.setFromBloc(0, _nAgent, 0, 1, &bT);
 		Pmax.setFromBloc(0, _nAgent, 0, 1, &PmaxT);
-		Pmin.setFromBloc(0, _nAgent, 0, 1, &Pmin);
+		Pmin.setFromBloc(0, _nAgent, 0, 1, &PminT);
 		MU.setFromBloc(0, _nAgent, 0, 1, &MUT);
 		Tmoy.setFromBloc(0, _nAgent, 0, 1, &TmoyT);
 	}

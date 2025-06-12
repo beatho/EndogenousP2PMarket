@@ -66,4 +66,6 @@
 
 int main2();
 
-void testMarketEndo(int numCase, std::string caseName);
+void testMarketEndo(int numCase, std::string caseName, int sizeN = 20, int sizeB = 100);
+void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN = 20);
+void testOPF(int choseCase, std::string chosenCase);

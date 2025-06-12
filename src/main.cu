@@ -5389,16 +5389,16 @@ void testCPUPF()
 
 }
 
-void testOPF()
+void testOPF(int choseCase, std::string chosenCase)
 {
 	StudyCase cas;
 	int million = 1000000;
-	int choseCase = 2;// rxRX
+	//int choseCase = 2;// rxRX
 	std::string fileName = "OPFISGTResidualscase85.csv"; //"TimeByBlockPF";
-	std::string chosenCase = "";
+	//std::string chosenCase = "";
 	
 	int nMethode = 6;
-	bool methodeToCompute[] = { false, false, true, true, true, true };
+	bool methodeToCompute[] = { true, true, false, true, true, false };
 	int nMethodeReal = 6;
 
 	OPFADMM opfADMM;
@@ -5424,7 +5424,7 @@ void testOPF()
 		cas.display();
 		break;
 	case 1:
-		chosenCase = "case85"; //case10ba case4_dist case85 case69 ?, pas radial : case30 case300
+		//chosenCase = "case85"; //case10ba case4_dist case85 case69 ?, pas radial : case30 case300
 		cas.SetACFromFile(chosenCase);
 		cas.display();
 		break;
@@ -5437,7 +5437,7 @@ void testOPF()
 		cas.display();
 		break;
 	case 5:
-		chosenCase = "RandRadial";
+		//chosenCase = "RandRadial";
 		cas.genGridBT(30, 80, 200, 0.001, 0.0005);
 		cas.genAgentsAC(30, 0.5, 0.5, 1, 0.5, 1, 0.1, 0.5, 1, 0.5, 1, 0.2);
 		cas.genLinkGridAgent();
@@ -5701,14 +5701,12 @@ void testADMMACConst()
 	Simparam res = sys.solve();
 }
 
-void testMarket()
+void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 {
 	StudyCase cas;
 	int million = 1000000;
-	int choseCase = 2;
 	std::string fileName = "MarketTimeByBlock"; //MarketTimeByBlock
-	std::string chosenCase = "";
-	
+		
 	int nMethode = 8;
 	bool methodeToSimule[10] = {false, true, true, true, false, false, false, false, false, false };
 
@@ -5724,13 +5722,13 @@ void testMarket()
 
 	float b = 2;
 	float db = 1;
-	int agents = 30;
+	int agents = sizeN;
 	float beta = 2;
 	float dBeta = 1;
 	float propCons = 0.4;
 	float propPro = 0;
 
-	bool AC = true;// true false
+	//bool AC = true;// true false
 
 	// for european case
 	int nCons = 1494;
@@ -5754,20 +5752,20 @@ void testMarket()
 	case 0:
 		if (AC) {
 			cas.SetAC2node();
-			chosenCase = "caseAC2node";
+			//chosenCase = "caseAC2node";
 		}
 		else {
 			cas.Set2node();
 			nMethode += 2;
 			cas.setReduce(true);
-			chosenCase = "case2node";
+			//chosenCase = "case2node";
 		}
 		//cas.display();
 		break;
 	case 1:
 		
 		if (AC) {
-			chosenCase = "case10ba"; //case10ba case4_dist case85 case118
+			//chosenCase = "case10ba"; //case10ba case4_dist case85 case118
 			cas.SetACFromFile(chosenCase);
 		}
 		else
@@ -5775,48 +5773,51 @@ void testMarket()
 			cas.Set29node();
 			nMethode += 2;
 			cas.setReduce(true);
-			chosenCase = "case29node";
+			//chosenCase = "case29node";
 		}
 		//cas.display();
 		break;
 	case 2:
 		if (AC) {
 			cas.SetEuropeTestFeeder();
-			chosenCase = "caseTestFeeder";
+			//chosenCase = "caseTestFeeder";
 		}
 		else {
 			cas.SetEuropeP0WithoutConstraint(path, &P0);
 			nMethode += 2;
 			cas.setReduce(true);
-			chosenCase = "caseEurope";
+			//chosenCase = "caseEurope";
 		}
 		//cas.display();
 		break;
 	case 3:
 		if (AC) {
 			cas.SetAC3Bus();
-			chosenCase = "caseAC3node";
+			//chosenCase = "caseAC3node";
 		}
 		else
 		{
 			cas.Set3Bus();
 			nMethode += 2;
 			cas.setReduce(true);
-			chosenCase = "case3node";
+			//chosenCase = "case3node";
 		}
 		//cas.display();
 		break;
 	case 4:
 		if (AC) {
-			cas = StudyCase(agents, P, dP, P, dP, a, da, a, da, b, db, beta, dBeta, propCons, 0, propPro);
-			chosenCase = "randomAC" + std::to_string(agents);
-		}
+			//cas = StudyCase(agents, P, dP, P, dP, a, da, a, da, b, db, beta, dBeta, propCons, 0, propPro);
+			//chosenCase = "randomAC" + std::to_string(agents);
+			cas.genGridBT(2, 2, 2, 0.01, 0.005);
+			cas.genAgentsAC(sizeN, 0.5, 0.25, 0.5, 0.1, 1, 0.1, 0.005, 2, 0.1, 2, 1);
+			cas.genLinkGridAgent();
+			}
 		else
 		{
 			cas = StudyCase(agents, P, dP, a, da, b, db, beta, dBeta, propCons, 0, propPro);
 			nMethode += 2;
 			cas.setReduce(true);
-			chosenCase = "random" + std::to_string(agents);
+			//chosenCase = "random" + std::to_string(agents);
 		}
 		//cas.display();
 		break;
@@ -5825,6 +5826,7 @@ void testMarket()
 		break;
 	}
 
+	cas.display();
 	fileName += chosenCase + ".csv";
 	MatrixCPU results(5, nMethode, -1);
 	//OSQPCentralized2 osqpCen;
@@ -5839,8 +5841,8 @@ void testMarket()
 	ADMMGPUConst4 admmMarketEndoGPU;
 
 	Simparam param(cas.getNagent(), cas.getNLine(true), cas.getNLine(), AC);
-	float epsG = 0.01f;
-	float epsL = 0.001f; //float epsL = 0.0005f;
+	float epsG = 0.0001f;
+	float epsL = 0.00001f; //float epsL = 0.0005f;
 	//float epsG = 0.001f;
 	int iterGlobal = 100000; // 100000
 	int iterLocal = 2000;
@@ -6172,7 +6174,7 @@ void testMarket()
 	results.display();
 }
 
-void testMarketEndo(int choseCase, std::string chosenCase)
+void testMarketEndo(int choseCase, std::string chosenCase, int sizeN, int sizeB)
 {
 	MarEndoCons* marketEndoCPU = new MarEndoCons;
 	MarEndoConsGPU* marketEndoGPU = new MarEndoConsGPU;
@@ -6188,7 +6190,7 @@ void testMarketEndo(int choseCase, std::string chosenCase)
 
 	StudyCase cas;
 	int nMethode = 8;
-	bool methodeToSimule[8] = { true, true, true, true, true, true, true, true }; ///false
+	bool methodeToSimule[8] = { true, true, false, false, true, true, false, false }; ///false
 
 	int million = 1000000;
 	bool doubleSolve = false; // true  false
@@ -6209,19 +6211,17 @@ void testMarketEndo(int choseCase, std::string chosenCase)
 	int iterG  = 10000;
 	int iterIntern = 5000;
 
-	float epsL = 0.001f;
-	float epsG = 0.05f;
-	float epsGC = 0.01f;
+	float epsL = 0.00005f;
+	float epsG = 0.001f;
+	float epsGC = 0.0001f;
 	float epsIntern = 0.001f;
 
-	float rhoInit = 10; // 1 pour cas 2 noeuds, 5 pour cas9, cas 10, 10 cas 69
+	float rhoInit = 1; // 1 pour cas 2 noeuds, 5 pour cas9, cas 10, 10 cas 69
 
 	MatrixCPU results(5, nMethode, nanf(""));
 	int method = 0;
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
-
-	std::cout << choseCase << " " << chosenCase <<std::endl;
 
 	switch (choseCase)
 	{
@@ -6232,8 +6232,8 @@ void testMarketEndo(int choseCase, std::string chosenCase)
 		break;
 	case 1:
 		//chosenCase = "RandRadial";
-		cas.genGridBT(100, 80, 200, 0.001, 0.0005);
-		cas.genAgentsAC(20, 0.4, 0.25, 0.5, 0.1, 1, 0.1, 0.005, 1, 0.1, 1, 0.2);
+		cas.genGridBT(sizeB, 0.8 * sizeB, 2*sizeB, 0.01, 0.005);
+		cas.genAgentsAC(sizeN, 0.5, 0.25, 0.5, 0.1, 1, 0.1, 0.005, 2, 0.1, 0, 0);
 		cas.genLinkGridAgent();
 		cas.display();
 		

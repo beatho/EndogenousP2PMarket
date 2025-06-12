@@ -66,19 +66,32 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	
 	_rhog = sim.getRho();
 	_at1 = _rhog;
+
+
+
 	int iterLocal = 0;
 	_iterGlobal = 0;
 	float resG = 2 * _epsG;
 	float resL = 2 * _epsL;
 
 	while ((_iterGlobal < _iterG) && (resG>_epsG)) {
-		/*Tlocal.display();
+
+		/*P.saveCSV("testP.csv", 11, 1);
+		Tlocal_pre.saveCSV("testT.csv", 11, 1);
+		Bt1.saveCSV("testBt1.csv", 11, 1);
+		std::cout << "Tlocal" << std::endl;
+		Tlocal.display();
 		P.saveCSV("testPCPU2.csv", 11, 1);
 		Tlocal.saveCSV("testTCPU2.csv", 11, 1);
-		Bt1.saveCSV("testBCPU2.csv", 11, 1);*/
-		//P.display();
-		//std::cout << "lambda" << std::endl;
-		//LAMBDALin.display();
+		Bt1.saveCSV("testBCPU2.csv", 11, 1);
+		std::cout << "P" << std::endl;
+		P.display();
+		std::cout << "lambda" << std::endl;
+		LAMBDALin.display();
+		std::cout << "************************" <<std::endl;
+		Tmoy.display();
+		MU.display();
+		std::cout << "*********" << std::endl;*/
 		resL = 2 * _epsL;
 		iterLocal = 0;
 		while (iterLocal< _iterL && resL>_epsL) {
@@ -98,9 +111,9 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 			Tlocal_pre.swap(&Tlocal); 
 			iterLocal++;
 		}
-		if (iterLocal == _iterL) {
+		//if (iterLocal == _iterL) {
 			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
-		}
+		//}
 #ifdef INSTRUMENTATION
 		occurencePerBlock.increment(0, 1, iterLocal);
 		occurencePerBlock.increment(0, 2, iterLocal);
@@ -144,6 +157,14 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 	
+	/**/
+
+	//std::cout << "lambda" << std::endl;
+	//LAMBDALin.display();
+	// FB 5
+	
+	setResult(result, cas.isAC());
+	
 	/*trade.display();
 	std::cout << "Trade" << std::endl;
 	tradeLin.display();
@@ -151,14 +172,6 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	Tmoy.display();
 	P.display();
 	Pn.display();*/
-
-	//std::cout << "lambda" << std::endl;
-	//LAMBDALin.display();
-	// FB 5
-	
-	setResult(result, cas.isAC());
-
-
 #ifdef INSTRUMENTATION
 	t2 = std::chrono::high_resolution_clock::now();
 	timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
@@ -201,8 +214,6 @@ void ADMMMarket::init(const Simparam& sim, const StudyCase& cas)
 	initLinForm(cas);
 	
 	//std::cout << "autres donnee sur CPU" << std::endl;
-	
-	
 	initP2PMarket();
 
 	//std::cout << " Global " << std::endl;
@@ -211,6 +222,10 @@ void ADMMMarket::init(const Simparam& sim, const StudyCase& cas)
 	//std::cout << "fin init temps : " << (float)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 	
 	//std::cout << "************" << std::endl;
+
+	
+
+
 }
 
 void ADMMMarket::updateGlobalProb() {
@@ -273,7 +288,7 @@ void ADMMMarket::updateBt1()
 		int k = (int) CoresLinTrans.get(t,0);
 		Bt1.set(t, 0, tradeLin.get(t, 0) - tradeLin.get(k, 0));
 	}
-	Bt1.multiply(0.5f*_rhog); 
+	Bt1.multiply((float) (0.5*_rhog)); 
 	Bt1.subtract(&LAMBDALin);
 	Bt1.divide(_rhog);
 }

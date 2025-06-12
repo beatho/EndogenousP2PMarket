@@ -356,7 +356,7 @@ class TestInterfaceMethod(unittest.TestCase):
         #test.display(20)
 
     def test_main(self):
-        EndoCuda.callTestMarketEndo(0,"case69")
+        EndoCuda.callTestMarket(1,"case10ba", True)
     
     '''float Plim1[2] = { -30, 0 };
 	float Plim2[2] = { 0, 60 };

@@ -56,7 +56,7 @@ void StudyCaseAgent::initCaseFromPobj()
 		else {
 			P0 = S0;
 		}
-		_Pobj.set(id, 0, P0);
+		_Pobj.set(id, 0, -P0);
 		pLim1 = -(1 + dP) * P0;
 		pLim2 = -(1 - dP) * P0;
 		cost1 = 1;
@@ -76,11 +76,10 @@ void StudyCaseAgent::initCaseFromPobj()
 		if (_AC) {
 			// Q
 			Q0 = S0 * sqrt(1 - _PF.get(id - offset, 0) * _PF.get(id - offset, 0));
-			_Pobj.set(id + _nAgent, 0, Q0);
-			float randomFloat = rand1();
 			//int signe = -1; // 2 * (randomFloat > 0.8) - 1; // 4 chance sur 5 d'�tre inductif (m�me signe que P)
 			int signe = 2 * (id % 5) - 1; // un sur 5 ?
 			Q0 = signe * Q0; 
+			_Pobj.set(id + _nAgent, 0, Q0);
 			qLim1 = Q0 * (1 - dP + 2 * dP * (Q0 < 0));
 			qLim2 = Q0 * (1 + dP - 2 * dP * (Q0 < 0));
 
@@ -90,7 +89,7 @@ void StudyCaseAgent::initCaseFromPobj()
 				qLim2 = 1;
 			}
 			cost1Q = 1;
-			cost2Q = Q0 * cost1Q;
+			cost2Q = -Q0 * cost1Q; // Il y a un - !!!!!
 			nVoisin = _nAgent - 1;
 			_Ub.set(id + _nAgent, 0, qLim2 * (qLim2 > 0));
 			_Lb.set(id + _nAgent, 0, qLim1 * (qLim1 < 0));
@@ -852,7 +851,7 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 	if (Pconso < 0) {
 		Pconso = -Pconso;
 	}
-	
+	float dP = 0.1f; // 10%
 	_nAgent = nAgent + 1;
 	_nCons = (int) (nAgent * propCons + 1);
 	_nPro = 0;
@@ -886,10 +885,10 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 		if (id < _nCons) { // consumer
 			float P0 = Pconso + dPconso * 2 * (rand1() - 0.5f);
 			Q0 = dQconso * 2 * (rand1() - 0.5f);
-			pLim1 = -1.1f * P0 / _Sbase;
-			pLim2 = -0.9f * P0 / _Sbase;
-			qLim1 = Q0 / _Sbase * (1.05f - 0.1f * (Q0 > 0));
-			qLim2 = Q0 / _Sbase * (0.95f + 0.1f * (Q0 > 0));
+			pLim1 = -(1 + dP) * P0 / _Sbase;
+			pLim2 = -(1 - dP) * P0 / _Sbase;
+			qLim1 = Q0 / _Sbase * (1 + dP - 2 * dP * (Q0 > 0));
+            qLim2 = Q0 / _Sbase * (1 - dP + 2 * dP * (Q0 > 0));
 			cost1 = 1 * (_Sbase * _Sbase);
 			cost2 = P0 * cost1 /_Sbase;
 			costQ1 = 0.1f * (_Sbase * _Sbase);
@@ -905,10 +904,10 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 		else if (id < _nCons + _nGenNFle) {
 			float P0 = Pconso + dPconso * 2 * (rand1() - 0.5f);
 			Q0 = dQconso * 2 * (rand1() - 0.5f);
-			pLim1 = 0.9f * P0 / _Sbase;
-			pLim2 = 1.1f * P0 / _Sbase;
-			qLim1 = - 2 * dQconso;
-			qLim2 =   2 * dQconso;
+			pLim1 = (1 - dP) * P0 / _Sbase;
+			pLim2 = (1 + dP) * P0 / _Sbase;
+			qLim1 = Q0 / _Sbase * (1 + dP - 2 * dP * (Q0 > 0));
+            qLim2 = Q0 / _Sbase * (1 - dP + 2 * dP * (Q0 > 0));
 			cost1 = 0.1f * (_Sbase * _Sbase);
 			cost2 = - P0 * cost1 / _Sbase;
 			costQ1 = 0.1f * (_Sbase * _Sbase);
@@ -929,8 +928,9 @@ void StudyCaseAgent::genAgentsAC(int nAgent, float propCons, float propGenNFle, 
 			Q0 = dQconso * 2 * (rand1() - 0.5f);
 			pLim1 = 0;
 			pLim2 = P0 / _Sbase;
-			qLim1 = Q0 / _Sbase * (1.05f - 0.1f * (Q0 > 0));
-			qLim2 = Q0 / _Sbase * (0.95f + 0.1f * (Q0 > 0));
+			qLim1 = - 2 * dQconso;
+			qLim2 =   2 * dQconso;
+			
 			cost1 = 0.1f * (_Sbase * _Sbase);
 			cost2 = bProd * _Sbase + dbProd * 2 * (rand1() - 0.5f) * _Sbase;
 			costQ1 = 0.1f * (_Sbase * _Sbase);
@@ -2488,7 +2488,7 @@ MatrixCPU StudyCaseAgent::SetEuropeTestFeeder(std::string path, int beggining)
 
 	// rajouter le prod
 	// le pri spot pour la cost fonction ?
-	std::cout << "reseau " << std::endl;
+	std::cout << "agent reseau " << std::endl;
 	_a.set(_nCons, 0, 0.01);
 	_b.set(_nCons, 0, 0.03); // 30� / MWh	
 	_Ub.set(_nCons, 0, 10000); // pour ne pas avoir besoin de le modifier

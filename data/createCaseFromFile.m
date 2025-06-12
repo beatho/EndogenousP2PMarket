@@ -1,12 +1,12 @@
 %% Recup data
 clear mpc
 
-name = "case39"; 
+name = 'case69'; 
 % case3 case9 case39 case85 case141 case_ACTIVSg200 case_ACTIVSg500
 % case1888rte  case2383wp
 mpopt = mpoption('verbose',1, 'pf.alg', 'NR');
 
-cas = name+ ".m";
+cas = strcat(name, '.m');
 %open(cas);
 define_constants;
 oldmpc = loadcase(cas);
@@ -50,14 +50,18 @@ for bus=(1:nBus)
 end
 mpc.bus(:,2) = PQ;
 mpc.bus(1,2) = REF;
+mpc.bus(:,7) = 1;
+
 mpc.bus(:,5) = BusInfo(:,1);
 mpc.bus(:,6) = BusInfo(:,2);
-mpc.bus(:,7) = 1;
 mpc.bus(:,8) = BusInfo(:,5);
 mpc.bus(:,9) = BusInfo(:,6) * 180/pi;
-%mpc.bus(:,BASE_KV) = 345;
-mpc.bus(:,11) = BusInfo(:,3);
-mpc.bus(:,12) = BusInfo(:,4);
+mpc.bus(:,12) = 1.2;% BusInfo(:,3);
+mpc.bus(:,13) = 0.8;%BusInfo(:,4);
+
+mpc.bus(1,12) = 1;% BusInfo(:,3);
+mpc.bus(1,13) = 1;
+
 
 for n=(1:nAgent)
     bus = AgentInfo(n,1);
@@ -74,6 +78,12 @@ mpc.gen(1,GEN_STATUS) = 1;
 mpc.gen(:,MBASE) = 100;
 mpc.gen(1,PMIN) = -100;
 mpc.gen(1,PMAX) = 100;
+
+%% generator cost data
+%	1	startup	shutdown	n	x1	y1	...	xn	yn
+%	2	startup	shutdown	n	c(n-1)	...	c0
+mpc.gencost(1,:) = [ 2	0	0	3	0	20	0];
+
 
 %% branch fbus	tbus	r	x	b	rateA	rateB	rateC	ratio	angle	status	angmin	angmax
 % from, to, Ys Real, Ys Im, Yp, tau, theta, Limit=0, zs Real, zs Imag;
@@ -96,6 +106,10 @@ for l=(1:nLine)
     mpc.branch(l,ANGMIN) = -360;
     mpc.branch(l,ANGMAX) = 360;
 end
+%%
+
+%savecase(strcat(name, 'bis.m'), mpc)
+
 %% Comparaison impédance
 
 [Ybus, ~, ~] = makeYbus(ext2int(oldmpc));
@@ -108,7 +122,7 @@ sum(YbusPerso2-Ybus2, 'all')
 
 %%
 tic
-result = runpf(mpc,mpopt);
+result = runopf(mpc,mpopt);
 toc
 
 
@@ -127,7 +141,7 @@ SolInfo3(idBus,4) = SolInfo3(idBus,4) + result.gen(1,QG)/Sb1;
 
 diff = SolInfo - SolInfo3;
 
-result.iterations
-a = SolInfo3(1,3)
-b = SolInfo3(1,4)
+%result.iterations
+Pext = SolInfo3(1,3)
+Qext = SolInfo3(1,4)
 

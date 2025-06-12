@@ -99,9 +99,7 @@ void testADMMGPUtemp();
 
 
 void testCPUPF();
-void testOPF();
 void testADMMACConst();
-void testMarket();
 
 
 void getErrorSensiPwerLine();

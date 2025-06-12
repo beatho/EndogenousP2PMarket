@@ -971,19 +971,19 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 	std::string fileName2 = path + "BranchTestFeeder.txt";
 	
 
-	MatrixCPUD Info(1, 8); // Sbase, Vbase, Zbase, nAgent, nBus, nLine, V0, theta0
+	MatrixCPUD Info(1, 9); // Sbase, Vbase, nAgent, nCons, nGenSup, nBus, nLine, V0, theta0
 	Info.setFromFile(fileName1);
 	//Info.display();
 
 	_Sbase = (float) Info.get(0, 0);
 	_Vbase = (float) Info.get(0, 1);
-	_Zbase = (float) Info.get(0, 2);
+	_Zbase = _Vbase * _Vbase / _Sbase;
 
-	_nBus =  (int) Info.get(0, 4);
-	_nLine = (int) Info.get(0, 5);
+	_nBus =  (int) Info.get(0, 5);
+	_nLine = (int) Info.get(0, 6);
 	_nConstraint = _nLine + 2 * _nBus;
-	_V0 = Info.get(0, 6);
-	_theta0 = Info.get(0, 7);
+	_V0 = Info.get(0, 7);
+	_theta0 = Info.get(0, 8);
 	std::cout << _nBus << " " << _nLine << " " << _nConstraint << std::endl;
 
 	MatrixCPUD MatLine(_nLine, 10); // from, to, Ys real, Ys Im, Yp, tau, thetha , limit, zs real, zs Imag
@@ -1065,7 +1065,6 @@ void StudyCaseACGrid::SetEuropeTestFeeder(std::string path)
 			_lineLimits.set(l, 0, LINELIMITMAX);
 		}
 	}
-
 
 	std::cout << "set bus" << std::endl;
 

@@ -1,5 +1,5 @@
 %% create data for my PF
-name = "case69"; 
+name = "case10ba"; 
 
 % dist : case4_dist case10ba case85
 % case3 case9 case39 case85 case141 case_ACTIVSg200 case_ACTIVSg500 case1888rte 
@@ -73,6 +73,7 @@ tic
 Solmpc = runpf(mpc);
 %profile viewer
 toc
+%%
 disp("*********************************************************************************");
  %desequilibre et intro
 Pgen = Solmpc.gen(1:end,PG);
@@ -86,6 +87,8 @@ Qgen(idGenRef) = 0;
 test2.gen(:,QG) = Qgen;
 Qbus = Solmpc.bus(:,QD);
 Qdes = sum(Qgen) - sum(Qbus);
+
+
 test2.bus(ref,QD) = test2.bus(ref,QD) + Qdes;
 test2.bus(ref,PD) =  test2.bus(ref,PD) + Pdes;
 
@@ -103,6 +106,8 @@ tic
 Soltest2 = runpf(test2);
 toc
 disp("********************************************************************************");
+
+%%
 % if oldref~=1
 %     mpc.bus(1,BUS_TYPE) = REF;
 %     %mpc.bus(1,VM) = 1;

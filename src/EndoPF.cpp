@@ -58,7 +58,7 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	std::chrono::high_resolution_clock::time_point t2;
 #endif // INSTRUMENTATION
 
-
+	std::cout << "solve de EndoPF " <<std::endl;
 	// FB 0
 	if (_id == 0) {
 #ifdef INSTRUMENTATION
@@ -104,9 +104,7 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 			updateLocalProb();
 			//FB 3
 			if (!(iterLocal % _stepL)) {
-
 				resL = calcRes();
-		
 			}
 			Tlocal_pre.swap(&Tlocal); 
 			iterLocal++;

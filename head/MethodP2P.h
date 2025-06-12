@@ -51,9 +51,9 @@ protected:
 	// ne change pas avec P0
 	clock_t tMarket;
 
-	float _mu = 40;
-	float _mu1 = 40;
-	float _mul = 40;
+	float _mu = 50;
+	float _mu1 = 50;
+	float _mul = 50;
 	float _tau = 2;
 
 	float _rho = 0;

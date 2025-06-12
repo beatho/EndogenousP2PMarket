@@ -78,6 +78,8 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	float resG = 2 * _epsG;
 	float resL = 2 * _epsL;
 	_iterGlobal = 0;
+	
+
 	while ((_iterGlobal < _iterG) && (resG>_epsG)) {
 		resL = 2 * _epsL;
 		iterLocal = 0;
@@ -144,7 +146,6 @@ void ADMMConst::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 void ADMMConst::init(const Simparam& sim, const StudyCase& cas)
 {
 	// intitilisation des matrixs et variables 
-	
 	//std::cout << "init " << std::endl;
 	isAC = false;
 	initSize(cas);

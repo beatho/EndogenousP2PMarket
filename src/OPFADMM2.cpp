@@ -202,8 +202,6 @@ void OPFADMM2::solve(Simparam* result, const Simparam& sim, const StudyCase& cas
 		}
 	}
 
-
-	
 	fc = calcFc(&Cost1, &Cost2, &Pn, &tempN2);
 	// FB 5
 	
