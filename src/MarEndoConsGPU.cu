@@ -56,7 +56,7 @@ void MarEndoConsGPU::solve(Simparam* result, const Simparam& sim, const StudyCas
 	sim.display(1);
 #endif // DEBUG_SOLVE
 	
-	clock_t tall = clock();
+	tMarket = clock();
 #ifdef INSTRUMENTATION
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
@@ -526,11 +526,6 @@ float MarEndoConsGPU::updateResBis(int iter)
 	resF.set(2, iter, resXf);
 	return MYMAX(MYMAX(resXf * _ratioEps, resS), resR);
 }
-
-
-
-
-
 
 
 void MarEndoConsGPU::display() {

@@ -518,6 +518,7 @@ void StudyCase::SetAC2node() {
 
 void StudyCase::SetACFromFile(std::string name, std::string path)
 {
+	std::cout << "name : " << name << std::endl;
 	_CoresBusAgentLin = SCAg.SetACFromFile(name, path);
 	createGrid(false);
 	((StudyCaseACGrid*)SCGrid)->SetACFromFile(name, path);
@@ -1060,7 +1061,6 @@ void StudyCase::genAgentsFullRandom(int nAgent, float aMin, float aMax, float P0
 
 void StudyCase::genLinkGridAgent()
 {
-	//std::cout << "gen link between agent" << std::endl;
 	_nAgent = SCAg.getNagent();
 	int nLineConstraint;
 	

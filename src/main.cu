@@ -75,6 +75,7 @@ int main2() {
 	std::cout << "-------------------------------------------------------- " << std::endl;
 	try
 	{
+		SimuStatMarketEndoArticle();
 		//compareCPUGPU();
 		//std::cout << "test PAC err =" << testPAC() << std::endl;
 	}
@@ -4902,6 +4903,162 @@ void SimuStatMarketEndoGrid() {
 }
 
 
+void SimuStatMarketEndoArticle(){
+	std::string fileName = "ComparaisonMarketEndoAgentArticle2.csv";
+	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
+	const int nMethod = 4;
+	std::vector<int> indices = { 0, 1, 2, 3 };
+	std::string methodesName[nMethod] = { "EndoDirect", "EndoConsensus", "EndoDirectGPU", "EndoConsensusGPU" };
+	Method* methodes[nMethod];
+	methodes[0] = new MarketEndoDirect;
+	methodes[1] = new MarEndoCons;
+	methodes[2] = new MarketEndoDirectGPU;
+	methodes[3] = new MarEndoConsGPU;
+
+
+	// Market
+	float Pconso = 0.5f;
+	float dPconso = 0.1f;
+	float Propcons = 0.5f;
+	float PropNFleGen = 0.25f;
+	float PropGen = 1 - PropNFleGen - Propcons;
+	float bProd = 1;
+	float dbProd = 0.1f;
+	float Pprod = 2;
+	float dPprod = 0.1f;
+	float gamma = 2; // 
+	float dgamma = 1; //  
+	float dQ = 0.005;
+	
+
+
+	// cases
+	int nSimu = 50;
+	const int nNAgent = 6;
+	int tabNagent[nNAgent] = {10, 20, 50, 100, 120, 150};
+	//int million = 1000000;
+
+
+	// simulation
+	int stepG = 1;
+	int stepL = 1;
+	int stepIntern = 1;
+
+	if(stepG < stepIntern){
+		stepG = stepIntern;
+	}
+
+	int iterL = 5000;
+	int iterG  = 10000;
+	int iterIntern = 5000;
+
+	float epsL = 0.00005f;
+	float epsG = 0.001f;
+	float epsGC = 0.0001f;
+	float epsIntern = 0.001f;
+
+	float rhoInit = 1; // 1 pour cas 2 noeuds, 5 pour cas9, cas 10, 10 cas 69
+
+	MatrixCPU Param(1, 22);
+	/*Param.set(0, 0, nBusMax);
+	Param.set(0, 1, nNBus);
+	Param.set(0, 2, length);
+	Param.set(0, 3, dlength);*/
+	Param.set(0, 4, Pconso);
+	Param.set(0, 5, dPconso);
+	Param.set(0, 6, Pprod);
+	Param.set(0, 7, dPprod);
+	Param.set(0, 8, dQ);
+	Param.set(0, 9, Propcons);
+	Param.set(0, 10, PropGen);
+	Param.set(0, 11, nSimu);
+	//Param.set(0, 12, nCasAgent);
+	//Param.set(0, 13, nCasBuses);
+	Param.set(0, 14, nMethod);
+	Param.set(0, 15, rhoInit);
+	Param.set(0, 16, epsG);
+	Param.set(0, 17, epsL);
+	Param.set(0, 18, iterG);				 
+	Param.set(0, 19, iterL);
+	Param.set(0, 20, stepG);
+	Param.set(0, 21, stepL);
+
+
+	Param.saveCSV(fileName, mode);
+
+	MatrixCPU Agents(1, nNAgent);
+	MatrixCPU temps(nMethod * nSimu, nNAgent, -1);
+	MatrixCPU iters(nMethod * nSimu, nNAgent, -1);
+	
+	StudyCase cas;
+	std::chrono::high_resolution_clock::time_point t1;
+	std::chrono::high_resolution_clock::time_point t2;
+	cas.SetACFromFile("case85");
+	for (int agent = 1; agent < nNAgent; agent++) {
+		std::cout << " N agent : " << tabNagent[agent] << std::endl;
+		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
+		int agents = tabNagent[agent];
+		//Agents.set(0, agent, agents);
+		for (int simu = 0; simu < nSimu; simu++) {
+
+			int i = simu * nMethod;
+			int j = agent;
+
+			
+			std::cout << "-";
+			
+			cas.genAgentsAC(agents, Propcons, PropNFleGen, Pconso, dPconso, bProd, dbProd, dQ, Pprod, dPprod, gamma, dgamma);
+			cas.genLinkGridAgent();
+			
+			Simparam param(cas.getNagent(), cas.getNLine(true), true);
+			param.setEpsL(epsL);
+			param.setEpsG(epsG);//0.005f FB
+			param.setEpsGC(epsGC); //0.001f FB
+			param.setEpsIntern(epsIntern);
+			param.setItG(iterG); //20000 500000
+			param.setItL(iterL);
+			param.setItIntern(iterIntern);
+			param.setStep(stepG, stepL, stepIntern);
+			
+			//for (int i = 0; i < 5; i++) {
+			param.setRho(rhoInit);
+			Simparam res(param);
+			//sys.setStudyCase(cas);
+			std::random_shuffle(indices.begin(), indices.end());
+
+
+			for (int method = 0; method < nMethod; method++) {
+				int k = i + indices[method];
+		
+				t1 = std::chrono::high_resolution_clock::now();
+				methodes[indices[method]]->solve(&res, param, cas);
+				t2 = std::chrono::high_resolution_clock::now();
+
+				int iter = res.getIter();
+						
+				temps.set(k, j, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / BILLION);
+				iters.set(k, j, iter);
+						
+			}
+		}
+		std::cout << std::endl;
+		//std::cout << "-|-|-|-|-|-|-|-|-  -|-|-|-|-|-|-|-|-|" << std::endl;
+
+	}
+	/*Agents.display();
+	temps.display();
+	iters.display();*/
+	
+	float temptotal = temps.sum();
+	
+	Agents.saveCSV(fileName, mode);
+
+	
+	temps.saveCSV(fileName, mode);
+	iters.saveCSV(fileName, mode);
+	
+}
+
 
 
 
@@ -6193,10 +6350,9 @@ void testMarketEndo(int choseCase, std::string chosenCase, int sizeN, int sizeB)
 	bool methodeToSimule[8] = { true, true, false, false, true, true, false, false }; ///false
 
 	int million = 1000000;
-	bool doubleSolve = false; // true  false
+	bool doubleSolve = true; // true  false
 	std::string fileName = "TimeByBlockMarketEndo";
 	//std::string chosenCase = "";
-	float Power = 0;
 	int offsetAgent = 0; // which agent we kept the value to compare results
 	
 	int stepG = 1;
@@ -6240,9 +6396,10 @@ void testMarketEndo(int choseCase, std::string chosenCase, int sizeN, int sizeB)
 		break;
 	case 2:
 		//chosenCase = "RandHTB";
-		cas.genGridHTB(10, 20, 1, 0.01, 0.0005);
-		cas.genAgentsAC(16, 0.5, 0.5, Power, 0, 1, 0, 0.5, Power, 0, 1, 0.2);
+		cas.SetACFromFile(chosenCase);
+		cas.genAgentsAC(sizeN, 0.5, 0.25, 0.5, 0.1, 1, 0.1, 0.005, 2, 0.1, 0, 0);
 		cas.genLinkGridAgent();
+		cas.display();
 		break;
 	case 3:
 		//chosenCase = "EuropeTestFeeder";

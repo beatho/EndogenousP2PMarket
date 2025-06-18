@@ -94,6 +94,7 @@ void SimuTemporalTestFeederEndo();
 void SimuTemporalTestFeederEndoAll();
 void SimuStatMarketEndoACAgent();
 void SimuStatMarketEndoGrid();
+void SimuStatMarketEndoArticle();
 
 void testADMMGPUtemp();
 

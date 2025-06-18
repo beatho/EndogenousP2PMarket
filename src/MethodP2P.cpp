@@ -202,12 +202,12 @@ float MethodP2P::updateRes(int iter)
 		if (resR > _mu * resS) {
 			_rhog = _tau * _rhog;
 			_at1 = _rhog;
-			std::cout << iter << ", rho augmente :" << _rhog << std::endl;
+				//std::cout << iter << ", rho augmente :" << _rhog << std::endl;
 		}
 		else if (resS > _mu * resR) {// rho = rho / tau_inc;
 			_rhog = _rhog / _tau;
 			_at1 = _rhog;
-			std::cout << iter << ", rho diminue :" << _rhog << std::endl;
+			//std::cout << iter << ", rho diminue :" << _rhog << std::endl;
 		}
 	}
 
