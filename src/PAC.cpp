@@ -266,10 +266,10 @@ void PAC::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	float epsG = sim.getEpsG()/2;
 	
 	float fc = 0;
-	float resG = 2 * epsG;
+	_resG = 2 * epsG;
 	int iterGlobal = 0;
 	//std::cout << "iterG " << iterG <<std::endl;
-	while ((iterGlobal < iterG) && (resG>epsG)) {
+	while ((iterGlobal < iterG) && (_resG>epsG)) {
 
 		
 		updateLocalProb();
@@ -293,8 +293,7 @@ void PAC::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(iterGlobal / stepG);
-			//resG = 1;
+			_resG = updateRes(iterGlobal / stepG);
 #ifdef INSTRUMENTATION
 			t2 = std::chrono::high_resolution_clock::now();
 			timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());

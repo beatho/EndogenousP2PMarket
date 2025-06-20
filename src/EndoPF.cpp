@@ -75,12 +75,12 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	_at1 = _rhog;
 	
 	int iterLocal = 0;
-	float resG = 2 * _epsG;
+	_resG = 2 * _epsG;
 	float resL = 2 * _epsL;
 	_iterGlobal = 0;
 	//Pn.display();
 	//std::cout << "*******" << std::endl;
-	while ((_iterGlobal < _iterG) && (resG>_epsG) || (_iterGlobal <= _stepG)) {
+	while ((_iterGlobal < _iterG) && (_resG>_epsG) || (_iterGlobal <= _stepG)) {
 		
 		resL = 2 * _epsL;
 		iterLocal = 0;
@@ -129,7 +129,7 @@ void EndoPF::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResEndo(_iterGlobal / _stepG);
+			_resG = updateResEndo(_iterGlobal / _stepG);
 			//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, iterGlobal / stepG)
 			//	<< " " << resF.get(1, iterGlobal / stepG) << " " << resF.get(2, iterGlobal / stepG) << std::endl;
 #ifdef INSTRUMENTATION

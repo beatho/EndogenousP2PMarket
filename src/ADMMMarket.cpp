@@ -71,10 +71,10 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 
 	int iterLocal = 0;
 	_iterGlobal = 0;
-	float resG = 2 * _epsG;
+	_resG = 2 * _epsG;
 	float resL = 2 * _epsL;
 
-	while ((_iterGlobal < _iterG) && (resG>_epsG)) {
+	while ((_iterGlobal < _iterG) && (_resG>_epsG)) {
 
 		/*P.saveCSV("testP.csv", 11, 1);
 		Tlocal_pre.saveCSV("testT.csv", 11, 1);
@@ -112,7 +112,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 			iterLocal++;
 		}
 		//if (iterLocal == _iterL) {
-			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
+			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << _resG << std::endl;
 		//}
 #ifdef INSTRUMENTATION
 		occurencePerBlock.increment(0, 1, iterLocal);
@@ -137,7 +137,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 			
-			resG = updateRes((_iterGlobal / _stepG));
+			_resG = updateRes((_iterGlobal / _stepG));
 			
 			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, _iterGlobal / _stepG) << " " << resF.get(1, _iterGlobal / _stepG) << std::endl;
 #ifdef INSTRUMENTATION

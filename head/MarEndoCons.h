@@ -39,9 +39,7 @@ public:
 private:
 	// ne change pas avec P0
 	float _delta = 0.01f;
-	float _resG = 0;
-	
-	
+		
 	// Pour le r�seau
 
 	float _rhoSO = 0;

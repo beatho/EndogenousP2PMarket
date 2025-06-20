@@ -69,6 +69,8 @@ protected:
 	float _epsG = 0;
 	float _epsX = 0;
 	float _epsIntern = 0;
+
+	float _resG = 0;
 	
 	bool isAC = false;
 	int _nAgent = 0;

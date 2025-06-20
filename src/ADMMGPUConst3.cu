@@ -112,14 +112,14 @@ void ADMMGPUConst3::solve(Simparam* result, const Simparam& sim, const StudyCase
 	_at1 = _rhog; // represente en fait 2*a
 	
 	
-	float resG = 2 * _epsG;
+	_resG = 2 * _epsG;
 	float resL = 2 * _epsL;
 	_iterGlobal = 0;
 	int iterLocal = 0;
 
 	
 	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
-	while ((_iterGlobal < _iterG) && (resG > _epsG)) {
+	while ((_iterGlobal < _iterG) && (_resG > _epsG)) {
 		resL = 2 * _epsL;
 		iterLocal = 0;
 		while (iterLocal < _iterL && resL > _epsL) {
@@ -148,12 +148,12 @@ void ADMMGPUConst3::solve(Simparam* result, const Simparam& sim, const StudyCase
 #endif // INSTRUMENTATION
 				
 			}
-			//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
+			//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << _resG << std::endl;
 			Tlocal.swap(&Tlocal_pre); 
 			iterLocal++;
 		}
 		if (iterLocal == _iterL) {
-			std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
+			std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << _resG << std::endl;
 		}
 #ifdef INSTRUMENTATION
 		occurencePerBlock.increment(0, 1, iterLocal);
@@ -169,7 +169,7 @@ void ADMMGPUConst3::solve(Simparam* result, const Simparam& sim, const StudyCase
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResEndo(_iterGlobal / _stepG);
+			_resG = updateResEndo(_iterGlobal / _stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();

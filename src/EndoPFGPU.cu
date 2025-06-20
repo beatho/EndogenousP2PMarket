@@ -77,13 +77,13 @@ void EndoPFGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 	_rhog = sim.getRho();
 	_at1 = _rhog;
 	
-	float resG = 2 * _epsG;
+	_resG = 2 * _epsG;
 	float epsL2 = _epsL * _epsL;
 	_iterGlobal = 0;
 	//CHECK_LAST_CUDA_ERROR();
 	//Pn.display(true);
 	//std::cout << "*******" << std::endl;
-	while ((_iterGlobal < _iterG) && (resG>_epsG) || (_iterGlobal <= _stepG)) {
+	while ((_iterGlobal < _iterG) && (_resG>_epsG) || (_iterGlobal <= _stepG)) {
 		
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
@@ -107,7 +107,7 @@ void EndoPFGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResEndo(_iterGlobal / _stepG);
+			_resG = updateResEndo(_iterGlobal / _stepG);
 			//CHECK_LAST_CUDA_ERROR();
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
@@ -117,7 +117,7 @@ void EndoPFGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& ca
 		}
 		_iterGlobal++;
 	}
-	//std::cout << _iterGlobal << " " << resG << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << std::endl;
+	//std::cout << _iterGlobal << " " << _resG << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << std::endl;
 #ifdef INSTRUMENTATION
 	occurencePerBlock.increment(0, 1, _iterGlobal);
 	occurencePerBlock.increment(0, 3, _iterGlobal);

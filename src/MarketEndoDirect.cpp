@@ -100,10 +100,10 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 #endif // INSTRUMENTATION
 	}
 	float fc = 0;
-	float resG = 2 * _epsG;
+	_resG = 2 * _epsG;
 	_iterGlobal = 0;
 	
-	while (((_iterGlobal < _iterG) && (resG>_epsG)) || (_iterGlobal <= _stepG)) {
+	while (((_iterGlobal < _iterG) && (_resG>_epsG)) || (_iterGlobal <= _stepG)) {
 		//MatrixCPU::saveTabMatCSV(X, _nBusWLoss, "TestXCPU.csv", 11, 1);
 		//Pn.saveCSV("TestPnCPU2.csv", 11, 1);
 		//MatrixCPU::saveTabMatCSV(X, _nBusWLoss, "TestXCPU2.csv", 11, 1);
@@ -180,9 +180,8 @@ void MarketEndoDirect::solve(Simparam* result, const Simparam& sim, const StudyC
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(_iterGlobal / _stepG);
+			_resG = updateRes(_iterGlobal / _stepG);
 			//std::cout << _iterGlobal << " " << resF.get(0, _iterGlobal / _stepG) << " " << resF.get(1, _iterGlobal / _stepG) << " " << resF.get(2, _iterGlobal / _stepG) << std::endl;
-			//resG = 1;
 #ifdef INSTRUMENTATION
 			t2 = std::chrono::high_resolution_clock::now();
 			timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());

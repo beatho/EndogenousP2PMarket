@@ -368,6 +368,7 @@ void MethodP2PGPU::initSimParam(const Simparam& sim){
 
 	resF = MatrixCPU(3, (_iterG / _stepG) + 1);
 	resX = MatrixCPU(4, (_iterG / _stepG) + 1);
+	_resG = _epsG;
 
 	tempNN = MatrixGPU(_nTrade, 1, 0, 1);
 	tempN1 = MatrixGPU(_nAgent, 1, 0, 1); // plut�t que de re-allouer de la m�moire � chaque utilisation
@@ -521,9 +522,16 @@ void MethodP2PGPU::initCaseParam(const Simparam& sim,const StudyCase& cas){
 }
 
 void MethodP2PGPU::setResult(Simparam* result, bool casAC){
-	if(_nLine){
+	if(_nLine && !casAC){
 		Kappa1.projectNeg(); //delta1
 		Kappa2.projectNeg(); // delta2
+		MatrixCPU delta1CPU;
+		Kappa1.toMatCPU(delta1CPU);
+		MatrixCPU delta2CPU;
+		Kappa2.toMatCPU(delta2CPU);
+
+		result->setDelta1(&delta1CPU);
+		result->setDelta2(&delta2CPU);
 	}
 	updatePn();
 
@@ -541,10 +549,7 @@ void MethodP2PGPU::setResult(Simparam* result, bool casAC){
 
 	MatrixCPU MUCPU;
 	MU.toMatCPU(MUCPU);
-	MatrixCPU delta1CPU;
-	Kappa1.toMatCPU(delta1CPU);
-	MatrixCPU delta2CPU;
-	Kappa2.toMatCPU(delta2CPU);
+	
 		
 	
 	for(int lin = 0; lin <_nTradeP; lin++){
@@ -583,11 +588,6 @@ void MethodP2PGPU::setResult(Simparam* result, bool casAC){
 	result->setLAMBDA(&LAMBDA);
 	result->setTrade(&trade);
 	
-	if (_nLine) {
-		result->setDelta1(&delta1CPU);
-		result->setDelta2(&delta2CPU);
-	}
-
 	result->setResF(&resF);
 	result->setIter(_iterGlobal);
 	result->setFc(fc);

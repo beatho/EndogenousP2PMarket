@@ -677,9 +677,9 @@ void OPFADMMConsGPU::solveConsensus(float eps, MatrixGPU* PSO)
 		_iterGlobal++;
 	}
 	
-	if (_iterG == _iterGlobal) {
+	//if (_iterG == _iterGlobal) {
 		//std::cout << "OPF GPU : " << _iterGlobal << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << std::endl;
-	}
+	//}
 	//X[1].display();
 	
 	//setPnFromX << < _nBus, _blockSizeSmall >> > (Pn._matrixGPU, X._matrixGPU, _indiceBusBegin._matrixGPU, _CoresAgentBus._matrixGPU, _nAgentByBus._matrixGPU, _CoresAgentBusBegin._matrixGPU, _nAgent);
@@ -825,7 +825,7 @@ void OPFADMMConsGPU::initConsensus(const Simparam& sim, const StudyCase& cas, fl
 
 	CoresSoloBusAgent = MatrixGPU(_nBus, 1, -1, 1);
 
-	Pn = MatrixGPU(2 * _nAgent, 1, 0, 1); // not the real agent
+	Pn = MatrixGPU(sim.getPn(), 1); // not the real agent
 	PSOGPU = MatrixGPU(2 * _nAgent, 1, 0, 1);
 	Pmin = MatrixGPU(2 * _nAgent, 1, -1000000, 1); // must not be the real one
 	Pmax = MatrixGPU(2 * _nAgent, 1, 1000000, 1); // idem

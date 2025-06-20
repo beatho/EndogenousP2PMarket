@@ -4994,7 +4994,7 @@ void SimuStatMarketEndoArticle(){
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
 	cas.SetACFromFile("case85");
-	for (int agent = 1; agent < nNAgent; agent++) {
+	for (int agent = 0; agent < 2; agent++) {
 		std::cout << " N agent : " << tabNagent[agent] << std::endl;
 		std::cout << "--------- --------- --------- --------- ----------" << std::endl;
 		int agents = tabNagent[agent];
@@ -5566,12 +5566,13 @@ void testOPF(int choseCase, std::string chosenCase)
 	OPFADMMConsGPU opfADMMConsGPU;
 
 	bool saveResiduals = false; //true false
+	bool doubleSolve   = false;
 	MatrixCPU results(5, nMethode, -1);
 	int method = 0;
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
 
-	float rhoInit = 50; // 1 pou cas 2 ou 10 50 cas 69
+	float rhoInit = 1; // 1 pou cas 2 ou 10 50 cas 69
 	
 
 	switch (choseCase)
@@ -5650,6 +5651,7 @@ void testOPF(int choseCase, std::string chosenCase)
 		t1 = std::chrono::high_resolution_clock::now();
 		opfADMM.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+		if(doubleSolve) opfADMM.solve(&res, param, cas);
 		Pn = res.getPn();
 		if (saveResiduals) {
 			Param.saveCSV(fileName);
@@ -5684,6 +5686,7 @@ void testOPF(int choseCase, std::string chosenCase)
 		t1 = std::chrono::high_resolution_clock::now();
 		opfADMM2.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+		if(doubleSolve) opfADMM2.solve(&res, param, cas);
 		Pn = res.getPn();
 		//Pn.display();
 		//opfADMM2.display();
@@ -5712,6 +5715,7 @@ void testOPF(int choseCase, std::string chosenCase)
 		t1 = std::chrono::high_resolution_clock::now();
 		opfADMMCons.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+		if(doubleSolve) opfADMMCons.solve(&res, param, cas);
 		Pn = res.getPn();
 		//Pn.display();
 		//opfADMMCons.display();
@@ -5741,6 +5745,7 @@ void testOPF(int choseCase, std::string chosenCase)
 		t1 = std::chrono::high_resolution_clock::now();
 		opfADMMGPU.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+		if(doubleSolve) opfADMMGPU.solve(&res, param, cas);
 		Pn = res.getPn();
 		Pn.display();
 		//opfADMMGPU.display();
@@ -5771,6 +5776,7 @@ void testOPF(int choseCase, std::string chosenCase)
 		t1 = std::chrono::high_resolution_clock::now();
 		opfADMMGPU2.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+		if(doubleSolve) opfADMMGPU2.solve(&res, param, cas);
 		Pn = res.getPn();
 		//Pn.display();
 		if (saveResiduals) {
@@ -5800,6 +5806,7 @@ void testOPF(int choseCase, std::string chosenCase)
 		t1 = std::chrono::high_resolution_clock::now();
 		opfADMMConsGPU.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+		if(doubleSolve) opfADMMConsGPU.solve(&res, param, cas);
 		Pn = res.getPn();
 		//Pn.display();
 		//opfADMMConsGPU.display();
@@ -5868,6 +5875,7 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 	bool methodeToSimule[10] = {false, true, true, true, false, false, false, false, false, false };
 
 	int method = 0;
+	bool doubleSolve = (sizeN==1);
 	std::chrono::high_resolution_clock::time_point t1;
 	std::chrono::high_resolution_clock::time_point t2;
 
@@ -6069,6 +6077,7 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 		t1 = std::chrono::high_resolution_clock::now();
 		admmMarket.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+		if(doubleSolve) admmMarket.solve(&res, param, cas);
 		Pn = res.getPn();
 		Pn.display();
 
@@ -6095,6 +6104,7 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 		t1 = std::chrono::high_resolution_clock::now();
 		admmMarketOpenMP.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+		if(doubleSolve) admmMarketOpenMP.solve(&res, param, cas);
 		Pn = res.getPn();
 		Pn.display();
 
@@ -6122,6 +6132,7 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 		t1 = std::chrono::high_resolution_clock::now();
 		admmMarketGPU.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+		if(doubleSolve) admmMarketGPU.solve(&res, param, cas);
 		Pn = res.getPn();
 		Pn.display();
 
@@ -6180,6 +6191,9 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 		t1 = std::chrono::high_resolution_clock::now();
 		pac.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+
+		if(doubleSolve) pac.solve(&res, param, cas);
+
 		Pn = res.getPn();
 		Pn.display();
 
@@ -6208,6 +6222,9 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 		t1 = std::chrono::high_resolution_clock::now();
 		pacOpenMP.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+
+		if(doubleSolve) pacOpenMP.solve(&res, param, cas);
+
 		Pn = res.getPn();
 		Pn.display();
 
@@ -6237,6 +6254,9 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 		t1 = std::chrono::high_resolution_clock::now();
 		pacGPU.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+
+		if(doubleSolve) pacGPU.solve(&res, param, cas);
+
 		Pn = res.getPn();
 		Pn.display();
 
@@ -6266,6 +6286,9 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 		t1 = std::chrono::high_resolution_clock::now();
 		admmMarketEndo.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+
+		if(doubleSolve) admmMarketEndo.solve(&res, param, cas);
+
 		Pn = res.getPn();
 		Pn.display();
 		results.set(0, method, Pn.get(1, 0));
@@ -6296,6 +6319,9 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 		t1 = std::chrono::high_resolution_clock::now();
 		admmMarketEndoGPU.solve(&res, param, cas);
 		t2 = std::chrono::high_resolution_clock::now();
+
+		if(doubleSolve) admmMarketEndoGPU.solve(&res, param, cas);
+
 		Pn = res.getPn();
 		Pn.display();
 
@@ -6350,11 +6376,13 @@ void testMarketEndo(int choseCase, std::string chosenCase, int sizeN, int sizeB)
 	bool methodeToSimule[8] = { true, true, false, false, true, true, false, false }; ///false
 
 	int million = 1000000;
-	bool doubleSolve = true; // true  false
+	bool doubleSolve =  (sizeN==1); // true  false
 	std::string fileName = "TimeByBlockMarketEndo";
 	//std::string chosenCase = "";
 	int offsetAgent = 0; // which agent we kept the value to compare results
 	
+	std::cout << "choseCase " << choseCase << "chosenCase " << chosenCase << "doubleSolve " << doubleSolve << " N " << sizeN << " B " << sizeB <<std::endl;
+
 	int stepG = 1;
 	int stepL = 1;
 	int stepIntern = 1;
@@ -6363,7 +6391,7 @@ void testMarketEndo(int choseCase, std::string chosenCase, int sizeN, int sizeB)
 		stepG = stepIntern;
 	}
 
-	int iterL = 5000;
+	int iterL = 7000;
 	int iterG  = 10000;
 	int iterIntern = 5000;
 

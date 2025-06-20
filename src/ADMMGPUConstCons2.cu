@@ -310,13 +310,13 @@ void ADMMGPUConstCons2::solve(Simparam* result, const Simparam& sim, const Study
 	
 	
 
-	float resG = 2 * _epsG;
+	_resG = 2 * _epsG;
 	float epsL2 = _epsL * _epsL;
 	_iterGlobal = 0;
 	
 	
 	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
-	while ((_iterGlobal < _iterG) && (resG > _epsG)) {
+	while ((_iterGlobal < _iterG) && (_resG > _epsG)) {
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t1 = std::chrono::high_resolution_clock::now();
@@ -339,7 +339,7 @@ void ADMMGPUConstCons2::solve(Simparam* result, const Simparam& sim, const Study
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(_iterGlobal / _stepG);
+			_resG = updateRes(_iterGlobal / _stepG);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
@@ -365,7 +365,7 @@ void ADMMGPUConstCons2::solve(Simparam* result, const Simparam& sim, const Study
 	
 	std::cout << "valeur finale des contraintes de l'opf : " << std::endl;
 	c.display();
-	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
+	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << _resG << std::endl;
 	
 	setResult(result, cas.isAC());
 	

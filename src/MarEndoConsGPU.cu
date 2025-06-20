@@ -30,7 +30,7 @@ MarEndoConsGPU::MarEndoConsGPU(float rho) : MethodP2PGPU()
 MarEndoConsGPU::~MarEndoConsGPU()
 {
 	DELETEB(OPF);
-	//DELETEB(OPFCPU);
+	DELETEB(OPFCPU);
 }
 
 
@@ -142,7 +142,7 @@ void MarEndoConsGPU::solve(Simparam* result, const Simparam& sim, const StudyCas
 		_iterGlobal++;
 	}
 	
-	//std::cout << _iterGlobal << " " << iterLocal  << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << std::endl;
+	//std::cout << _iterGlobal << " " << _iterL  << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << std::endl;
 #ifdef INSTRUMENTATION
 	occurencePerBlock.increment(0, 1, _iterGlobal);
 	occurencePerBlock.increment(0, 3, _iterGlobal);
@@ -160,14 +160,24 @@ void MarEndoConsGPU::solve(Simparam* result, const Simparam& sim, const StudyCas
 	Pn.display();*/
 
 	// FB 5
+	if(OPFonCPU){
+		MatrixCPU Pb(OPFCPU->getPb());
+		MatrixCPU Phi(OPFCPU->getPhi());
+		MatrixCPU E(OPFCPU->getE());
+		
+		result->setE(&E);
+		result->setPhi(&Phi);
+		result->setPb(&Pb);
+	} else {
+		MatrixCPU Pb(OPF->getPb());
+		MatrixCPU Phi(OPF->getPhi());
+		MatrixCPU E(OPF->getE());
+		
+		result->setE(&E);
+		result->setPhi(&Phi);
+		result->setPb(&Pb);
+	}
 	
-	MatrixCPU Pb(OPF->getPb());
-	MatrixCPU Phi(OPF->getPhi());
-	MatrixCPU E(OPF->getE());
-	
-	result->setE(&E);
-	result->setPhi(&Phi);
-	result->setPb(&Pb);
 
 	setResult(result, cas.isAC());
 	
@@ -305,10 +315,12 @@ void MarEndoConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	
 
 	PSO = MatrixGPU(_nAgent, 1, 0, 1);
+	PSOCPU = MatrixCPU(_nAgent, 1, 0);
 	PSO.preallocateReduction();
 	etaSO = MatrixGPU(_nAgent, 1, 0, 1);
 	Bp3 = MatrixGPU(_nAgent, 1, 0, 1);
 	
+	//std::cout << "creation OPF" <<std::endl;
 	if (OPFonCPU) {
 		OPFCPU = new OPFADMMCons;
 		OPFCPU->initConsensus(paramOPF, cas, _rhoSO);
@@ -355,6 +367,7 @@ void MarEndoConsGPU::updateGlobalProb() {
 	if (_iterGlobal % _stepIntern == 0) {
 		if (OPFonCPU) {
 			PSO.toMatCPU(PSOCPU);
+
 			OPFCPU->solveConsensus(eps, &PSOCPU);
 			PSO = PSOCPU;
 		}
@@ -377,6 +390,7 @@ void MarEndoConsGPU::updateGlobalProb() {
 	if (OPFonCPU) {
 		Pn.toMatCPU(PnCPU);
 		OPFCPU->updateConsensus(&PnCPU);
+		
 	}
 	else {
 		OPF->updateConsensus(&Pn);

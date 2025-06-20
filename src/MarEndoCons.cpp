@@ -254,10 +254,7 @@ void MarEndoCons::init(const Simparam& sim, const StudyCase& cas)
 	//std::cout << "Market" << std::endl;
 	//std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	initCaseParam(sim, cas);
-	Pmin.set(0, 0, -100000); // unleash power !!!
-	Pmin.set(_nAgentTrue, 0, -100000); // unleash power !!!	
-	Pmax.set(_nAgentTrue, 0, 100000); // unleash power !!!
-	
+		
 	if (initWithMarketClear) {
 		ADMMMarket market;
 		Simparam res(sim);
@@ -268,6 +265,11 @@ void MarEndoCons::init(const Simparam& sim, const StudyCase& cas)
 		Pn = res.getPn();
 	}
 	
+	Pmin.set(0, 0, -100000); // unleash power !!!
+	Pmin.set(_nAgentTrue, 0, -100000); // unleash power !!!	
+	Pmax.set(_nAgentTrue, 0, 100000); // unleash power !!!
+
+
 	//std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 	//std::cout << "time : " << (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / 1000000000 << std::endl;
 	

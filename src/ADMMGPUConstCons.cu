@@ -430,14 +430,14 @@ void ADMMGPUConstCons::solve(Simparam* result, const Simparam& sim, const StudyC
 	const int iterL = sim.getIterL();
 	
 
-	float resG = 2 * epsG;
+	_resG = 2 * epsG;
 	float epsL2 = epsL * epsL;
 	int iterGlobal = 0;
 	int iterLocal = 0;
 	int realOccurence = 0;
 	
 	//std::cout << iterG << " " << iterL << " " << epsL << " " << epsG << std::endl;
-	while ((iterGlobal < iterG) && (resG > epsG)) {
+	while ((iterGlobal < iterG) && (_resG > epsG)) {
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
 		t1 = std::chrono::high_resolution_clock::now();
@@ -460,7 +460,7 @@ void ADMMGPUConstCons::solve(Simparam* result, const Simparam& sim, const StudyC
 			cudaDeviceSynchronize();
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(&resF, &Tlocal, iterGlobal / stepG, &tempNN);
+			_resG = updateRes(&resF, &Tlocal, iterGlobal / stepG, &tempNN);
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();
@@ -484,7 +484,7 @@ void ADMMGPUConstCons::solve(Simparam* result, const Simparam& sim, const StudyC
 	
 
 	float fc = calcFc();
-	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
+	//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << _resG << std::endl;
 	MatrixCPU tradeLinCPU;
 	tradeLin.toMatCPU(tradeLinCPU);
 	MatrixCPU LAMBDALinCPU;

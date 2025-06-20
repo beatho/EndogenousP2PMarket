@@ -97,11 +97,11 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 	}
 	
 	_epsL *= _epsL;
-	float resG = 2 * _epsG;
+	_resG = 2 * _epsG;
 	_iterGlobal = 0;
 	
 	
-	while (((_iterGlobal < _iterG) && (resG>_epsG)) || (_iterGlobal <= _stepG)) {
+	while (((_iterGlobal < _iterG) && (_resG>_epsG)) || (_iterGlobal <= _stepG)) {
 		/*std::cout << "---------------------------------" << std::endl;
 		std::cout << " X avant" << std::endl;
 		X.display(true);
@@ -182,9 +182,8 @@ void MarketEndoDirectGPU::solve(Simparam* result, const Simparam& sim, const Stu
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResEndo(_iterGlobal / _stepG);
+			_resG = updateResEndo(_iterGlobal / _stepG);
 			//std::cout << _iterGlobal << " " << resF.get(0, _iterGlobal / _stepG) << " " << resF.get(1, _iterGlobal / _stepG) << " " << resF.get(2, _iterGlobal / _stepG) << std::endl;
-			//resG = 1;
 #ifdef INSTRUMENTATION
 			cudaDeviceSynchronize();
 			t2 = std::chrono::high_resolution_clock::now();

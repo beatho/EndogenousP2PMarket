@@ -80,11 +80,11 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 	float fc = 0;
 
 	int iterLocal = 0;
-	float resG = 2 * _epsG;
+	_resG = 2 * _epsG;
 	float resL = 2 * _epsL;
 	_iterGlobal = 0;
 
-	while ((_iterGlobal < _iterG) && (resG > _epsG)) {
+	while ((_iterGlobal < _iterG) && (_resG > _epsG)) {
 		resL = 2 * _epsL;
 		iterLocal = 0;
 		while (iterLocal< _iterL && resL> _epsL) {
@@ -143,7 +143,7 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 			iterLocal++;
 		}
 		if (iterLocal == _iterL) {
-			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << resG << std::endl;
+			//std::cout << _iterGlobal << " " << iterLocal << " " << resL << " " << _resG << std::endl;
 		}
 #ifdef INSTRUMENTATION
 		occurencePerBlock.increment(0, 1, iterLocal);
@@ -172,7 +172,7 @@ void ADMMMarketOpenMP::solve(Simparam* result, const Simparam& sim, const StudyC
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateRes(_iterGlobal / _stepG);
+			_resG = updateRes(_iterGlobal / _stepG);
 #ifdef INSTRUMENTATION
 			t2 = std::chrono::high_resolution_clock::now();
 			timePerBlock.increment(0, 6, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());

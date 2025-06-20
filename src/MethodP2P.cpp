@@ -319,6 +319,7 @@ void MethodP2P::initSimParam(const Simparam& sim){
 
 	resF = MatrixCPU(3, (_iterG / _stepG) + 1);
 	resX = MatrixCPU(4, (_iterG / _stepG) + 1);
+	_resG = _epsG;
 
 	tempNN = MatrixCPU(_nTrade, 1, 0);
 	tempN1 = MatrixCPU(_nAgent, 1, 0); // plut�t que de re-allouer de la m�moire � chaque utilisation
@@ -536,7 +537,7 @@ void MethodP2P::initP2PMarket(){
 
 void MethodP2P::setResult(Simparam* result, bool casAC){
 	
-	if(_nLine){
+	if(_nLine && !casAC){
 		Kappa1.projectNeg(); //delta1
 		Kappa2.projectNeg(); // delta2
 	}
@@ -591,7 +592,7 @@ void MethodP2P::setResult(Simparam* result, bool casAC){
 	result->setIter(_iterGlobal);
 	result->setFc(fc);
 
-	if (_nLine) {
+	if (_nLine && !casAC) {
 		result->setDelta1(&Kappa1);
 		result->setDelta2(&Kappa2);
 	}

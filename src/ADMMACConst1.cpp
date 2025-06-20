@@ -79,10 +79,10 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 	float fc = 0;
 
 	int iterLocal = 0;
-	float resG = 2 * epsG;
+	_resG = 2 * epsG;
 	float resL = 2 * epsL;
 	_iterGlobal = 0;
-	while ((_iterGlobal < iterG) && (resG>epsG)) {
+	while ((_iterGlobal < iterG) && (_resG>epsG)) {
 		resL = 2 * epsL;
 		iterLocal = 0;
 		while (iterLocal< iterL && resL>epsL) {
@@ -134,7 +134,7 @@ void ADMMACConst1::solve(Simparam* result, const Simparam& sim, const StudyCase&
 #ifdef INSTRUMENTATION
 			t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-			resG = updateResBis(&resF, (_iterGlobal / stepG), &tempNN);
+			_resG = updateResBis(&resF, (_iterGlobal / stepG), &tempNN);
 			//P.display();
 			//std::cout << iterGlobal << " " << iterLocal << " " << resL << " " << resF.get(0, (iterGlobal - 1) / stepG) << " " << resF.get(1, (iterGlobal - 1) / stepG) << " " << resF.get(2, (iterGlobal - 1) / stepG) << std::endl;
 

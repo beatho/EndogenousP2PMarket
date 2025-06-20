@@ -38,9 +38,7 @@ private:
 	// ne change pas avec P0
 	
 	float _delta = 1;
-	float _resG = 0;
 	
-
 	// Matrices kept on CPU
 	MatrixCPU PSOCPU;
 	MatrixCPU PnCPU;
