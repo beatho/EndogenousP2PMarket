@@ -35,7 +35,7 @@ public:
 	void updateP();
 	void updateMU();
 	void display();
-	bool initWithMarketClear = true;
+	bool initWithMarketClear = false;
 private:
 	// ne change pas avec P0
 	float _delta = 0.01f;

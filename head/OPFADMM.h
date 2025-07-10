@@ -32,8 +32,6 @@ public:
 	void updatepl();
 	void updatePTilde();
 	float calcRes();
-	virtual float getPLoss();
-	virtual float getQLoss();
 	void updateChat();
 	void CommunicationX();
 	void CommunicationY();
@@ -53,7 +51,7 @@ private:
 	// ne change pas avec P0
 	int _nBus = 0;
 	int _nLine = 0;
-	int _nAgent = 0;
+	
 	float _rho = 0;
 	float _rhoInv = 0;
 	double coefPoly2[2];
@@ -119,7 +117,8 @@ private:
 	MatrixCPU tempN2; // size : (_nAgent*2, 1)
 	MatrixCPU tempB2; // size : (_nBus  *2, 1)
 	MatrixCPU CoresSoloBusAgent;
-	MatrixCPU Pn;
+	
+	
 	MatrixCPU Pmin;
 	MatrixCPU Pmax;
 	MatrixCPU PnTmin;

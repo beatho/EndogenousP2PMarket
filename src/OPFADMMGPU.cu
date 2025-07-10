@@ -282,6 +282,9 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	result->setIter(_iterGlobal);
 	MatrixCPU PnCPU;
 	Pn.toMatCPU(PnCPU);
+	PnCPU.set(0, 0, getPLoss());
+	PnCPU.set(_nAgent, 0, getQLoss());
+
 	result->setPn(&PnCPU);
 	
 	MatrixCPU Pb(getPb());
@@ -854,25 +857,6 @@ void OPFADMMGPU::updateMu()
 	}
 	Mu.add(&tempM);*/
 
-}
-
-
-float OPFADMMGPU::getPLoss()
-{
-	float Ploss = 0;
-	for (int i = 1; i < _nAgent; i++) {
-		Ploss += Pn.get(i, 0);
-	}
-	return Ploss;
-}
-
-float OPFADMMGPU::getQLoss()
-{
-	float Qloss = 0;
-	for (int i = 1; i < _nAgent; i++) {
-		Qloss += Pn.get(i + _nAgent, 0);
-	}
-	return Qloss;
 }
 
 void OPFADMMGPU::ComputePFromAgentToBus()

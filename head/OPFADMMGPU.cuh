@@ -34,8 +34,6 @@ public:
 	void updateXWOCurrentOnCPU();
 	void updateMu();
 
-	float getPLoss();
-	float getQLoss();
 	void ComputePFromAgentToBus();
 	virtual MatrixCPU getPb();
 	virtual MatrixCPU getPhi();
@@ -57,7 +55,7 @@ private:
 
 	int _nBus = 0;
 	int _nLine = 0;
-	int _nAgent = 0;
+	
 	int _sizeOPFTotal = 0;
 	int _sizeOPFMax = 0;
 	float _rho = 0;
@@ -133,7 +131,7 @@ private:
 	MatrixGPU tempN2; // size : (_nAgent*2, 1)
 	MatrixGPU tempB2; // size : (_nBus  *2, 1)
 	MatrixGPU CoresSoloBusAgent;
-	MatrixGPU Pn;
+	
 	MatrixGPU Pmin;
 	MatrixGPU Pmax;
 	MatrixGPU PnTmin;

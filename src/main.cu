@@ -4904,7 +4904,7 @@ void SimuStatMarketEndoGrid() {
 
 
 void SimuStatMarketEndoArticle(){
-	std::string fileName = "ComparaisonMarketEndoAgentArticle2.csv";
+	std::string fileName = "ComparaisonMarketEndoAgentArticle.csv";
 	std::ios_base::openmode mode = std::fstream::in | std::fstream::out | std::fstream::app;
 	const int nMethod = 4;
 	std::vector<int> indices = { 0, 1, 2, 3 };
@@ -4952,9 +4952,9 @@ void SimuStatMarketEndoArticle(){
 	int iterG  = 10000;
 	int iterIntern = 5000;
 
-	float epsL = 0.00005f;
+	float epsL = 0.0001f;
 	float epsG = 0.001f;
-	float epsGC = 0.0001f;
+	float epsGC = 0.0005f;
 	float epsIntern = 0.001f;
 
 	float rhoInit = 1; // 1 pour cas 2 noeuds, 5 pour cas9, cas 10, 10 cas 69
@@ -5555,7 +5555,7 @@ void testOPF(int choseCase, std::string chosenCase)
 	//std::string chosenCase = "";
 	
 	int nMethode = 6;
-	bool methodeToCompute[] = { true, true, false, true, true, false };
+	bool methodeToCompute[] = { true, true, true, true, true, true };
 	int nMethodeReal = 6;
 
 	OPFADMM opfADMM;
@@ -5607,12 +5607,12 @@ void testOPF(int choseCase, std::string chosenCase)
 	}
 
 	Simparam param(cas.getNagent(), cas.getNLine(true), true);
-	float epsL = 0.0005f;
-	float epsG = 0.01f;
+	float epsL = 0.00001f;
+	float epsG = 0.0001f;
 	int stepG = 1;
 	int stepL = 5;
-	int iterG = 10000;
-	int iterL = 1000;
+	int iterG = 20000;
+	int iterL = 10000;
 	param.setEpsL(epsL);
 	param.setEpsG(epsG);
 	param.setItG(iterG); //500000  10000
@@ -5664,8 +5664,8 @@ void testOPF(int choseCase, std::string chosenCase)
 		// 
 		//opfADMM.display();
 
-		results.set(0, method, Pn.get(1, 0));
-		results.set(1, method, Pn.get(nAgent + 1, 0));
+		results.set(0, method, Pn.get(0, 0));
+		results.set(1, method, Pn.get(nAgent, 0));
 		results.set(2, method, res.getFc());
 		results.set(3, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
 		results.set(4, method, res.getIter());
@@ -5688,15 +5688,15 @@ void testOPF(int choseCase, std::string chosenCase)
 		t2 = std::chrono::high_resolution_clock::now();
 		if(doubleSolve) opfADMM2.solve(&res, param, cas);
 		Pn = res.getPn();
-		//Pn.display();
+		Pn.display();
 		//opfADMM2.display();
 		if (saveResiduals) {
 			MatrixCPU Residuals(res.getRes());
 			Residuals.saveCSV(fileName);
 		}
 
-		results.set(0, method, Pn.get(1, 0));
-		results.set(1, method, Pn.get(nAgent + 1, 0));
+		results.set(0, method, Pn.get(0, 0));
+		results.set(1, method, Pn.get(nAgent, 0));
 		results.set(2, method, res.getFc());
 		results.set(3, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
 		results.set(4, method, res.getIter());
@@ -5717,15 +5717,15 @@ void testOPF(int choseCase, std::string chosenCase)
 		t2 = std::chrono::high_resolution_clock::now();
 		if(doubleSolve) opfADMMCons.solve(&res, param, cas);
 		Pn = res.getPn();
-		//Pn.display();
+		Pn.display();
 		//opfADMMCons.display();
 		if (saveResiduals) {
 			MatrixCPU Residuals(res.getRes());
 			Residuals.saveCSV(fileName);
 		}
 
-		results.set(0, method, Pn.get(1, 0));
-		results.set(1, method, Pn.get(nAgent + 1, 0));
+		results.set(0, method, Pn.get(0, 0));
+		results.set(1, method, Pn.get(nAgent , 0));
 		results.set(2, method, res.getFc());
 		results.set(3, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
 		results.set(4, method, res.getIter());
@@ -5754,8 +5754,8 @@ void testOPF(int choseCase, std::string chosenCase)
 			Residuals.saveCSV(fileName);
 		}
 
-		results.set(0, method, Pn.get(1, 0));
-		results.set(1, method, Pn.get(nAgent + 1, 0));
+		results.set(0, method, Pn.get(0, 0));
+		results.set(1, method, Pn.get(nAgent, 0));
 		results.set(2, method, res.getFc());
 		results.set(3, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
 		results.set(4, method, res.getIter());
@@ -5785,8 +5785,8 @@ void testOPF(int choseCase, std::string chosenCase)
 		}
 		//opfADMMGPU.display();
 
-		results.set(0, method, Pn.get(1, 0));
-		results.set(1, method, Pn.get(nAgent + 1, 0));
+		results.set(0, method, Pn.get(0, 0));
+		results.set(1, method, Pn.get(nAgent, 0));
 		results.set(2, method, res.getFc());
 		results.set(3, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
 		results.set(4, method, res.getIter());
@@ -5815,8 +5815,8 @@ void testOPF(int choseCase, std::string chosenCase)
 			Residuals.saveCSV(fileName);
 		}
 
-		results.set(0, method, Pn.get(1, 0));
-		results.set(1, method, Pn.get(nAgent + 1, 0));
+		results.set(0, method, Pn.get(0, 0));
+		results.set(1, method, Pn.get(nAgent, 0));
 		results.set(2, method, res.getFc());
 		results.set(3, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
 		results.set(4, method, res.getIter());
@@ -5907,7 +5907,7 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 	//int nStep = 1; // WIP
 	//int nSimu = 1; // WIP
 
-	float rho = 10;
+	float rho = 1;
 	//float factor = 0.9;
 
 
@@ -6006,12 +6006,12 @@ void testMarket(int choseCase, std::string chosenCase, bool AC, int sizeN)
 	ADMMGPUConst4 admmMarketEndoGPU;
 
 	Simparam param(cas.getNagent(), cas.getNLine(true), cas.getNLine(), AC);
-	float epsG = 0.0001f;
-	float epsL = 0.00001f; //float epsL = 0.0005f;
+	float epsG = 0.00001f;
+	float epsL = 0.000001f; //float epsL = 0.0005f;
 	//float epsG = 0.001f;
 	int iterGlobal = 100000; // 100000
 	int iterLocal = 2000;
-	int stepG = 5;
+	int stepG = 1;
 	int stepL = 5;
 
 	param.setEpsL(epsL);
@@ -6396,9 +6396,9 @@ void testMarketEndo(int choseCase, std::string chosenCase, int sizeN, int sizeB)
 	int iterIntern = 5000;
 
 	float epsL = 0.00005f;
-	float epsG = 0.001f;
+	float epsG = 0.0001f;
 	float epsGC = 0.0001f;
-	float epsIntern = 0.001f;
+	float epsIntern = 0.0001f;
 
 	float rhoInit = 1; // 1 pour cas 2 noeuds, 5 pour cas9, cas 10, 10 cas 69
 

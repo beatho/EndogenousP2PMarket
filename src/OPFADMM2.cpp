@@ -203,6 +203,9 @@ void OPFADMM2::solve(Simparam* result, const Simparam& sim, const StudyCase& cas
 	}
 
 	fc = calcFc(&Cost1, &Cost2, &Pn, &tempN2);
+
+	Pn.set(0, 0, getPLoss());
+	Pn.set(_nAgent, 0, getQLoss());
 	// FB 5
 	
 	result->setResF(&resF);
@@ -1257,28 +1260,6 @@ void OPFADMM2::updateMu()
 	}
 }
 
-
-
-float OPFADMM2::getPLoss()
-{
-	_Ploss = 0;
-	for (int i = 1; i < _nAgent; i++) {
-		_Ploss -= Pn.get(i, 0);
-	}
-	
-	return _Ploss;
-}
-
-float OPFADMM2::getQLoss()
-{
-	_Qloss = 0;
-	
-	for (int i = 1; i < _nAgent; i++) {
-		_Qloss -= Pn.get(i + _nAgent, 0);
-	}
-	
-	return _Qloss;
-}
 
 float OPFADMM2::getPLoss2()
 {

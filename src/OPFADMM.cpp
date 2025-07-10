@@ -247,6 +247,8 @@ void OPFADMM::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	fc = calcFc(&Cost1, &Cost2, &Pn, &tempN2);
 	// FB 5
 	
+	Pn.set(0, 0, getPLoss());
+	Pn.set(_nAgent, 0, getQLoss());
 	result->setResF(&resF);
 	
 
@@ -257,6 +259,7 @@ void OPFADMM::solve(Simparam* result, const Simparam& sim, const StudyCase& cas)
 	
 	MatrixCPU Pb(getPb());
 	MatrixCPU Phi(getPhi());
+	//Phi.display();
 	MatrixCPU E(getE());
 	
 	result->setE(&E);
@@ -1427,23 +1430,7 @@ float OPFADMM::calcRes()
 	return d1 * (d1 > d2) + d2 * (d2 >= d1);
 }
 
-float OPFADMM::getPLoss()
-{
-	float Ploss = 0;
-	for (int i = 1; i < _nAgent; i++) {
-		Ploss -= Pn.get(i, 0);
-	}
-	return Ploss;
-}
 
-float OPFADMM::getQLoss()
-{
-	float Qloss = 0;
-	for (int i = 1; i < _nAgent; i++) {
-		Qloss -= Pn.get(i + _nAgent, 0);
-	}
-	return Qloss;
-}
 
 void OPFADMM::updateChat()
 {

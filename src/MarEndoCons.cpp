@@ -357,7 +357,7 @@ void MarEndoCons::updateGlobalProb() {
 	// FB 3b
 	t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-	//std::cout << "update OPF" << std::endl;
+		//std::cout << "update OPF" << std::endl;
 		updatePn();
 		//Pn.display();
 		//PSO.display();
@@ -469,6 +469,7 @@ void MarEndoCons::updateEtaSO()
 		float eta = 0.5f * (Pn.get(n, 0) - PSO.get(n, 0));
 		etaSO.set(n, 0, etaSO.get(n, 0) + eta);
 	}
+	//etaSO.display();
 }
 
 
@@ -539,7 +540,6 @@ float MarEndoCons::calcRes()
 
 float MarEndoCons::updateResBis(MatrixCPU* res, int iter, MatrixCPU* tempNN)
 {
-	
 	//tradeLin.display();
 	for (int t = 0; t < _nTrade; t++) {
 		int k = (int) CoresLinTrans.get(t, 0);

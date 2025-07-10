@@ -127,6 +127,7 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
 		updateGlobalProb();
+		
 #ifdef INSTRUMENTATION
 		t2 = std::chrono::high_resolution_clock::now();
 		timePerBlock.increment(0, 5, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
@@ -164,10 +165,10 @@ void ADMMMarket::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	// FB 5
 	
 	setResult(result, cas.isAC());
-	
-	/*trade.display();
+	/*tradeLin.display();
+	trade.display();
 	std::cout << "Trade" << std::endl;
-	tradeLin.display();
+	
 	std::cout << "power" << std::endl;
 	Tmoy.display();
 	P.display();

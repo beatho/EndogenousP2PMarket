@@ -11,9 +11,20 @@ public:
 	virtual void solveConsensus(float eps, MatrixCPU* PSO) = 0;
 	virtual void initConsensus(const Simparam& sim, const StudyCase& cas, float rhoSO) = 0;
 	virtual void updateConsensus(MatrixCPU* Pmarket) = 0;
-
-	virtual float getPLoss() = 0;
-	virtual float getQLoss() = 0;
+	virtual float getPLoss(){
+		float Ploss = 0;
+		for (int i = 1; i < _nAgent; i++) {
+			Ploss -= Pn.get(i, 0);
+		}
+		return Ploss;
+	}
+	virtual float getQLoss(){
+		float Qloss = 0;
+		for (int i = 1; i < _nAgent; i++) {
+			Qloss -= Pn.get(i + _nAgent, 0);
+		}
+		return Qloss;
+	}
 	virtual MatrixCPU getPb() = 0;
 	virtual MatrixCPU getPhi() = 0;
 	virtual MatrixCPU getE() = 0;
@@ -53,5 +64,8 @@ protected:
 	bool Lagrange = false; // true  false
 	float _tau = 2;
 
+	int _nAgent;
+
+	MatrixCPU Pn;
 };
 

@@ -35,8 +35,21 @@ public:
 		return tempN2->sum();
 	};
 
+	virtual float getPLoss()
+	{
+		return -Pn.sum(1, _nAgent);
+	}
+
+	virtual float getQLoss()
+	{
+		return -Pn.sum(_nAgent+1, 2*_nAgent);
+	}
+
 protected:
 	int _blockSize = 256;
 	int _blockSizeSmall = 32;
+
+	int _nAgent = 0;
+	MatrixGPU Pn;
 };
 

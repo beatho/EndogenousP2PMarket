@@ -207,6 +207,8 @@ void OPFADMMCons::solve(Simparam* result, const Simparam& sim, const StudyCase& 
 	
 	fc = calcFc(&Cost1, &Cost2, &Pn, &tempN2);
 	// FB 5
+	Pn.set(0, 0, getPLoss());
+	Pn.set(_nAgent, 0, getQLoss());
 	
 	result->setResF(&resF);
 	std::cout << "--------" << std::endl;
@@ -1169,7 +1171,7 @@ void OPFADMMCons::updateConsensus(MatrixCPU* Pmarket)
 	int omega = _nAgent - 1;*/
 	//Pmarket->display();
 	
-	for (int n = 1; n < _nAgent; n++) { 
+	for (int n = 0; n < _nAgent; n++) { 
 		float eta = etaSO.get(n, 0) +  0.5f * (Pn.get(n, 0) - Pmarket->get(n, 0));
 		etaSO.set(n, 0, eta);
 		eta = etaSO.get(n + _nAgent, 0) + 0.5f * (Pn.get(n + _nAgent, 0) - Pmarket->get(n + _nAgent, 0));
@@ -1177,8 +1179,8 @@ void OPFADMMCons::updateConsensus(MatrixCPU* Pmarket)
 	}
 	
 	Cost2.add(&Pn, Pmarket);
-	Cost2.set(0, 0, 0);
-	Cost2.set(_nAgent, 0, 0);
+	//Cost2.set(0, 0, 0);
+	//Cost2.set(_nAgent, 0, 0);
 	//Cost2.set(0, 0, _Ploss + Pmarket->get(0, 0));
 	//Cost2.set(_nAgent, 0, _Qloss + Pmarket->get(_nAgent, 0));
 	Cost2.multiply(-0.5f);

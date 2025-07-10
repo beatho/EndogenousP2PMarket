@@ -65,7 +65,7 @@ private:
 	int _nBus = 0;
 	int _nBusWLoss = 0;
 	int _nLine = 0;
-	int _nAgent = 0;
+	
 	int _nAgentOn0 = 0;
 
 	int _sizeOPFADMMConsTotal = 0;
@@ -151,7 +151,7 @@ private:
 	MatrixGPU tempN2; // size : (_nAgent*2, 1)
 	MatrixGPU tempB2; // size : (_nBus  *2, 1)
 	MatrixGPU CoresSoloBusAgent;
-	MatrixGPU Pn;
+	
 	MatrixGPU Pmin;
 	MatrixGPU Pmax;
 	MatrixGPU Pbmax;

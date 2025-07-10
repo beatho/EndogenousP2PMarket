@@ -190,7 +190,8 @@ void OPFADMMConsGPU::solve(Simparam* result, const Simparam& sim, const StudyCas
 	////CHECK_LAST_CUDA_ERROR();
 	MatrixCPU PnCPU;
 	Pn.toMatCPU(PnCPU);
-
+	PnCPU.set(0, 0, getPLoss());
+	PnCPU.set(_nAgent, 0, getQLoss());
 	
 	fc = calcFc(&Cost1, &Cost2, &Pn, &tempN2);
 	// FB 5
@@ -2923,7 +2924,7 @@ __global__ void updateConsensusGPU(float* Cost2, float* etaSO, float* Pn, float*
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
 	int step = blockDim.x * gridDim.x;
 
-	for (int agent = index + 1; agent < nAgent; agent += step) {
+	for (int agent = index; agent < nAgent; agent += step) {
 		float eta = etaSO[agent] + 0.5 * (Pn[agent] - Pmarket[agent]);
 		etaSO[agent] = eta;
 		Cost2[agent] = _rhoSO * (eta - 0.5 * (Pn[agent] + Pmarket[agent]));
