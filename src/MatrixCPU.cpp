@@ -313,7 +313,7 @@ void MatrixCPU::set(float value)
 void MatrixCPU::set(MatrixCPU* m)
 {
     if (!dim(m)) {
-        std::cout << _row << " * " << _column << " against " << m->_row << " * " << m->_column << std::endl;
+        std::cout << "set matrix " << _row << " * " << _column << " against " << m->_row << " * " << m->_column << std::endl;
         throw std::invalid_argument("not the same dimension, (set)");
     }
     memcpy(_matrixCPU, m->_matrixCPU, _row * _column * sizeof(float));
@@ -421,7 +421,7 @@ void MatrixCPU::setRand1(float eps)
 
     int N = _column * _row;
     for (int elem = 0; elem < N; elem++) {
-        _matrixCPU[elem] = 2 * (rand1() - 0.5) * eps;
+        _matrixCPU[elem] = 2 * (rand1() - 0.5f) * eps;
 
     }
     exit(0);    
@@ -993,7 +993,7 @@ void MatrixCPU::invertGaussJordan(MatrixCPU* mToInvert)
     int r = 0;
     for (int column = 0; column < _column; column++) {
         float pivotAbs = m.maxAbs(r, _row, column, column + 1, &indices);
-        int k = indices.get(0, 0); // indice max de la colonne j
+        int k = (int) indices.get(0, 0); // indice max de la colonne j
         float pivot = m.get(k, column);
         if (pivotAbs < 0.000001f) {
             throw std::invalid_argument("not invertible matrix (invertGaussJordan)");
@@ -1056,7 +1056,7 @@ void MatrixCPU::LDLFactorization(MatrixCPU* L, MatrixCPU* D)
 
 void MatrixCPU::LUPFactorization(MatrixCPU* A, MatrixCPU* Po)
 {
-    float Tol = 0.000001;
+    float Tol = 0.000001f;
     int n = getNLin();
     A->set(this);
     
@@ -1097,7 +1097,7 @@ void MatrixCPU::LUPFactorization(MatrixCPU* A, MatrixCPU* Po)
         
         if (imax != col) { //le max pas sur la diagonal
             //pivoting P
-            j = Po->get(col,0);
+            j = (int) Po->get(col,0);
             Po->set(col, 0, Po->get(imax, 0));
             Po->set(imax, 0, j);
 
@@ -1160,7 +1160,7 @@ void MatrixCPU::solveSysLower(MatrixCPU* L, MatrixCPU* b, MatrixCPU* P)
     }
     int n = getNLin();
     for (int i = 0; i < n; i++) {
-        set(i, 0, b->get(P->get(i, 0), 0)); // x[i] = b[P[i]];
+        set(i, 0, b->get((int) P->get(i, 0), 0)); // x[i] = b[P[i]];
 
         for (int k = 0; k < i; k++) {
             increment(i, 0, - L->get(i, k) * get(k, 0));
@@ -1182,7 +1182,7 @@ void MatrixCPU::solveSys(MatrixCPU* A, MatrixCPU* P, MatrixCPU* b)
 
     int n = getNLin();
     for (int i = 0; i < n; i++) {
-        set(i, 0, b->get(P->get(i, 0), 0)); // x[i] = b[P[i]];
+        set(i, 0, (int) b->get(P->get(i, 0), 0)); // x[i] = b[P[i]];
 
         for (int k = 0; k < i; k++) {
             increment(i, 0, -A->get(i, k) * get(k, 0));
@@ -1555,7 +1555,7 @@ void MatrixCPU::Moy(MatrixCPU* m, MatrixCPU* nb, int sens)
         }
         for (int j = 0; j < _column;j++)
         {
-            n = nb->get(0, j);
+            n = (int) nb->get(0, j);
             s = 0;
             if (n > 0) 
             {
@@ -1575,7 +1575,7 @@ void MatrixCPU::Moy(MatrixCPU* m, MatrixCPU* nb, int sens)
         }
         for (int i = 0; i < _row;i++) 
         {
-            n = nb->get(i, 0);
+            n = (int) nb->get(i, 0);
             s = 0;
             if (n > 0) {
                 for (int j = 0; j < m->getNCol();j++) 
@@ -1618,7 +1618,7 @@ float MatrixCPU::sumD() const
             d = d + r;
         }
     }
-    return d;
+    return (float) d;
 }
 
 void MatrixCPU::sum(MatrixCPU* m, int sens)

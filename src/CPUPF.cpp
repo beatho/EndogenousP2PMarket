@@ -909,7 +909,7 @@ float CPUPF::getPloss()
         }
     }
    
-    return s; // desequilibre !
+    return (float) s; // desequilibre !
 }
 
 float CPUPF::getQloss()
@@ -926,7 +926,7 @@ float CPUPF::getQloss()
         }
     }
     
-    return s; // desequilibre !
+    return (float) s; // desequilibre !
 }
 
 float CPUPF::getRes()

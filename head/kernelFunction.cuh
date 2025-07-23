@@ -1422,7 +1422,9 @@ __global__ void ComputeLoss(float* X, float* Pn, float* indiceBusBegin, float* Z
 	} __syncthreads(); }
 	if (blockSize >= 128) { if (thIdx < 64) { shArr[thIdx] += shArr[thIdx + 64]; shArr2[thIdx] += shArr2[thIdx + 64];
 	} __syncthreads(); }
-	if (thIdx < 32) {
+	if (blockSize >= 64) { if (thIdx < 32) { shArr[thIdx] += shArr[thIdx + 32]; shArr2[thIdx] += shArr2[thIdx + 32];
+	} __syncthreads(); }
+	else if (thIdx < 32) {
 		warpReduce<blockSize>(shArr, thIdx);
 		warpReduce<blockSize>(shArr2, thIdx);
 	}

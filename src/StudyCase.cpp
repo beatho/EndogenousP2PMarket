@@ -21,7 +21,7 @@ void StudyCase::genCoresBusAgent(bool all)
 	if (all) {
 		_CoresBusAgent = MatrixCPU(_nBus, _nAgent);
 		for (int n = 0; n < _nAgent; n++) {
-			int bus = _CoresBusAgentLin.get(n, 0);
+			int bus = (int) _CoresBusAgentLin.get(n, 0);
 			_CoresBusAgent.set(bus, n, 1);
 		}
 	}
@@ -31,7 +31,7 @@ void StudyCase::genCoresBusAgent(bool all)
 	_CoresAgentBusLin = MatrixCPU(_nAgent, 1);
 
 	for (int i = 0; i < _nAgent; i++) {
-		int bus = _CoresBusAgentLin.get(i, 0);
+		int bus = (int) _CoresBusAgentLin.get(i, 0);
 		_nAgentByBus.increment(bus, 0, 1);
 	}
 
@@ -40,13 +40,13 @@ void StudyCase::genCoresBusAgent(bool all)
 	int* decompteAgent = new int[_nBus];
 	for (int b = 0; b < _nBus; b++) {
 		_CoresAgentBusLinBegin.set(b, 0, debut);
-		debut += _nAgentByBus.get(b, 0);
+		debut += (int) _nAgentByBus.get(b, 0);
 		decompteAgent[b] = 0;
 	}
 
 	for (int n = 0; n < _nAgent; n++) {
-		int bus = _CoresBusAgentLin.get(n, 0);
-		int indice = _CoresAgentBusLinBegin.get(bus, 0) + decompteAgent[bus];
+		int bus = (int) _CoresBusAgentLin.get(n, 0);
+		int indice = (int) _CoresAgentBusLinBegin.get(bus, 0) + decompteAgent[bus];
 		decompteAgent[bus]++;
 		_CoresAgentBusLin.set(indice, 0, n);
 	}
@@ -96,10 +96,10 @@ void StudyCase::setReduce(bool toReduce1)
 
 StudyCase::StudyCase()
 {
-	 _timeInit = 0;
-	 createGrid(true);
-	 initMat();
-	 srand(time(nullptr));
+	_timeInit = 0;
+	createGrid(true);
+	initMat();
+	srand(time(NULL));
 }
 StudyCase::StudyCase(int nAgent, float P, float dP, float a, float da, float b, float db, float propCons, float propPro)
 {
@@ -576,12 +576,12 @@ void StudyCase::SetStudyCase(std::string path, std::string name, MatrixCPU* P0, 
 		MatrixCPU fileCoresBus = SCGrid->getfileCoresBus();
 		MatrixCPU GenBus = SCAg.getGenBus();
 
-		int idBusMax = fileCoresBus.max2();
+		int idBusMax = (int) fileCoresBus.max2();
 		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste � -1, le bus n'existe pas
 
 		//std::cout << "agent" << std::endl;
 		for (int i = 0; i < _nBus; i++) {
-			int bus = fileCoresBus.get(i, 0);
+			int bus = (int) fileCoresBus.get(i, 0);
 			fileBusAgent.set(bus, 0, i);
 		}
 
@@ -594,7 +594,7 @@ void StudyCase::SetStudyCase(std::string path, std::string name, MatrixCPU* P0, 
 			}
 			else {
 				int idGen = i - _nBus;
-				int bus = fileBusAgent.get(GenBus.get(idGen, 0), 0);
+				int bus = (int) fileBusAgent.get((int) GenBus.get(idGen, 0), 0);
 				_CoresBusAgent.set(bus, i, 1);
 			}
 		}
@@ -870,7 +870,7 @@ void StudyCase::SetEuropeP0(const std::string& path, MatrixCPU* P0, bool already
 		MatrixCPU fileCoresBus = SCGrid->getfileCoresBus();
 		MatrixCPU GenBus = SCAg.getGenBus();
 
-		int idBusMax = fileCoresBus.max2();
+		int idBusMax = (int) fileCoresBus.max2();
 		MatrixCPU fileBusAgent(idBusMax + 1, 1, -1); // si reste � -1, le bus n'existe pas
 		
 
@@ -887,7 +887,7 @@ void StudyCase::SetEuropeP0(const std::string& path, MatrixCPU* P0, bool already
 			}
 			else {
 				int idGen = i - nCons;
-				int bus = (int) fileBusAgent.get(GenBus.get(idGen, 0), 0);
+				int bus = (int) fileBusAgent.get( (int) GenBus.get(idGen, 0), 0);
 				_CoresBusAgentLin.set(i, 0, (float) bus);
 			}
 		}

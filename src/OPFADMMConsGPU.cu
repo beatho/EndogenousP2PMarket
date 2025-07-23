@@ -324,7 +324,7 @@ void OPFADMMConsGPU::init(const Simparam& sim, const StudyCase& cas)
 		_sizeOPFADMMConsTotal += (_nBus + 2); // pertes et courants sauf premier bus ou + 2
 	}
 	else if (losstype == LossType::POWER) {
-		_sizeOPFADMMConsTotal += _nAgent;
+		_sizeOPFADMMConsTotal += 2*_nAgent;
 	}
 
 	_numBlocksB = ceil((_nBus + _blockSize - 1) / _blockSize);
@@ -339,15 +339,16 @@ void OPFADMMConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	_CoresAgentBusBegin = MatrixGPU(cas.getCoresAgentBusLinBegin(), 1);
 	_nAgentByBus = MatrixGPU(cas.getNagentByBus(), 1);
 	_nAgentByBusCPU = cas.getNagentByBus();
+	nChildCPU = MatrixCPU(_nBus, 1);
+
 	PosAgent = MatrixGPU(_nAgent, 1, 0, 1);
 
 	initPosAgent << <_nBus, _blockSizeSmall >> > (PosAgent._matrixGPU, _nAgentByBus._matrixGPU, _CoresAgentBusBegin._matrixGPU, _CoresAgentBus._matrixGPU);
 	
-	nChildCPU = MatrixCPU(_nBus, 1);
+	
 
 	CoresLineBusCPU = cas.getCoresLineBus(true);
 	CoresLineBus = MatrixGPU(CoresLineBusCPU, 1);
-
 	_CoresBusAgent = MatrixGPU(cas.getCoresBusAgentLin(), 1); // Cores[n] = b
 
 	Ancestor = MatrixGPU(_nBus, 1, 0); // A_i = bus antécédent de i
@@ -394,12 +395,6 @@ void OPFADMMConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	Pn = MatrixGPU(sim.getPn(), 1); // not the real agent
 	Pmin = MatrixGPU(cas.getPmin(), 1); 
 	Pmax = MatrixGPU(cas.getPmax(), 1); // idem
-
-	// the loss provider
-	/*Pmin.set(0, 0, 0);
-	Pmax.set(0, 0, 0);
-	Pmin.set(_nAgent, 0, 0);
-	Pmax.set(_nAgent, 0, 0);*/
 
 	Pbmax = MatrixGPU(2 * _nBus, 1, 0, 1);
 	Pbmin = MatrixGPU(2 * _nBus, 1, 0, 1);
@@ -449,7 +444,7 @@ void OPFADMMConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	sizeOPFADMMConsGPU.preallocateReduction();
 	sizeOPFADMMConsGPUBig = MatrixGPU(_sizeOPFADMMConsTotal, 1, 0, 1);
 
-	indiceBusBeginCPU = MatrixCPU(_nBusWLoss, 1);
+	_indiceBusBeginCPU = MatrixCPU(_nBusWLoss, 1);
 	_indiceBusBeginBig = MatrixGPU(_sizeOPFADMMConsTotal, 1, 0, 1);
 	CoresChatBeginCPU = MatrixCPU(_nBusWLoss, 1);
 
@@ -459,18 +454,18 @@ void OPFADMMConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	for (int i = 0; i < _nBus; i++) {
 		int m = nChildCPU.get(i, 0);
 		int nB = _nAgentByBusCPU.get(i, 0);
-		indiceBusBeginCPU.set(i, 0, debut);
+		_indiceBusBeginCPU.set(i, 0, debut);
 		CoresChatBeginCPU.set(i, 0, debutChat);
 		int sizeA = m * 3 + 5 + 2 * nB;
 		debut += sizeA;
 		debutChat += 4 + 2 * nB;
 	}
-	indiceBusBeginCPU.set(_nBus, 0, debut);
+	_indiceBusBeginCPU.set(_nBus, 0, debut);
 	CoresChatBeginCPU.set(_nBus, 0, debutChat);
 
 
 	_CoresChatBegin = MatrixGPU(CoresChatBeginCPU, 1);
-	_indiceBusBegin = MatrixGPU(indiceBusBeginCPU, 1);
+	_indiceBusBegin = MatrixGPU(_indiceBusBeginCPU, 1);
 	defineSizeBig << <_nBusWLoss, _blockSize >> > (sizeOPFADMMConsGPUBig._matrixGPU, nChild._matrixGPU, _indiceBusBegin._matrixGPU, sizeOPFADMMConsGPU._matrixGPU, _indiceBusBeginBig._matrixGPU, _nAgentByBus._matrixGPU, losstype, _nBus, _nAgent);
 	 
 
@@ -620,7 +615,7 @@ void OPFADMMConsGPU::init(const Simparam& sim, const StudyCase& cas)
 	initPQAgentV << < _nBus, _blockSizeSmall >> > (X._matrixGPU, _indiceBusBegin._matrixGPU, _CoresAgentBus._matrixGPU, _nAgentByBus._matrixGPU, _CoresAgentBusBegin._matrixGPU, Pn._matrixGPU, _nAgent);
 	
 
-	initDFSPQ << <1, _nBus, _nBus* (8*sizeof(bool) + sizeof(int)) >> > (X._matrixGPU, Pb._matrixGPU, nChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _nBus);
+	initDFSPQ << <1, _nBus, _nBus* (sizeof(int) + sizeof(int)) >> > (X._matrixGPU, Pb._matrixGPU, nChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _nBus);
 	//std::cout << " X " << std::endl;
 	//X.display(true);
 
@@ -756,7 +751,7 @@ void OPFADMMConsGPU::initConsensus(const Simparam& sim, const StudyCase& cas, fl
 		_sizeOPFADMMConsTotal += (_nBus + 2); // pertes et courants sauf premier bus ou + 2
 	}
 	else if (losstype == LossType::POWER) {
-		_sizeOPFADMMConsTotal += _nAgent;
+		_sizeOPFADMMConsTotal += 2 * _nAgent;
 	}
 
 	_numBlocksB = ceil((_nBus + _blockSize - 1) / _blockSize);
@@ -953,11 +948,12 @@ void OPFADMMConsGPU::initConsensus(const Simparam& sim, const StudyCase& cas, fl
 	PosChild.transferGPU();
 
 	debut = 0;
+	int sizeA = 0;
 	for (int i = 0; i < _nBus; i++) {
 		// (Pi, Qi, li, vi, pn..., qn..., vai, Pci ..., Qci... , lci...) !!!!!
 		int m = nChildCPU.get(i, 0);
 		int nB = _nAgentByBusCPU.get(i, 0);
-		int sizeA = m * 3 + 5 + 2 * nB;
+		sizeA = m * 3 + 5 + 2 * nB;
 		MatrixCPU A(2 + 1 * (i > 0), sizeA);
 
 		if (i > 0) {
@@ -1003,26 +999,90 @@ void OPFADMMConsGPU::initConsensus(const Simparam& sim, const StudyCase& cas, fl
 	}
 
 	// bus factice
-	int sizeA = 0;
+		// bus factice
+	/*MatrixCPU Hloss;
+	switch (losstype)
+	{
+	case LossType::POWER:
+		sizeA = 2 * _nAgent;
+		Hloss = MatrixCPU(2, sizeA);
+		Hloss.setEyes(-1);
+		Hloss.set(0, 0, 0);
+		Hloss.set(_nAgent, _nAgent, 0);
+		for (int i = 1; i < _nAgent; i++) {
+			Hloss.set(0, i, 1); // sum(p) + Ploss = 0
+			Hloss.set(_nAgent, i + _nAgent, 1); // Qloss + sum(q) = 0
+		}
+		break;
+	case LossType::CURRENT:
+		sizeA = 2 + _nLine;
+		Hloss = MatrixCPU(2, sizeA);
+		Hloss.setEyes(-1);
+		Hloss.set(0, 0, 0);
+		Hloss.set(1, 1, 0);
+		for (int i = 0; i < _nLine; i++) {
+			Hloss.set(0, i + 2, ZsRe.get(i, 0)); // sum(p) + Ploss = 0
+			Hloss.set(1, i + 2, ZsIm.get(i, 0)); // Qloss + sum(q) = 0
+		}
+		break;
+	}*/
+	
+	MatrixCPU Aloss;
+	switch (losstype)
+	{
+	case LossType::POWER:
+		sizeA = 2 * _nAgent;
+		Aloss = MatrixCPU(2, sizeA);
+		for (int i = 0; i < _nAgent; i++) {
+			Aloss.set(0, i, 1); // sum(p) + Ploss = 0
+			Aloss.set(1, i + _nAgent, 1); // Qloss + sum(q) = 0
+		}
+		break;
+	case LossType::CURRENT:
+		sizeA = 2 + _nLine;
+		Aloss = MatrixCPU(2, sizeA);
+		for (int i = 0; i < _nLine; i++) {
+			Aloss.set(0, i + 2, ZsRe.get(i, 0)); // sum(l R)= Ploss
+			Aloss.set(1, i + 2, ZsIm.get(i, 0)); // Qloss=sum(l L)
+		}
+		Aloss.set(0, 0, 1); // ploss
+		Aloss.set(1, 1, 1); // qloss
+		break;
+	}
+	MatrixCPU temp22(2, 2);
+	MatrixCPU temp2M(2, sizeA);
+	MatrixCPU tempMM(sizeA, sizeA);
+	MatrixCPU tempMMbis(sizeA, sizeA);
+	temp22.multiplyTrans(&Aloss, &Aloss);
+	temp22.invertGaussJordan(&temp22); // 3^3 = 27 (fixe !!!)
+	temp2M.MultiplyMatMat(&temp22, &Aloss); // (3*3) * (3*o_b) -> 27 *o_b
+	tempMM.multiplyTrans(&Aloss, &temp2M, 0);
+
+	tempMMbis.setEyes(-1);
+	tempMMbis.add(&tempMM);
+
+	MatrixGPU tempMMGPU = MatrixGPU(tempMMbis, 1);
+
+	Hinv.setBloc(debut, debut + sizeA, 0, sizeA, &tempMMGPU);
+	
+	/*int sizeA = 0;
 	MatrixGPU A;
 	switch (losstype)
 	{
 	case LossType::POWER:
 		sizeA = 2 *_nAgent;
 		A = MatrixGPU(sizeA, sizeA);
-		A.setEyes(-1);
+		A.setEyes(1);
 		A.set(0, 0, 0);
 		A.set(_nAgent, _nAgent, 0);
 		for (int i = 1; i < _nAgent; i++) {
-			A.set(0, i, 1); // sum(p) + Ploss = 0
-			A.set(_nAgent, i + _nAgent, 1); // Qloss + sum(q) = 0
+			A.set(0, i, -1); // sum(p) + Ploss = 0
+			A.set(_nAgent, i + _nAgent, -	1); // Qloss + sum(q) = 0
 		}
+		//A.display();
 		A.transferGPU();
 		Hinv.setBloc(debut, debut + sizeA, 0, sizeA, &A);
-		/*for (int i = 0; i < _nAgentTrue; i++) {
-			A[_nBus].set(0, i, 1); // sum(p) + Ploss = 0
-			A[_nBus].set(1, i + _nAgentTrue, 1); // Qloss + sum(q) = 0
-		}*/
+		
 		break;
 	case LossType::CURRENT:
 		sizeA = 2 + _nBus;
@@ -1036,13 +1096,12 @@ void OPFADMMConsGPU::initConsensus(const Simparam& sim, const StudyCase& cas, fl
 		}
 		A.transferGPU();
 		Hinv.setBloc(debut, debut + sizeA, 0, sizeA, &A);
-		//A[_nBus].set(0, 0, 1); // ploss
-		//A[_nBus].set(1, 1, 1); // qloss
 		break;
-	}
+	}*/
 
 	Hinv.divide(_rho);
 
+	Hinv.display(true);
 	ZsRe.transferGPU();
 	ZsIm.transferGPU();
 	_indiceChildBegin.transferGPU();
@@ -1670,9 +1729,6 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPU()
 	double x1, x2, x3, x4, c1, c2, c3, c4, lambdaLo, lambdaUp, x3min, x3max, gamma, k2; // double peut �tre necessaire
 	double c1122; // c3 : voltage -> indice + 3, c4 : current -> indice + 2;
 	
-	
-
-
 	for (int bus = 1; bus < _nBus; bus++) {
 
 		int typeSol = 0;
@@ -1682,7 +1738,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPU()
 
 		int nRoot = 0;
 
-		int begining = indiceBusBeginCPU.get(bus, 0);
+		int begining = _indiceBusBeginCPU.get(bus, 0);
 		int nC = nChildCPU.get(bus,0);
 		int beginChat = CoresChatBeginCPU.get(bus, 0);
 		bool goodSol = false;
@@ -1924,7 +1980,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPUBis()
 
 		int nRoot = 0;
 
-		int begining = indiceBusBeginCPU.get(bus, 0);
+		int begining = _indiceBusBeginCPU.get(bus, 0);
 		int nC = nChildCPU.get(bus, 0);
 		int beginChat = CoresChatBeginCPU.get(bus, 0);
 		bool goodSol = false;
@@ -2177,7 +2233,7 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPUBis(bool first)
 
 		int nRoot = 0;
 
-		int begining = indiceBusBeginCPU.get(bus, 0);
+		int begining = _indiceBusBeginCPU.get(bus, 0);
 		int nC = nChildCPU.get(bus, 0);
 		int beginChat = CoresChatBeginCPU.get(bus, 0);
 		bool goodSol = false;
@@ -2389,7 +2445,6 @@ void OPFADMMConsGPU::updateXWOCurrentOnCPUBis(bool first)
 void OPFADMMConsGPU::updateMu()
 {
 	updateMUGPU << <_numBlocksH, _blockSize >> > (Mu._matrixGPU, Y._matrixGPU, X._matrixGPU, _rho, _sizeOPFADMMConsTotal);
-
 }
 
 

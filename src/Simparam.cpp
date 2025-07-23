@@ -344,13 +344,13 @@ Simparam& Simparam::operator=(const Simparam& sim)
 
 void Simparam::setFromInterface(ParamInterface* param, bool AC){
 	MatrixCPU parameters(param->getParam());
-	if(parameters.get(0, iterG_ind)){_iterMaxGlobal = parameters.get(0, iterG_ind);	}
-	if(parameters.get(0, iterL_ind)){_iterMaxLocal  = parameters.get(0, iterL_ind);	}
-	if(parameters.get(0, iterItern_ind)){_iterIntern    = parameters.get(0, iterItern_ind);}
+	if(parameters.get(0, iterG_ind)){_iterMaxGlobal   = (int) parameters.get(0, iterG_ind);	}
+	if(parameters.get(0, iterL_ind)){_iterMaxLocal    = (int) parameters.get(0, iterL_ind);	}
+	if(parameters.get(0, iterItern_ind)){_iterIntern  = (int) parameters.get(0, iterItern_ind);}
 
-	if(parameters.get(0, stepG_ind)){_stepG		   = parameters.get(0, stepG_ind);	}
-	if(parameters.get(0, stepL_ind)){_stepL  = parameters.get(0, stepL_ind);	}
-	if(parameters.get(0, stepIntern_ind)){_stepIntern    = parameters.get(0, stepIntern_ind);}
+	if(parameters.get(0, stepG_ind)){_stepG		      = (int) parameters.get(0, stepG_ind);	}
+	if(parameters.get(0, stepL_ind)){_stepL  		  = (int)  parameters.get(0, stepL_ind);	}
+	if(parameters.get(0, stepIntern_ind)){_stepIntern = (int) parameters.get(0, stepIntern_ind);}
 
 	if(parameters.get(0, epsG_ind)){_epsGlobal = parameters.get(0, epsG_ind);	}
 	if(parameters.get(0, epsX_ind)){_epsGlobalConst = parameters.get(0, epsX_ind);	}
@@ -363,10 +363,10 @@ void Simparam::setFromInterface(ParamInterface* param, bool AC){
 	_resF = MatrixCPU(3, (_iterMaxGlobal/_stepG)+1);
 
 	MatrixCPU sizes(param->getSize());
-	_nAgent = sizes.get(0, nAgentP_ind) + 1 *(AC);
-	_nBus	= sizes.get(0, nBusP_ind);
-	_nLine  = sizes.get(0, nLineP_ind);
-	_nLineConst = sizes.get(0, nLineCons_ind);
+	_nAgent = (int) sizes.get(0, nAgentP_ind) + 1 *(AC);
+	_nBus	= (int) sizes.get(0, nBusP_ind);
+	_nLine  = (int) sizes.get(0, nLineP_ind);
+	_nLineConst = (int) sizes.get(0, nLineCons_ind);
 	
 	_AC = AC;
 	if(_AC){

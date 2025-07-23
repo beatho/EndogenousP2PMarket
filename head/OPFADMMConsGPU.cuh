@@ -54,6 +54,7 @@ public:
 	virtual MatrixCPU getPhi();
 	virtual MatrixCPU getE();
 
+	LossType losstype = LossType::POWER;
 
 	void display();
 private:
@@ -90,7 +91,7 @@ private:
 	float _Qloss = 0;
 	clock_t timeOPF = 0;
 	bool isCurrentLimited = false;
-	LossType losstype = LossType::CURRENT;
+
 
 	// parameter agent and iteration dependant (but not here for now)
 
@@ -108,7 +109,6 @@ private:
 	MatrixCPU nVoisinCPU;
 	MatrixCPU ZsNorm;
 	MatrixCPU VoltageLimitCPU;
-	MatrixCPU indiceBusBeginCPU; // size : nBus
 	MatrixCPU CoresChatBeginCPU;
 
 
@@ -121,8 +121,6 @@ private:
 	MatrixGPU PosAgent;
 	MatrixGPU _nAgentByBus;
 
-	MatrixGPU ZsRe;
-	MatrixGPU ZsIm;
 	
 	MatrixGPU VoltageLimit; // (vmin^2, vmax^2) * sqrt(Nchild + 1 / 2)
 	MatrixGPU VoltageLimitReal; // vmin, vmax
@@ -130,7 +128,6 @@ private:
 	
 	MatrixGPU X; // (Pi, Qi, li, vi, pn..., qn..., vai, Pci ..., Qci... , lci...) !!!!!
 	MatrixGPU Ypre;
-	MatrixGPU Y;// (Pi, Qi, li, vi, pn..., qn..., vai, Pci ..., Qci... , lci...) !!!!!
 	MatrixGPU Mu;
 
 	MatrixGPU Chat;

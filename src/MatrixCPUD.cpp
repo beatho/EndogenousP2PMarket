@@ -873,7 +873,7 @@ void MatrixCPUD::invertGaussJordan(MatrixCPUD* mToInvert)
     int r = 0;
     for (int column = 0; column < _column; column++) {
         double pivotAbs = m.maxAbs(r, _row, column, column + 1, &indices);
-        int k = indices.get(0, 0); // indice max de la colonne j
+        int k = (int) indices.get(0, 0); // indice max de la colonne j
         double pivot = m.get(k, column);
         if (pivotAbs < 0.000001f) {
             throw std::invalid_argument("not invertible matrix");
@@ -973,7 +973,7 @@ void MatrixCPUD::LUPFactorization(MatrixCPUD* A, MatrixCPUD* Po)
 
         if (imax != col) { //le max pas sur la diagonal
             //pivoting P
-            j = Po->get(col,0);
+            j = (int) Po->get(col,0);
             Po->set(col, 0, Po->get(imax, 0));
             Po->set(imax, 0, j);
 
@@ -1032,7 +1032,7 @@ void MatrixCPUD::solveSysLower(MatrixCPUD* L, MatrixCPUD* b, MatrixCPUD* P)
     }
     int n = getNLin();
     for (int i = 0; i < n; i++) {
-        set(i, 0, b->get(P->get(i, 0), 0)); // x[i] = b[P[i]];
+        set(i, 0, b->get( (int) P->get(i, 0), 0)); // x[i] = b[P[i]];
 
         for (int k = 0; k < i; k++) {
             increment(i, 0, - L->get(i, k) * get(k, 0));
@@ -1057,7 +1057,7 @@ void MatrixCPUD::solveSys(MatrixCPUD* A, MatrixCPUD* P, MatrixCPUD* b)
     b->display();*/
     int n = getNLin();
     for (int i = 0; i < n; i++) {
-        set(i, 0, b->get(P->get(i, 0), 0)); // x[i] = b[P[i]];
+        set(i, 0, b->get( (int) P->get(i, 0), 0)); // x[i] = b[P[i]];
     }
     /*std::cout << " permute b= or x" << std::endl;
     display();*/
@@ -1225,7 +1225,7 @@ double MatrixCPUD::distance2(MatrixCPUD* m1) const
             d = d + r * r;
         }
     }
-    return sqrtf(d);
+    return sqrt(d);
 }
 
 double MatrixCPUD::distance2() const
@@ -1240,7 +1240,7 @@ double MatrixCPUD::distance2() const
             d = d + r * r;
         }
     }
-    return sqrtf(d);
+    return sqrt(d);
     
 }
 
@@ -1344,7 +1344,7 @@ void MatrixCPUD::Moy(MatrixCPUD* m, MatrixCPUD* nb, int sens)
         }
         for (int j = 0; j < _column;j++)
         {
-            n = nb->get(0, j);
+            n = (int) nb->get(0, j);
             s = 0;
             if (n > 0) 
             {
@@ -1364,7 +1364,7 @@ void MatrixCPUD::Moy(MatrixCPUD* m, MatrixCPUD* nb, int sens)
         }
         for (int i = 0; i < _row;i++) 
         {
-            n = nb->get(i, 0);
+            n = (int) nb->get(i, 0);
             s = 0;
             if (n > 0) {
                 for (int j = 0; j < m->getNCol();j++) 

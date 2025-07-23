@@ -13,9 +13,6 @@ OPFADMMGPU::OPFADMMGPU() : MethodOPFGPU()
 	occurencePerBlock = MatrixCPU(1, 12, 0); //nb de fois utilisé pendant la simu
 }
 
-
-
-
 OPFADMMGPU::OPFADMMGPU(float rho) : MethodOPFGPU()
 {
 #if DEBUG_CONSTRUCTOR
@@ -30,22 +27,8 @@ OPFADMMGPU::OPFADMMGPU(float rho) : MethodOPFGPU()
 
 OPFADMMGPU::~OPFADMMGPU()
 {
-	/*DELETEA(tempM1);
-	DELETEA(tempM);
-
-	DELETEA(X);
-	DELETEA(Ypre);
-	DELETEA(Y);
-	DELETEA(YTrans);
-	DELETEA(Mu);
-
-	DELETEA(Hinv);
-	DELETEA(A);
-	DELETEA(Q);
-
-	DELETEA(Childs);*/
-
 }
+
 void OPFADMMGPU::setParam(float rho)
 {
 	_rho = rho;
@@ -143,7 +126,6 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	std::cout << "------" << std::endl;*/
 
 	while ((_iterGlobal < _iterG) && (resG > epsG)) {
-
 		/*std::cout << "--------" << std::endl;
 		std::cout << " Pn " << std::endl;
 		Pn.display(true);
@@ -159,8 +141,8 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 		std::cout << " Mu " << std::endl;
 		Mu.display(true);
 		Chat.display(true);
+		Bpt2.display(true);*/
 
-*/
 #ifdef INSTRUMENTATION
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
@@ -210,8 +192,9 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 		timePerBlock.increment(0, 7, (float) std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
 		t1 = std::chrono::high_resolution_clock::now();
 #endif // INSTRUMENTATION
-
+		
 		updateChat();
+		
 		CHECK_LAST_CUDA_ERROR();
 #ifdef INSTRUMENTATION
 		cudaDeviceSynchronize();
@@ -236,7 +219,7 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 
 		_iterGlobal++;
 	}
-	//std::cout << iterGlobal << " " << _iterLocal << " " << resL << " " << resF.get(0, (iterGlobal - 1) / stepG) << " " << resF.get(1, (iterGlobal - 1) / stepG) << " " << resF.get(2, (iterGlobal - 1) / stepG) << std::endl;
+	//std::cout << _iterGlobal << " " << _iterLocal << " " << resL << " " << resF.get(0, (_iterGlobal - 1) / _stepG) << " " << resF.get(1, (_iterGlobal - 1) / _stepG) << " " << resF.get(2, (_iterGlobal - 1) / _stepG) << std::endl;
 
 
 #ifdef INSTRUMENTATION	
@@ -255,7 +238,7 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	Pn.display(true);
 	std::cout << " PnTilde " << std::endl;
 	PnTilde.display(true);*/
-
+	
 	fc = calcFc(&Cost1, &Cost2, &Pn, &tempN2);
 	// FB 5
 
@@ -283,9 +266,11 @@ void OPFADMMGPU::solve(Simparam* result, const Simparam& sim, const StudyCase& c
 	MatrixCPU PnCPU;
 	Pn.toMatCPU(PnCPU);
 	PnCPU.set(0, 0, getPLoss());
+
 	PnCPU.set(_nAgent, 0, getQLoss());
 
 	result->setPn(&PnCPU);
+	
 	
 	MatrixCPU Pb(getPb());
 	MatrixCPU Phi(getPhi());
@@ -374,11 +359,7 @@ void OPFADMMGPU::init(const Simparam& sim, const StudyCase& cas)
 	if (_rhol == 0) {
 		_rhol = _rho;
 	}
-	if (consensus) {
-		std::cout << "pas coder pour update Q !!!" << std::endl;
-		exit(-1);
-	}
-
+	
 	const int iterG = sim.getIterG();
 	const int stepG = sim.getStepG();
 
@@ -442,9 +423,6 @@ void OPFADMMGPU::init(const Simparam& sim, const StudyCase& cas)
 
 	nChild = MatrixGPU(nChildCPU, 1);
 
-
-
-
 	_rhoInv = 1 / _rho;
 	resF = MatrixCPU(3, (iterG / stepG) + 1, 0);
 
@@ -500,13 +478,19 @@ void OPFADMMGPU::init(const Simparam& sim, const StudyCase& cas)
 	Pmax.set(_nAgent, 0, 0, 1);
 
 
+	_nAgentByBus.display(true);
+	_CoresAgentBusBegin.display(true);
+
 
 	//std::cout << "remove loss agent" << std::endl;
 	removeLossAgent << <1, 1 >> > (_nAgentByBus._matrixGPU, _CoresAgentBusBegin._matrixGPU);
 
+	_nAgentByBus.display(true);
+	_CoresAgentBusBegin.display(true);
 
 	ComputePFromAgentToBus();
 
+	CoresSoloBusAgent.display(true);
 
 	divideMultiplyByNagentByBus << <_numBlocksB, _blockSize >> > (Apt1._matrixGPU, Apt2._matrixGPU, PnTilde._matrixGPU, PnTmin._matrixGPU, PnTmax._matrixGPU, _nAgentByBus._matrixGPU, _rhol, _nBus);
 
@@ -527,8 +511,6 @@ void OPFADMMGPU::init(const Simparam& sim, const StudyCase& cas)
 	PnTmin.display(true);
 	PnTmax.display(true);*/
 	
-
-
 	//std::cout << " creation " << std::endl;
 	X = MatrixGPU(_sizeOPFTotal, 1, 0, 1); // Changement d'ordre !!!!!!!!!!!!
 	Ypre = MatrixGPU(_sizeOPFTotal, 1, 0, 1); // (Pi, Qi, li, vi, pi, qi, vai, Pci ..., Qci... , lci...) !!!!!
@@ -544,16 +526,16 @@ void OPFADMMGPU::init(const Simparam& sim, const StudyCase& cas)
 	sizeOPFADMMGPU = MatrixGPU(_nBus, 1, 0, 1);
 	sizeOPFADMMGPU.preallocateReduction();
 	sizeOPFADMMGPUBig = MatrixGPU(_sizeOPFTotal, 1, 0, 1);
-	_indiceBusBegin = MatrixGPU(_nBus, 1);
+	_indiceBusBeginCPU = MatrixCPU(_nBus, 1);
 	_indiceBusBeginBig = MatrixGPU(_sizeOPFTotal, 1, 0, 1);
 	int debut = 0;
 	for (int i = 0; i < _nBus; i++) {
 		int m = nChildCPU.get(i, 0);
-		_indiceBusBegin.set(i, 0, debut);
+		_indiceBusBeginCPU.set(i, 0, debut);
 		int sizeA = m * 3 + 7;
 		debut += sizeA;
 	}
-	_indiceBusBegin.transferGPU();
+	_indiceBusBegin = MatrixGPU(_indiceBusBeginCPU, 1);
 	defineSizeBig << <_nBus, _blockSize >> > (sizeOPFADMMGPUBig._matrixGPU, nChild._matrixGPU, _indiceBusBegin._matrixGPU, sizeOPFADMMGPU._matrixGPU, _indiceBusBeginBig._matrixGPU);
 	/*sizeOPFADMMGPU = nChild;
 	sizeOPFADMMGPU.multiply(3);
@@ -599,7 +581,6 @@ void OPFADMMGPU::init(const Simparam& sim, const StudyCase& cas)
 			nChildTemp.increment(Ai, 0, 1);
 			debutChild += nChildCPU.get(i - 1, 0);
 		}
-
 	}
 	/*Childs.display();
 	Ancestor.display();
@@ -615,7 +596,6 @@ void OPFADMMGPU::init(const Simparam& sim, const StudyCase& cas)
 		int m = nChildCPU.get(i, 0);
 		int sizeA = nChildCPU.get(i, 0) * 3 + 7;
 		MatrixCPU A(2 + (i > 0), sizeA);
-
 		if (i > 0) {
 			A.set(2, 0, 2 * ZsRe.get(i - 1, 0));
 			A.set(2, 1, 2 * ZsIm.get(i - 1, 0));
@@ -676,9 +656,7 @@ void OPFADMMGPU::init(const Simparam& sim, const StudyCase& cas)
 	std::cout << " posChild " << std::endl;
 	PosChild.display(true);*/
 	//
-	initDFSPQ << <1, _nBus, _nBus* (sizeof(bool) + sizeof(int)) >> > (X._matrixGPU, nChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _nBus);
-
-
+	initDFSPQ << <1, _nBus, _nBus* (sizeof(int) + sizeof(int)) >> > (X._matrixGPU, nChild._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _nBus);
 
 
 	//CHECK_LAST_CUDA_ERROR();
@@ -1377,6 +1355,14 @@ __global__ void updatePnPGPUSharedResidual(float* Pn, float* PnPre, float* PnMoy
 				Pnprelocal[1] = t;
 				PnMoyShared[1] = t;
 				PnTildeShared[1] = t;
+
+
+				Pn[agent] = Pnlocal[0];
+				PnPre[agent] = Pnprelocal[0];
+
+				Pn[agent + nAgent] = Pnlocal[1];
+				PnPre[agent + nAgent] = Pnprelocal[1];
+
 			}
 		}
 		else {
@@ -1523,21 +1509,24 @@ __global__ void updatePnPGPUSharedResidual(float* Pn, float* PnPre, float* PnMoy
 					}
 				}
 			}
+		
+			//Ecriture des it�rations
+			__syncthreads();
+
+			if (thIdx < nAgentShared)
+			{
+				int agent = CoresBusAgent[j];
+
+				Pn[agent] = Pnlocal[0];
+				PnPre[agent] = Pnprelocal[0];
+
+				Pn[agent + nAgent] = Pnlocal[1];
+				PnPre[agent + nAgent] = Pnprelocal[1];
+
+			}
+		
 		}
-		//Ecriture des it�rations
-		__syncthreads();
-
-		if (thIdx < nAgentShared)
-		{
-			int agent = CoresBusAgent[j];
-
-			Pn[agent] = Pnlocal[0];
-			PnPre[agent] = Pnprelocal[0];
-
-			Pn[agent + nAgent] = Pnlocal[1];
-			PnPre[agent + nAgent] = Pnprelocal[1];
-
-		}
+		
 		if (thIdx == 0) {
 			PnMoy[blockIdx.x] = PnMoyShared[0];// TMoyShared;
 			PnTilde[blockIdx.x] = PnTildeShared[0];// PShared;

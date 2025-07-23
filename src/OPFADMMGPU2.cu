@@ -333,10 +333,7 @@ void OPFADMMGPU2::init(const Simparam& sim, const StudyCase& cas)
 	if (_rhol == 0) {
 		_rhol = _rho;
 	}
-	if (consensus) {
-		std::cout << "pas coder pour update Q !!!" << std::endl;
-		exit(-1);
-	}
+	
 
 	const int iterG = sim.getIterG();
 	const int stepG = sim.getStepG();
@@ -469,7 +466,7 @@ void OPFADMMGPU2::init(const Simparam& sim, const StudyCase& cas)
 	sizeOPFADMMGPU2.preallocateReduction();
 	sizeOPFADMMGPU2Big = MatrixGPU(_sizeOPFTotal, 1, 0, 1);
 
-	_indiceBusBegin = MatrixGPU(_nBus, 1);
+	_indiceBusBeginCPU = MatrixCPU(_nBus, 1);
 	_indiceBusBeginBig = MatrixGPU(_sizeOPFTotal, 1, 0, 1);
 	_CoresChatBegin = MatrixGPU(_nBus, 1);
 
@@ -478,7 +475,7 @@ void OPFADMMGPU2::init(const Simparam& sim, const StudyCase& cas)
 	for (int i = 0; i < _nBus; i++) {
 		int m = nChildCPU.get(i, 0);
 		int nB = _nAgentByBusCPU.get(i, 0);
-		_indiceBusBegin.set(i, 0, debut);
+		_indiceBusBeginCPU.set(i, 0, debut);
 		_CoresChatBegin.set(i, 0, debutChat);
 		int sizeA = m * 3 + 5 + 2 * nB;
 		debut += sizeA;
@@ -488,7 +485,7 @@ void OPFADMMGPU2::init(const Simparam& sim, const StudyCase& cas)
 
 
 	_CoresChatBegin.transferGPU();
-	_indiceBusBegin.transferGPU();
+	_indiceBusBegin = MatrixGPU(_indiceBusBeginCPU, 1);
 	defineSizeBig << <_nBus, _blockSize >> > (sizeOPFADMMGPU2Big._matrixGPU, nChild._matrixGPU, _indiceBusBegin._matrixGPU, sizeOPFADMMGPU2._matrixGPU, _indiceBusBeginBig._matrixGPU, _nAgentByBus._matrixGPU);
 
 	//sizeOPFADMMGPU2.display(true);
@@ -821,7 +818,6 @@ void OPFADMMGPU2::CommunicationX()
 	communicateX << <_nBus, _blockSize >> > (X._matrixGPU, nChild._matrixGPU, Ancestor._matrixGPU, Childs._matrixGPU, _indiceBusBegin._matrixGPU, _indiceChildBegin._matrixGPU, _nAgentByBus._matrixGPU, _nBus);
 
 	// Y = { Pi, Qi, vi, li, vAi, (pn ...), qn...,  Pci ... , Qci ... , lci ... for all child Ci }
-
 	updateQ << <_numBlocksM, _blockSize >> > (Q._matrixGPU, X._matrixGPU, Mu._matrixGPU, _rho, _sizeOPFTotal);
 }
 

@@ -26,6 +26,8 @@ public:
 	virtual void solve(Simparam* result, const Simparam& sim, const StudyCase& cas)=0;
 	virtual void updateP0(const StudyCase& cas) = 0;
 	virtual void init(const Simparam& sim, const StudyCase& cas) = 0;
+
+	
 	virtual void display();
 	
 	virtual void setBestParam(const StudyCase& cas);

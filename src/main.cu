@@ -3600,7 +3600,7 @@ void SimuCompareISGT() {
 	const int nMethode = 4;
 	std::vector<int> indices = { 0, 1, 2, 3};
 	std::string methodesName[nMethode] = { "OPFADMM", "OPFADMM2","OPFADMMGPU", "OPFADMMGPU2" };
-	MethodOPF* methodes[nMethode];
+	Method* methodes[nMethode];
 	
 	methodes[0] = new OPFADMM;
 	methodes[1] = new OPFADMM2;
@@ -5607,11 +5607,11 @@ void testOPF(int choseCase, std::string chosenCase)
 	}
 
 	Simparam param(cas.getNagent(), cas.getNLine(true), true);
-	float epsL = 0.00001f;
-	float epsG = 0.0001f;
+	float epsL = 0.001f;
+	float epsG = 0.01f;
 	int stepG = 1;
 	int stepL = 5;
-	int iterG = 20000;
+	int iterG = 10000;
 	int iterL = 10000;
 	param.setEpsL(epsL);
 	param.setEpsG(epsG);
@@ -5670,7 +5670,6 @@ void testOPF(int choseCase, std::string chosenCase)
 		results.set(3, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
 		results.set(4, method, res.getIter());
 		res.display();
-		opfADMM.feasiblePoint();
 	}
 
 
@@ -5701,7 +5700,6 @@ void testOPF(int choseCase, std::string chosenCase)
 		results.set(3, method, (float)std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / million);
 		results.set(4, method, res.getIter());
 		res.display();
-		opfADMM2.feasiblePoint();
 	}
 
 	
@@ -6395,9 +6393,9 @@ void testMarketEndo(int choseCase, std::string chosenCase, int sizeN, int sizeB)
 	int iterG  = 10000;
 	int iterIntern = 5000;
 
-	float epsL = 0.00005f;
-	float epsG = 0.0001f;
-	float epsGC = 0.0001f;
+	float epsL = 0.0001f;
+	float epsG = 0.001f;
+	float epsGC = 0.001f;
 	float epsIntern = 0.0001f;
 
 	float rhoInit = 1; // 1 pour cas 2 noeuds, 5 pour cas9, cas 10, 10 cas 69

@@ -118,8 +118,8 @@ void MethodP2P::updateLAMBDA()
 void MethodP2P::updateLambda()
 {
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
-		float lamb = 0.5 * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
+		int k = (int) CoresLinTrans.get(t, 0);
+		float lamb = 0.5f * _rhog * (tradeLin.get(t, 0) + tradeLin.get(k, 0));
 		LAMBDALin.set(t, 0, LAMBDALin.get(t, 0) + lamb);
 	}
 }
@@ -188,7 +188,7 @@ float MethodP2P::updateResMat(int iter)
 float MethodP2P::updateRes(int iter)
 {
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
+		int k = (int) CoresLinTrans.get(t, 0);
 		tempNN.set(t, 0, tradeLin.get(t, 0) + tradeLin.get(k, 0));
 	}
 	float resR = tempNN.max2();
@@ -218,7 +218,7 @@ float MethodP2P::updateRes(int iter)
 }
 float MethodP2P::updateResEndo(int iter){
 	for (int t = 0; t < _nTrade; t++) {
-		int k = CoresLinTrans.get(t, 0);
+		int k = (int) CoresLinTrans.get(t, 0);
 		tempNN.set(t, 0, tradeLin.get(t, 0) + tradeLin.get(k, 0));
 	}
 	float resR = tempNN.max2();

@@ -76,8 +76,8 @@ void StudyCaseAgent::initCaseFromPobj()
 		if (_AC) {
 			// Q
 			Q0 = S0 * sqrt(1 - _PF.get(id - offset, 0) * _PF.get(id - offset, 0));
-			//int signe = -1; // 2 * (randomFloat > 0.8) - 1; // 4 chance sur 5 d'�tre inductif (m�me signe que P)
-			int signe = 2 * (id % 5) - 1; // un sur 5 ?
+			int signe = -1; // 2 * (randomFloat > 0.8) - 1; // 4 chance sur 5 d'�tre inductif (m�me signe que P)
+			//int signe = 2 * ((id % 5)==0) - 1; // un sur 5 ?
 			Q0 = signe * Q0; 
 			_Pobj.set(id + _nAgent, 0, Q0);
 			qLim1 = Q0 * (1 - dP + 2 * dP * (Q0 < 0));

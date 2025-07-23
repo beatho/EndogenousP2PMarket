@@ -85,7 +85,7 @@ __global__ void initDFSPQ(float* X, float* Pb, float* nChild, float* Childs, flo
 
 	extern __shared__ int globalMemory[];
 	int* ChildsSh = globalMemory;
-	bool* hasfinished = (bool*)(&(ChildsSh[nBus]));
+	int* hasfinished = (int*)(&(ChildsSh[nBus]));
 	/*__shared__ int ChildsSh[2];
 	__shared__ bool hasfinished[2];*/
 
@@ -100,7 +100,7 @@ __global__ void initDFSPQ(float* X, float* Pb, float* nChild, float* Childs, flo
 	__syncthreads();
 
 	if (bus < nBus) {
-		hasfinished[bus] = false;
+		hasfinished[bus] = 0;
 		int indice = indiceBusBegin[bus];
 		int indiceChild = (bus < (nBus - 1)) ? indiceChildBegin[bus] : 0;
 		int nb = nChild[bus];
@@ -122,7 +122,7 @@ __global__ void initDFSPQ(float* X, float* Pb, float* nChild, float* Childs, flo
 				X[indice + 1] = (bus > 0) * q;
 				float Si = p * p + q * q;
 				X[indice + 2] = (bus > 0) * Si / X[indice + 3];
-				hasfinished[bus] = true;
+				hasfinished[bus] = 1;
 				if (bus == 0) {
 					notfinished = false;
 				}
@@ -1511,12 +1511,14 @@ __global__ void communicateX(float* X, float* nChild, float* Ancestor, float* Ch
 		}
 		else { // Puissance
 			for (int n = 1 + index; n < nAgent; n += step) {
-				int bus2 = CoresBusAgent[n];
-				int In = PosAgent[n];
-				int nAgentBus = nAgentByBus[bus2];
+				int bus2 = CoresBusAgent[n]; // buq sur lequel est l'agent
+				int In = PosAgent[n]; // numero de l'agent sur ce bus
+				int nAgentBus = nAgentByBus[bus2]; // combien il y a d'agent sur ce bus
+				
+				int indiceBusAgent = indiceBusBegin[bus2]; // où commence X[bus2]
 
-				X[indice + n] = X[bus + 4 + In];
-				X[indice + n + nAgent] = X[bus + 4 + nAgentBus + In];
+				X[indice + n] = X[indiceBusAgent + 4 + In];
+				X[indice + n + nAgent] = X[indiceBusAgent + 4 + nAgentBus + In];
 			}/**/
 		}
 	}
@@ -1527,9 +1529,13 @@ __global__ void setPnFromX(float* Pn, float* X, float* indiceBusBegin, float* Co
 	int bus = blockIdx.x;
 	int thI = threadIdx.x;
 	int step = blockDim.x;
+
+
 	int begin = beginBusAgent[bus];
 	int nB = nAgentByBus[bus];
 	int fin = begin + nB;
+
+	
 	int indiceBus = indiceBusBegin[bus];
 
 

@@ -53,7 +53,6 @@ private:
 	int _numBlocksN = 1;
 	int _numBlocksM = 1;
 
-	int _nBus = 0;
 	int _nLine = 0;
 	
 	int _sizeOPFTotal = 0;
@@ -74,35 +73,29 @@ private:
 	int _iterG = 0;
 	int _stepG = 0;
 	
-	bool consensus = false;
 	clock_t timeOPF = 0;
 	
 	MatrixGPU _apt1;
 
 	// parameter agent and iteration dependant (but not here for now)
 
-
 	MatrixGPU tempN1; // Matrix temporaire pour aider les calculs
 	MatrixGPU tempNN; // plut�t que de re-allouer de la m�moire � chaque utilisation
 	MatrixGPU tempM1; //
 	MatrixGPU tempM; //
-
-	
 
 	MatrixGPU Cost1;
 	MatrixGPU Cost2;
 	MatrixGPU _CoresBusAgent;
 	MatrixGPU _nAgentByBus;
 
-	MatrixGPU ZsRe;
-	MatrixGPU ZsIm;
 	MatrixGPU ZsNorm;
 	MatrixGPU VoltageLimit; // (vmin^2, vmax^2) * sqrt(Nchild + 1 / 2)
 	MatrixGPU VoltageLimitReal; // vmin, vmax
 	
 	MatrixGPU X; // (Pi, Qi, li, vi, pi, qi, vai, Pci ..., Qci... , lci...) !!!!!
 	MatrixGPU Ypre;
-	MatrixGPU Y; // (Pi, Qi, li, vi, pi, qi, vai, Pci ..., Qci... , lci...) !!!!!
+	
 	//MatrixGPU YTrans; // (Pi,Qi,vi,li,pi,qi,pai,qai,lai,vij) !!!
 	MatrixGPU Mu;
 
@@ -119,11 +112,9 @@ private:
 	MatrixGPU sizeOPFADMMGPU;
 	MatrixGPU sizeOPFADMMGPUBig; // size : sizeOPFTotal
 
-
 	MatrixCPU nChildCPU;
 	MatrixCPU resF;
 	MatrixCPU VoltageLimitCPU;
-	MatrixCPU indiceBusBeginCPU; // size : nBus
 	MatrixCPU nAgentByBusCPU;
 	MatrixCPU CoresLineBus;
 
